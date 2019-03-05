@@ -149,7 +149,7 @@ namespace VivaldiCustomLauncher
         private static string GetResourceDirectory(string applicationDirectory)
         {
             string versionDirectory = Directory.EnumerateDirectories(applicationDirectory)
-                .First(absoluteSubdirectory =>
+                .Last(absoluteSubdirectory =>
                 {
                     string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory);
                     return Regex.IsMatch(relativeSubdirectory, @"\A\d+\.\d+\.\d+\.\d+\z");
