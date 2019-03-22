@@ -25,20 +25,21 @@ namespace VivaldiCustomLauncher
 
             if (Environment.GetCommandLineArgs().Length == 1)
             {
-                Application.Run(new Form1());
+                Application.Run(new ConfigurationDialog());
             }
             else
             {
                 string processToRun = Environment.GetCommandLineArgs()[1];
 
-                //TODO update custom styles, browser.html, and bundle.js
                 string resourceDirectory = GetResourceDirectory(Path.GetDirectoryName(processToRun));
 
                 ApplyTweaks(resourceDirectory);
 
-
                 //make non-debugged copy of executable so we don't get into an infinite loop of launching the real Vivaldi, only to have it start this launcher again
-                string renamedProcess = Path.Combine(Path.GetDirectoryName(processToRun),
+                string processDirectory = Path.GetDirectoryName(processToRun) ??
+                                          throw new InvalidOperationException(
+                                              "Could not get directory name of path " + processToRun);
+                string renamedProcess = Path.Combine(processDirectory,
                     Path.GetFileNameWithoutExtension(processToRun) + "2" + Path.GetExtension(processToRun));
                 if (IsBrowserExecutableDifferent(processToRun, renamedProcess))
                 {
@@ -58,7 +59,7 @@ namespace VivaldiCustomLauncher
 
                 CreateProcess(renamedProcess, processArgumentsToRun);
                 stopwatch.Stop();
-//                MessageBox.Show($"Launched Vivaldi in {stopwatch.ElapsedMilliseconds} ms.", "VivaldiCustomLauncher performance", MessageBoxButtons.OK, MessageBoxIcon.Information);
+//                MessageBox.Show($"Launched Vivaldi in {stopwatch.ElapsedMilliseconds} ms.", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
 //                MessageBox.Show($"Started {renamedProcess} {processArgumentsToRun}\n\nPID: {pid}", "Success", MessageBoxButtons.OK,
 //                    MessageBoxIcon.Information);
@@ -70,10 +71,15 @@ namespace VivaldiCustomLauncher
             string customStyleSheetRelativePath = Path.Combine("style", "custom.css");
             string customStylSheetAbsolutePath = Path.Combine(resourceDirectory, customStyleSheetRelativePath);
 
+            string customScriptRelativePath = Path.Combine("scripts", "custom.js");
+            string customScriptAbsolutePath = Path.Combine(resourceDirectory, customScriptRelativePath);
+
             Task.WaitAll(
-                TweakBrowserHtml(Path.Combine(resourceDirectory, "browser.html"), customStyleSheetRelativePath),
+                TweakBrowserHtml(Path.Combine(resourceDirectory, "browser.html"), customStyleSheetRelativePath,
+                    customScriptRelativePath),
                 TweakCustomStyleSheet(customStylSheetAbsolutePath),
-                TweakBundleScript(Path.Combine(resourceDirectory, "bundle.js")));
+                TweakBundleScript(Path.Combine(resourceDirectory, "bundle.js")),
+                TweakCustomScript(customScriptAbsolutePath));
         }
 
         private static async Task TweakBundleScript(string bundleScriptFile)
@@ -83,7 +89,7 @@ namespace VivaldiCustomLauncher
             using (FileStream file = File.Open(bundleScriptFile, FileMode.Open, FileAccess.ReadWrite))
             {
                 string bundleContents;
-                using (var reader = new StreamReader(file, Encoding.UTF8, false, 1024, true))
+                using (var reader = new StreamReader(file, Encoding.UTF8, false, 4 * 1024, true))
                 {
                     var buffer = new char[expectedHeader.Length];
                     await reader.ReadAsync(buffer, 0, buffer.Length);
@@ -114,6 +120,27 @@ namespace VivaldiCustomLauncher
             }
         }
 
+
+        private static async Task TweakCustomScript(string customScriptFile)
+        {
+            if (!File.Exists(customScriptFile))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(customScriptFile) ??
+                                          throw new InvalidOperationException(
+                                              "Could not get path of custom script file " + customScriptFile));
+
+                using (FileStream fileStream = File.OpenWrite(customScriptFile))
+                using (Stream downloadStream = await GetClient().GetStreamAsync(
+                    @"https://gist.githubusercontent.com/Aldaviva/9fbe321331b7f80786a371e0fd4bcfaf/raw/%257C%2520scripts%255Ccustom.js")
+                )
+                {
+                    await downloadStream.CopyToAsync(fileStream);
+                    await fileStream.FlushAsync();
+                }
+            }
+        }
+
+
         private static async Task TweakCustomStyleSheet(string customStylSheetFile)
         {
             if (!File.Exists(customStylSheetFile))
@@ -129,19 +156,39 @@ namespace VivaldiCustomLauncher
             }
         }
 
-        private static async Task TweakBrowserHtml(string browserHtmlFile, string customStyleSheetRelativeFilePath)
+        private static async Task TweakBrowserHtml(string browserHtmlFile, string customStyleSheetRelativeFilePath,
+            string customScriptRelativePath)
         {
-            string fileContents = File.ReadAllText(browserHtmlFile);
-            if (!fileContents.Contains(customStyleSheetRelativeFilePath))
-            {
-                string fileContentsWithCustomStyleSheet = fileContents.Replace("  </head>",
-                    $"    <link rel=\"stylesheet\" href=\"{customStyleSheetRelativeFilePath}\" />\n  </head>");
+            string fileContents = File.ReadAllText(browserHtmlFile, Encoding.UTF8);
+            string styleSheetRelativeUri = new UriBuilder { Path = customStyleSheetRelativeFilePath }.Path;
+            string scriptRelativeUri = new UriBuilder { Path = customScriptRelativePath }.Path;
 
+            bool fileModified = false;
+            string modifiedFileContents = fileContents;
+
+            if (!fileContents.Contains(styleSheetRelativeUri))
+            {
+                modifiedFileContents = modifiedFileContents
+                    .Replace(@"  </head>", $"    <link rel=\"stylesheet\" href=\"{styleSheetRelativeUri}\" />\n  </head>");
+                fileModified = true;
+            }
+
+            if (!fileContents.Contains(scriptRelativeUri))
+            {
+                modifiedFileContents = modifiedFileContents.Replace(@"  </body>",
+                    $"    <script src=\"{scriptRelativeUri}\"></script>\n  </body>");
+                fileModified = true;
+            }
+
+            if (fileModified)
+            {
                 using (FileStream writeStream = File.OpenWrite(browserHtmlFile))
-                using (var writer = new StreamWriter(writeStream, Encoding.UTF8))
                 {
-                    await writer.WriteAsync(fileContentsWithCustomStyleSheet);
-                    await writer.FlushAsync();
+                    using (var writer = new StreamWriter(writeStream, Encoding.UTF8))
+                    {
+                        await writer.WriteAsync(modifiedFileContents);
+                        await writer.FlushAsync();
+                    }
                 }
             }
         }
@@ -151,7 +198,9 @@ namespace VivaldiCustomLauncher
             string versionDirectory = Directory.EnumerateDirectories(applicationDirectory)
                 .Last(absoluteSubdirectory =>
                 {
-                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory);
+                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory) ??
+                                                  throw new InvalidOperationException(
+                                                      "No final directory component in path " + absoluteSubdirectory);
                     return Regex.IsMatch(relativeSubdirectory, @"\A\d+\.\d+\.\d+\.\d+\z");
                 });
 
@@ -162,10 +211,16 @@ namespace VivaldiCustomLauncher
         {
             var originInfo = new FileInfo(processToRun);
             var destinationInfo = new FileInfo(renamedProcess);
-            bool isDateModifiedDifferent = originInfo.LastWriteTimeUtc != destinationInfo.LastWriteTimeUtc;
-            bool isSizeDifferent = originInfo.Length != destinationInfo.Length;
-
-            return isDateModifiedDifferent || isSizeDifferent;
+            if (destinationInfo.Exists)
+            {
+                bool isDateModifiedDifferent = originInfo.LastWriteTimeUtc != destinationInfo.LastWriteTimeUtc;
+                bool isSizeDifferent = originInfo.Length != destinationInfo.Length;
+                return isDateModifiedDifferent || isSizeDifferent;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private static IEnumerable<string> CustomizeArguments(IEnumerable<string> originalArguments)

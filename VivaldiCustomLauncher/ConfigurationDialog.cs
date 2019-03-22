@@ -4,21 +4,21 @@ using Microsoft.Win32;
 
 namespace VivaldiCustomLauncher
 {
-    public partial class Form1 : Form
+    public partial class ConfigurationDialog : Form
     {
         private const string ImageFileExecutionOptionsKey =
             @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options";
 
         private const string HijackableExecutableFilename = "vivaldi.exe";
 
-        public Form1()
+        public ConfigurationDialog()
         {
             InitializeComponent();
 
-            checkBox1.Checked = IsHijacking();
+            hijackCheckBox.Checked = IsHijacking();
         }
 
-        private bool IsHijacking()
+        private static bool IsHijacking()
         {
             using (RegistryKey imageFileExecutionOptionsKey = Registry.LocalMachine.OpenSubKey(ImageFileExecutionOptionsKey, false))
             using (RegistryKey vivaldiKey = imageFileExecutionOptionsKey.OpenSubKey(HijackableExecutableFilename, false))
@@ -33,9 +33,9 @@ namespace VivaldiCustomLauncher
             return Environment.CommandLine;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void OnSaveButtonClick(object sender, EventArgs e)
         {
-            bool shouldHijack = checkBox1.Checked;
+            bool shouldHijack = hijackCheckBox.Checked;
 
             using (RegistryKey imageFileExecutionOptionsKey = Registry.LocalMachine.OpenSubKey(ImageFileExecutionOptionsKey, true))
             {
@@ -43,7 +43,7 @@ namespace VivaldiCustomLauncher
                 {
                     using (RegistryKey vivaldiKey = imageFileExecutionOptionsKey.CreateSubKey(HijackableExecutableFilename))
                     {
-                        vivaldiKey.SetValue("Debugger", GetCurrentProgramAbsolutePath()); //right value?
+                        vivaldiKey.SetValue("Debugger", GetCurrentProgramAbsolutePath());
                     }
                 }
                 else
