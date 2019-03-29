@@ -84,7 +84,8 @@ namespace VivaldiCustomLauncher
 
         private static async Task TweakBundleScript(string bundleScriptFile)
         {
-            char[] expectedHeader = @"/* Customized by Ben */".ToCharArray();
+            const string customizedComment = @"/* Customized by Ben */";
+            char[] expectedHeader = customizedComment.ToCharArray();
 
             using (FileStream file = File.Open(bundleScriptFile, FileMode.Open, FileAccess.ReadWrite))
             {
@@ -104,10 +105,7 @@ namespace VivaldiCustomLauncher
                     bundleContents = await reader.ReadToEndAsync();
 
                     bundleContents = Regex.Replace(bundleContents, @"(?<prefix>TabStrip\.jsx.{1,200}?=)(?<minTabWidth>180)",
-                        match => match.Groups["prefix"].Value + 2000);
-                    bundleContents = Regex.Replace(bundleContents,
-                        @"(?<prefix>getStyles\(e\)\{.{1,200}?this\.props\.maxWidth)(?<suffix>,)",
-                        match => match.Groups["prefix"].Value + @"+60" + match.Groups["suffix"].Value);
+                        match => match.Groups["prefix"].Value + 2000 + customizedComment);
                 }
 
                 using (var writer = new StreamWriter(file, Encoding.UTF8))
