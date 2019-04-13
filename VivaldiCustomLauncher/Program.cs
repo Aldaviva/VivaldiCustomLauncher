@@ -104,8 +104,14 @@ namespace VivaldiCustomLauncher
                     reader.DiscardBufferedData();
                     bundleContents = await reader.ReadToEndAsync();
 
-                    bundleContents = Regex.Replace(bundleContents, @"(?<prefix>TabStrip\.jsx.{1,200}?=)(?<minTabWidth>180)",
-                        match => match.Groups["prefix"].Value + 2000 + customizedComment);
+                    // Increase maximum tab width
+                    bundleContents = Regex.Replace(bundleContents, @"(?<prefix>TabStrip\.jsx.{1,200}?=)(?<minTabWidth>180)(?<suffix>,)",
+                        match => match.Groups["prefix"].Value + 2000 + customizedComment + match.Groups["suffix"].Value);
+
+                    // Remove extra spacing on the right side of tab bar
+                    bundleContents = Regex.Replace(bundleContents,
+                        @"(?<prefix>getStyles=\(e=>.{1,200}?this\.props\.maxWidth)(?<suffix>,)",
+                        match => match.Groups["prefix"].Value + @"+62" + customizedComment + match.Groups["suffix"].Value);
                 }
 
                 using (var writer = new StreamWriter(file, Encoding.UTF8))
