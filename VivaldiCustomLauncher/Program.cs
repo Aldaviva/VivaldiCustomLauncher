@@ -105,12 +105,12 @@ namespace VivaldiCustomLauncher
                     bundleContents = await reader.ReadToEndAsync();
 
                     // Increase maximum tab width
-                    bundleContents = Regex.Replace(bundleContents, @"(?<prefix>TabStrip\.jsx.{1,200}?=)(?<minTabWidth>180)(?<suffix>,)",
+                    bundleContents = Regex.Replace(bundleContents, @"(?<prefix>TabStrip\.jsx.{1,1000}?=)(?<minTabWidth>180)(?<suffix>,)",
                         match => match.Groups["prefix"].Value + 2000 + customizedComment + match.Groups["suffix"].Value);
 
                     // Remove extra spacing on the right side of tab bar
                     bundleContents = Regex.Replace(bundleContents,
-                        @"(?<prefix>getStyles=\(e=>.{1,200}?this\.props\.maxWidth)(?<suffix>,)",
+                        @"(?<prefix>getStyles"",e=>.{1,200}?this\.props\.maxWidth)(?<suffix>,)",
                         match => match.Groups["prefix"].Value + @"+62" + customizedComment + match.Groups["suffix"].Value);
                 }
 
