@@ -10,9 +10,9 @@ This codebase is an absolute mess.
 1. Build the solution.
 1. Copy `VivaldiCustomLauncher.exe` somewhere.
 1. Update your file type and URL scheme associations to use this program instead of `vivaldi.exe`, *e.g.*
-	-- `HKEY_CLASSES_ROOT\http\shell\open\command`
-    -- `HKEY_CLASSES_ROOT\https\shell\open\command`
-    -- `HKEY_CLASSES_ROOT\VivaldiHTM.*\shell\open\command`
+    - `HKEY_CLASSES_ROOT\http\shell\open\command`
+    - `HKEY_CLASSES_ROOT\https\shell\open\command`
+    - `HKEY_CLASSES_ROOT\VivaldiHTM.*\shell\open\command`
 1. Update any shortcuts to `vivaldi.exe` to refer to this program instead, for example, shortcuts in the Start Menu.
 1. Try opening a web page.
 1. Tweaks and arguments will be applied.
