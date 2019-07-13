@@ -18,17 +18,32 @@ namespace VivaldiCustomLauncher {
 
         [STAThread]
         public static void Main() {
-            string processToRun = Path.Combine(GetVivaldiApplicationDirectory(), "vivaldi.exe");
+            Application.EnableVisualStyles();
 
-            string resourceDirectory = GetResourceDirectory(Path.GetDirectoryName(processToRun));
+            Application.ThreadException += (sender, args) => OnUncaughtException(args.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) => OnUncaughtException((Exception) args.ExceptionObject);
 
-            ApplyTweaks(resourceDirectory);
+            try {
+                string processToRun = Path.Combine(GetVivaldiApplicationDirectory(), "vivaldi.exe");
 
-            IEnumerable<string> originalArguments = Environment.GetCommandLineArgs().Skip(1);
-            string processArgumentsToRun = CommandLine.ArgvToCommandLine(CustomizeArguments(originalArguments));
+                string resourceDirectory = GetResourceDirectory(Path.GetDirectoryName(processToRun));
 
-            CreateProcess(processToRun, processArgumentsToRun);
+                ApplyTweaks(resourceDirectory);
+
+                IEnumerable<string> originalArguments = Environment.GetCommandLineArgs().Skip(1);
+                string processArgumentsToRun = CommandLine.ArgvToCommandLine(CustomizeArguments(originalArguments));
+
+                CreateProcess(processToRun, processArgumentsToRun);
 //            MessageBox.Show($"Started {processToRun} {processArgumentsToRun}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            } catch (Exception e) {
+                OnUncaughtException(e);
+                throw;
+            }
+        }
+
+        private static void OnUncaughtException(Exception e) {
+            string message = (e as AggregateException)?.InnerException?.Message ?? e.Message;
+            MessageBox.Show($"{e.GetType().Name}: {message}", "Failed to tweak and launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private static void ApplyTweaks(string resourceDirectory) {
@@ -144,15 +159,22 @@ namespace VivaldiCustomLauncher {
         }
 
         private static string GetVivaldiApplicationDirectory() {
-            using (RegistryKey uninstallKey =
-                Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi", false)) {
-                if (uninstallKey == null) {
-                    throw new InvalidOperationException("Could not find Vivaldi uninstallation key in user registry hive" +
-                                                        @" (HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi)");
-                }
+            IEnumerable<(RegistryKey, string)> uninstallKeys = new[] {
+                (Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
+                (Registry.CurrentUser, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
+                (Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
+                (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi")
+            };
 
-                return (string) uninstallKey.GetValue("InstallLocation");
+            foreach ((RegistryKey hive, string path) in uninstallKeys) {
+                using (RegistryKey key = hive.OpenSubKey(path, false)) {
+                    if (key != null) {
+                        return (string) key.GetValue("InstallLocation");
+                    }
+                }
             }
+
+            throw new InvalidOperationException("Could not find Vivaldi uninstallation key in registry");
         }
 
         private static string GetResourceDirectory(string applicationDirectory) {
