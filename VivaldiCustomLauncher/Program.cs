@@ -42,7 +42,7 @@ namespace VivaldiCustomLauncher {
                 stopwatch.Stop();
 
 //                MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            } catch (Exception e) when(!(e is OutOfMemoryException)) {
+            } catch (Exception e) when (!(e is OutOfMemoryException)) {
                 onUncaughtException(e);
                 throw;
             }
@@ -73,9 +73,9 @@ namespace VivaldiCustomLauncher {
         private static async Task tweakBundleScript(string bundleScriptFile) {
             const string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
             char[] expectedHeader = CUSTOMIZED_COMMENT.ToCharArray();
-
-            using FileStream file = File.Open(bundleScriptFile, FileMode.Open, FileAccess.ReadWrite);
             string bundleContents;
+            using FileStream file = File.Open(bundleScriptFile, FileMode.Open, FileAccess.ReadWrite);
+
             using (var reader = new StreamReader(file, Encoding.UTF8, false, 4 * 1024, true)) {
                 var buffer = new char[expectedHeader.Length];
                 await reader.ReadAsync(buffer, 0, buffer.Length);
@@ -87,17 +87,24 @@ namespace VivaldiCustomLauncher {
                 file.Seek(0, SeekOrigin.Begin);
                 reader.DiscardBufferedData();
                 bundleContents = await reader.ReadToEndAsync();
-
-                // Increase maximum tab width
-                bundleContents = Regex.Replace(bundleContents,
-                    @"(?<prefix>\bmaxWidth=)(?<minTabWidth>180)(?<suffix>,)",
-                    match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
-
-                // Remove extra spacing on the right side of tab bar
-                bundleContents = Regex.Replace(bundleContents,
-                    @"(?<prefix>\bgetStyle.{1,20}e=>.{1,200}this\.props\.maxWidth)(?<suffix>,)",
-                    match => match.Groups["prefix"].Value + "+62" + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
             }
+
+            // Increase maximum tab width
+            bundleContents = Regex.Replace(bundleContents,
+                @"(?<prefix>\bmaxWidth=)(?<minTabWidth>180)(?<suffix>,)",
+                match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
+
+            // Remove extra spacing on the right side of tab bar
+            bundleContents = Regex.Replace(bundleContents,
+                @"(?<prefix>\bgetStyle.{1,20}e=>.{1,200}this\.props\.maxWidth)(?<suffix>,)",
+                match => match.Groups["prefix"].Value + "+62" + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
+
+            // Make Back also close the tab if the page can't go back
+            bundleContents = Regex.Replace(bundleContents,
+                @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)re\.a\.back(?<suffix>,)",
+                match => match.Groups["prefix"].Value +
+                         @"()=>{const c=p.a.getActivePage(),e=c&&a(94).a.getNavigationInfo(c.id);e&&e.canGoBack?re.a.back():m.a.close()}" +
+                         CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
 
             using var writer = new StreamWriter(file, Encoding.UTF8);
             file.Seek(0, SeekOrigin.Begin);
@@ -179,19 +186,21 @@ namespace VivaldiCustomLauncher {
 
         private static string getResourceDirectory(string applicationDirectory) {
             string versionDirectory = Directory.EnumerateDirectories(applicationDirectory)
-                .Last(absoluteSubdirectory => {
-                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory) ??
-                                                  throw new InvalidOperationException(
-                                                      "No final directory component in path " + applicationDirectory);
-                    return Regex.IsMatch(relativeSubdirectory, @"\A\d+\.\d+\.\d+\.\d+\z");
-                });
+                .Where(absoluteSubdirectory => {
+                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory) ?? throw new InvalidOperationException(
+                        "No final directory component in path " + applicationDirectory);
+                    return Regex.IsMatch(relativeSubdirectory, @"\A(?:\d+\.){3}\d+\z");
+                })
+                .OrderByDescending(Path.GetFileName, new VersionNumberComparer())
+                .First();
 
             return Path.Combine(versionDirectory, "resources", "vivaldi");
         }
 
         private static IEnumerable<string> customizeArguments(IEnumerable<string> originalArguments) {
             IList<string> customizedArguments = originalArguments.ToList();
-            customizedArguments.Insert(0, "--force-renderer-accessibility");
+            // Turning on web accessibility makes Vivaldi 3 very slow, so use my WebAutoType fork that gets current URL posted from custom.js using Ajax.
+            // customizedArguments.Insert(0, "--force-renderer-accessibility");
             return customizedArguments;
         }
 
