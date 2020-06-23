@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -31,9 +32,11 @@ namespace VivaldiCustomLauncher {
             try {
                 string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
 
-                string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun));
-
-                applyTweaks(resourceDirectory);
+                using Process existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
+                if (existingVivaldiProcess == null) {
+                    string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun));
+                    applyTweaks(resourceDirectory);
+                }
 
                 IEnumerable<string> originalArguments = Environment.GetCommandLineArgs().Skip(1);
                 string processArgumentsToRun = CommandLine.ArgvToCommandLine(customizeArguments(originalArguments));
@@ -41,7 +44,7 @@ namespace VivaldiCustomLauncher {
                 createProcess(processToRun, processArgumentsToRun);
                 stopwatch.Stop();
 
-//                MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             } catch (Exception e) when (!(e is OutOfMemoryException)) {
                 onUncaughtException(e);
                 throw;
@@ -64,10 +67,15 @@ namespace VivaldiCustomLauncher {
             string bundleScriptAbsolutePath = Path.Combine(resourceDirectory, "bundle.js");
             string browserPageAbsolutePath = Path.Combine(resourceDirectory, "browser.html");
 
+            string visualElementsSourcePath = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
+            string visualElementsDestinationPath = Path.Combine(resourceDirectory, "../../../..",
+                Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml");
+
             Task.WaitAll(tweakBrowserHtml(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath),
                 tweakCustomStyleSheet(customStyleSheetAbsolutePath),
                 tweakBundleScript(bundleScriptAbsolutePath),
-                tweakCustomScript(customScriptAbsolutePath));
+                tweakCustomScript(customScriptAbsolutePath),
+                tweakVisualElementsManifest(visualElementsSourcePath, visualElementsDestinationPath));
         }
 
         private static async Task tweakBundleScript(string bundleScriptFile) {
@@ -147,8 +155,8 @@ namespace VivaldiCustomLauncher {
             string modifiedFileContents = fileContents;
 
             if (!fileContents.Contains(styleSheetRelativeUri)) {
-                modifiedFileContents = modifiedFileContents
-                    .Replace(@"  </head>", $"    <link rel=\"stylesheet\" href=\"{styleSheetRelativeUri}\" />\n  </head>");
+                modifiedFileContents = modifiedFileContents.Replace(@"  </head>",
+                    $"    <link rel=\"stylesheet\" href=\"{styleSheetRelativeUri}\" />\n  </head>");
                 fileModified = true;
             }
 
@@ -163,6 +171,31 @@ namespace VivaldiCustomLauncher {
                 using var writer = new StreamWriter(writeStream, Encoding.UTF8);
                 await writer.WriteAsync(modifiedFileContents);
                 await writer.FlushAsync();
+            }
+        }
+
+        private static async Task tweakVisualElementsManifest(string visualElementsSourcePath, string visualElementsDestinationPath) {
+            var visualElementsManifestEditor = new VisualElementsManifestEditor();
+
+            Task<ApplicationManifest> loadSourceTask = Task.Run(() => {
+                ApplicationManifest sourceManifest = visualElementsManifestEditor.load(visualElementsSourcePath);
+                visualElementsManifestEditor.relativizeUris(sourceManifest, "Application");
+                return sourceManifest;
+            });
+
+            Task<ApplicationManifest?> loadDestinationTask = Task.Run(() => {
+                try {
+                    return visualElementsManifestEditor.load(visualElementsDestinationPath);
+                } catch (FileNotFoundException) {
+                    return null;
+                }
+            });
+
+            ApplicationManifest source = await loadSourceTask;
+            ApplicationManifest? destination = await loadDestinationTask;
+
+            if (!destination?.Equals(source) ?? true) {
+                visualElementsManifestEditor.save(source, visualElementsDestinationPath);
             }
         }
 

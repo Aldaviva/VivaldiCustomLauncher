@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="VersionNumberComparerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VisualElementsManifestEditorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VivaldiCustomLauncher\VivaldiCustomLauncher.csproj">
