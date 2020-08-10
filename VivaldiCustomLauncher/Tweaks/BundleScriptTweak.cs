@@ -42,13 +42,20 @@ namespace VivaldiCustomLauncher.Tweaks {
          * Secret code sources:
          * - Se.a.back(): from the original action
          * - g.a.getActivePage(): copy invocation of getActivePage() in COMMAND_CLONE_TAB
-         * - a(93).a.getNavigationInfo(): find an invocation of _.a.getNavigationInfo() and find out how _ is declared (backreferences to the rescue)
+         * - a(93).a.getNavigationInfo(): find an invocation of _.a.getNavigationInfo() and find out how _ is declared
          * - p.a.close(): action of COMMAND_CLOSE_TAB
          */
         internal async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
-            Task<int?> navigationInfoMatchTask = Task.Run(() => int.TryParse(Regex.Match(bundleContents,
-                    @"(?<dependencyVariable>[\w$]{1,3})=a\((?<dependencyId>\d+)\).*?\b\k<dependencyVariable>\.a\.getNavigationInfo\(")
-                .Groups["dependencyId"].Value, out int id) ? id : (int?) null);
+            Task<int?> navigationInfoMatchTask = Task.Run(() => {
+                Match getNavigationInfoMatch = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.a\.getNavigationInfo\(");
+                string dependencyVariable = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
+                int getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
+
+                Regex dependencyDeclarationPattern = new Regex($@"\b{Regex.Escape(dependencyVariable)}=a\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
+                Match dependencyDeclarationMatch = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
+
+                return int.TryParse(dependencyDeclarationMatch.Groups["dependencyId"].Value, out int id) ? id : (int?) null;
+            });
 
             Task<string?> getActivePageMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
                     @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2})\.a\.getActivePage\(\)")
