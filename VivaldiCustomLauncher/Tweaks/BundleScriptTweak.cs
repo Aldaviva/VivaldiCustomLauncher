@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 #nullable enable
 
@@ -20,7 +18,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
             using (var reader = new StreamReader(file, Encoding.UTF8, false, 4 * 1024, true)) {
-                var buffer = new char[EXPECTED_HEADER.Length];
+                char[] buffer = new char[EXPECTED_HEADER.Length];
                 await reader.ReadAsync(buffer, 0, buffer.Length);
 
                 if (EXPECTED_HEADER.SequenceEqual(buffer)) {
@@ -34,6 +32,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
             string newBundleContents = increaseMaximumTabWidth(bundleContents);
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
+            newBundleContents = formatDownloadProgress(newBundleContents);
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
             return newBundleContents;
         }
@@ -58,7 +57,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             });
 
             Task<string?> getActivePageMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
-                    @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2})\.a\.getActivePage\(\)")
+                    @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2}\.\w{1,2})\.getActivePage\(\)")
                 .Groups["dependencyVariable"].Value));
 
             Task<string?> closeMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
@@ -74,7 +73,7 @@ namespace VivaldiCustomLauncher.Tweaks {
                     @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.a\.back(?<suffix>,)",
                     match => match.Groups["prefix"].Value +
                         "()=>{" +
-                        $"const c={getActivePageDependencyVariable}.a.getActivePage()," +
+                        $"const c={getActivePageDependencyVariable}.getActivePage()," +
                         $"e=c&&a({navigationInfoDependencyId}).a.getNavigationInfo(c.id);" +
                         "e&&e.canGoBack" +
                         $"?{match.Groups["backDependencyVariable"].Value}.a.back()" +
@@ -97,6 +96,12 @@ namespace VivaldiCustomLauncher.Tweaks {
             return Regex.Replace(bundleContents,
                 @"(?<prefix>\bmaxWidth=)(?<minTabWidth>180)(?<suffix>,)",
                 match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
+        }
+
+        internal string formatDownloadProgress(string bundleContents) {
+            return Regex.Replace(bundleContents,
+                @"\.fromNow\(\):(?<unmodified1>.{1,700}),(?<unmodified2>\w\.state===.{1,50})\(""\$1 of \$2 - stopped""(?<unmodified3>.{1,50})""\$1 of \$2 at \$3"",(?<unmodified4>.{1,50}),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)",
+                match => $"{CUSTOMIZED_COMMENT}.fromNow(true):{match.Groups["unmodified1"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["unmodified2"].Value}(\"$1/$2 - stopped\"{match.Groups["unmodified3"].Value}\"$3, $1/$2\",{match.Groups["unmodified4"].Value})");
         }
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {

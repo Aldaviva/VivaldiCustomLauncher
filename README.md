@@ -23,17 +23,18 @@ Intercept executions of Vivaldi to add custom arguments and apply tweaks files
         |Keyboard shortcut|Action|
         |---|---|
         |`Ctrl`+`Shift`+`C`|Copy current page URL to clipboard|
+        |`Ctrl`+`Alt`+`Shift`+`V`|Paste and Go in new tab|
         |`Ctrl`+`E`|Hide extension buttons from toolbar|
         |`Alt`+`H`|Hibernate all background tabs in the current window|
         |`Alt`+`Z`|Open history menu (backwards)|
         |`Alt`+`X`|Open history menu (forwards)|
     - send the current tab's URL to my [fork of the KeePass WebAutoType plugin](https://github.com/Aldaviva/WebAutoType) using a localhost AJAX request so KeePass can autotype the correct username and password entry. This is done because the accessibility technique normally used by WebAutoType (MSAA) requires Web Accessibility to be turned on, which frequently makes Vivaldi 3 completely freeze for 20 seconds at a time.
-    - attempt to fix the Vivaldi bug where showing or hiding a desktop toolbar like Winamp will cause all Vivaldi windows to shrink by 1px vertically and horizontally. This workaround is not 100% reliable.
 - Tweaks the browser bundle script to 
     - [make tabs stretch to fill the full width of the tab bar](https://gist.github.com/Aldaviva/39e4472ab7a5ee50473de74df826d928)
     - close the current tab if you use the Back gesture and there are no more pages in the history stack
+    - reformatted the status shown in the Downloads panel list items to look like `11 seconds, 11.87 MB/s, 17.85/124.71 MB` and `17.85/124/71 MB - stopped` to put more important information farther to the left so it doesn't get truncated by a narrow panel width
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's, with a solid red background that fills the whole tile.
-- Automatically reapply all of the above tweaks when the browser is restarted or upgraded.
+- Automatically reapply all of the above tweaks if needed when the browser is restarted or upgraded.
 
 # How does it work
 1. When you open an HTML page, web URL, or a shortcut to Vivaldi, this headless launcher program is started instead, because you updated all the associations and shortcuts for Vivaldi.
