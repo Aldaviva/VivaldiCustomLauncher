@@ -10,11 +10,11 @@ namespace VivaldiCustomLauncher.Tweaks {
 
     public class BundleScriptTweak: Tweak<string, BaseTweakParams> {
 
-        private const string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
-        private static readonly char[] EXPECTED_HEADER = CUSTOMIZED_COMMENT.ToCharArray();
+        private const           string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
+        private static readonly char[] EXPECTED_HEADER    = CUSTOMIZED_COMMENT.ToCharArray();
 
         public async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
-            string bundleContents;
+            string           bundleContents;
             using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
             using (var reader = new StreamReader(file, Encoding.UTF8, false, 4 * 1024, true)) {
@@ -46,39 +46,39 @@ namespace VivaldiCustomLauncher.Tweaks {
          */
         internal async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
             Task<int?> navigationInfoMatchTask = Task.Run(() => {
-                Match getNavigationInfoMatch = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.a\.getNavigationInfo\(");
-                string dependencyVariable = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
-                int getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
+                Match  getNavigationInfoMatch       = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.a\.getNavigationInfo\(");
+                string dependencyVariable           = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
+                int    getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
 
-                Regex dependencyDeclarationPattern = new Regex($@"\b{Regex.Escape(dependencyVariable)}=a\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
-                Match dependencyDeclarationMatch = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
+                Regex dependencyDeclarationPattern = new($@"\b{Regex.Escape(dependencyVariable)}=a\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
+                Match dependencyDeclarationMatch   = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
 
                 return int.TryParse(dependencyDeclarationMatch.Groups["dependencyId"].Value, out int id) ? id : (int?) null;
             });
 
             Task<string?> getActivePageMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
-                    @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2}\.\w{1,2})\.getActivePage\(\)")
+                    @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2}\.\w{1,2})\.unsafeGetActivePage\(\)")
                 .Groups["dependencyVariable"].Value));
 
             Task<string?> closeMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
                     @"{name:""COMMAND_CLOSE_TAB"",action:(?<dependencyVariable>[\w$]{1,2})\.a\.close,")
                 .Groups["dependencyVariable"].Value));
 
-            int? navigationInfoDependencyId = await navigationInfoMatchTask;
+            int?    navigationInfoDependencyId      = await navigationInfoMatchTask;
             string? getActivePageDependencyVariable = await getActivePageMatchTask;
-            string? closeDependencyVariable = await closeMatchTask;
+            string? closeDependencyVariable         = await closeMatchTask;
 
-            if (navigationInfoDependencyId != null && getActivePageDependencyVariable != null && closeDependencyVariable != null) {
+            if ((navigationInfoDependencyId != null) && (getActivePageDependencyVariable != null) && (closeDependencyVariable != null)) {
                 return Regex.Replace(bundleContents,
                     @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.a\.back(?<suffix>,)",
                     match => match.Groups["prefix"].Value +
-                        "()=>{" +
-                        $"const c={getActivePageDependencyVariable}.getActivePage()," +
-                        $"e=c&&a({navigationInfoDependencyId}).a.getNavigationInfo(c.id);" +
-                        "e&&e.canGoBack" +
-                        $"?{match.Groups["backDependencyVariable"].Value}.a.back()" +
-                        $":{closeDependencyVariable}.a.close()" +
-                        "}" +
+                        "() => { " +
+                        $"const activePage = {getActivePageDependencyVariable}.getActivePage(), " +
+                        $"navigationInfo = activePage && a({navigationInfoDependencyId}).a.getNavigationInfo(activePage.id); " +
+                        "navigationInfo && navigationInfo.canGoBack" +
+                        $" ? {match.Groups["backDependencyVariable"].Value}.a.back()" +
+                        $" : {closeDependencyVariable}.a.close() " +
+                        "} " +
                         CUSTOMIZED_COMMENT +
                         match.Groups["suffix"].Value);
             } else {
@@ -101,12 +101,13 @@ namespace VivaldiCustomLauncher.Tweaks {
         internal string formatDownloadProgress(string bundleContents) {
             return Regex.Replace(bundleContents,
                 @"\.fromNow\(\):(?<unmodified1>.{1,700}),(?<unmodified2>\w\.state===.{1,50})\(""\$1 of \$2 - stopped""(?<unmodified3>.{1,50})""\$1 of \$2 at \$3"",(?<unmodified4>.{1,50}),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)",
-                match => $"{CUSTOMIZED_COMMENT}.fromNow(true):{match.Groups["unmodified1"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["unmodified2"].Value}(\"$1/$2 - stopped\"{match.Groups["unmodified3"].Value}\"$3, $1/$2\",{match.Groups["unmodified4"].Value})");
+                match =>
+                    $"{CUSTOMIZED_COMMENT}.fromNow(true):{match.Groups["unmodified1"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["unmodified2"].Value}(\"$1/$2 - stopped\"{match.Groups["unmodified3"].Value}\"$3, $1/$2\",{match.Groups["unmodified4"].Value})");
         }
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
-            using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
-            using var writer = new StreamWriter(file, Encoding.UTF8);
+            using FileStream file   = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
+            using var        writer = new StreamWriter(file, Encoding.UTF8);
             file.Seek(0, SeekOrigin.Begin);
             await writer.WriteAsync(EXPECTED_HEADER);
             await writer.WriteAsync(fileContents);

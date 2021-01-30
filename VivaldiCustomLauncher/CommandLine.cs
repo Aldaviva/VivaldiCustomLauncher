@@ -2,32 +2,27 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace VivaldiCustomLauncher
-{
+namespace VivaldiCustomLauncher {
+
     /// <summary>
-    /// From https://stackoverflow.com/a/2611075/979493
+    ///     From https://stackoverflow.com/a/2611075/979493
     /// </summary>
-    internal static class CommandLine
-    {
-        public static string ArgvToCommandLine(IEnumerable<string> args)
-        {
+    internal static class CommandLine {
+
+        public static string ArgvToCommandLine(IEnumerable<string> args) {
             var sb = new StringBuilder();
-            foreach (string s in args)
-            {
+            foreach (string s in args) {
                 sb.Append('"');
                 // Escape double quotes (") and backslashes (\).
                 int searchIndex = 0;
-                while (true)
-                {
+                while (true) {
                     // Put this test first to support zero length strings.
-                    if (searchIndex >= s.Length)
-                    {
+                    if (searchIndex >= s.Length) {
                         break;
                     }
 
                     int quoteIndex = s.IndexOf('"', searchIndex);
-                    if (quoteIndex < 0)
-                    {
+                    if (quoteIndex < 0) {
                         break;
                     }
 
@@ -46,18 +41,17 @@ namespace VivaldiCustomLauncher
             return sb.ToString(0, Math.Max(0, sb.Length - 1));
         }
 
-        private static void EscapeBackslashes(StringBuilder sb, string s, int lastSearchIndex)
-        {
+        private static void EscapeBackslashes(StringBuilder sb, string s, int lastSearchIndex) {
             // Backslashes must be escaped if and only if they precede a double quote.
-            for (int i = lastSearchIndex; i >= 0; i--)
-            {
-                if (s[i] != '\\')
-                {
+            for (int i = lastSearchIndex; i >= 0; i--) {
+                if (s[i] != '\\') {
                     break;
                 }
 
                 sb.Append('\\');
             }
         }
+
     }
+
 }

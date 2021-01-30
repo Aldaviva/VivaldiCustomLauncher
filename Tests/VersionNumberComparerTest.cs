@@ -14,7 +14,7 @@ namespace Tests {
             Assert.Equal(0, versionComparer.Compare(x, y));
         }
 
-        public static TheoryData<string, string> equalVersions = new TheoryData<string, string> {
+        public static TheoryData<string, string> equalVersions = new() {
             { "0", "0" },
             { "0", "0.0" },
             { "1", "1" },
@@ -48,7 +48,7 @@ namespace Tests {
             Assert.Equal(1, versionComparer.Compare(y, x));
         }
 
-        public static TheoryData<string, string> lessThanVersions = new TheoryData<string, string> {
+        public static TheoryData<string, string> lessThanVersions = new() {
             { "0", "1" },
             { "0", "1.0" },
             { "0.0", "1" },

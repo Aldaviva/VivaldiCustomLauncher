@@ -12,7 +12,7 @@ namespace Tests {
 
         private const string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/original-bundle.js";
 
-        private readonly BundleScriptTweak tweak = new BundleScriptTweak();
+        private readonly BundleScriptTweak tweak = new();
 
         [Fact]
         public void originalBundleWasNotCustomized() {
