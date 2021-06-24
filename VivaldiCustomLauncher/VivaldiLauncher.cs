@@ -7,51 +7,48 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using VisualElementsManifest;
 using VivaldiCustomLauncher.Tweaks;
-using Application = VisualElementsManifest.Data.Application;
 
 namespace VivaldiCustomLauncher {
 
-    public class VivaldiLauncher {
+    public static class VivaldiLauncher {
 
         private static HttpClient? HTTP_CLIENT;
         private static HttpClient httpClient => HTTP_CLIENT ??= new HttpClient();
 
         [STAThread]
         public static void Main() {
-            System.Windows.Forms.Application.EnableVisualStyles();
+            Application.EnableVisualStyles();
 
-            System.Windows.Forms.Application.ThreadException += (sender, args) => onUncaughtException(args.Exception);
-            AppDomain.CurrentDomain.UnhandledException += (sender,       args) => onUncaughtException((Exception) args.ExceptionObject);
+            Application.ThreadException                += (_, args) => onUncaughtException(args.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (_, args) => onUncaughtException((Exception) args.ExceptionObject);
 
-            new VivaldiLauncher().tweakAndLaunch();
+            tweakAndLaunch();
         }
 
-        private void tweakAndLaunch() {
+        private static void tweakAndLaunch() {
             var stopwatch = Stopwatch.StartNew();
             try {
                 string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
 
-                using Process existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
+                using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
                 if (existingVivaldiProcess == null) {
-                    string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun));
+                    string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
                     applyTweaks(resourceDirectory);
                 }
 
-                IEnumerable<string> originalArguments = Environment.GetCommandLineArgs().Skip(1);
-                string processArgumentsToRun = CommandLine.ArgvToCommandLine(customizeArguments(originalArguments));
+                IEnumerable<string> originalArguments     = Environment.GetCommandLineArgs().Skip(1);
+                string              processArgumentsToRun = CommandLine.ArgvToCommandLine(customizeArguments(originalArguments));
 
                 createProcess(processToRun, processArgumentsToRun);
                 stopwatch.Stop();
 
                 // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            } catch (Exception e) when (!(e is OutOfMemoryException)) {
+            } catch (Exception e) when (e is not OutOfMemoryException) {
                 onUncaughtException(e);
                 throw;
             }
@@ -62,7 +59,7 @@ namespace VivaldiCustomLauncher {
             MessageBox.Show($"{e.GetType().Name}: {message}", "Failed to tweak and launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void applyTweaks(string resourceDirectory) {
+        private static void applyTweaks(string resourceDirectory) {
             string customStyleSheetRelativePath = Path.Combine("style", "custom.css");
             string customStyleSheetAbsolutePath = Path.Combine(resourceDirectory, customStyleSheetRelativePath);
 
@@ -70,9 +67,9 @@ namespace VivaldiCustomLauncher {
             string customScriptAbsolutePath = Path.Combine(resourceDirectory, customScriptRelativePath);
 
             string bundleScriptAbsolutePath = Path.Combine(resourceDirectory, "bundle.js");
-            string browserPageAbsolutePath = Path.Combine(resourceDirectory, "browser.html");
+            string browserPageAbsolutePath  = Path.Combine(resourceDirectory, "browser.html");
 
-            string visualElementsSourcePath = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
+            string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
             string visualElementsDestinationPath = Path.Combine(resourceDirectory, "../../../..", Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml");
 
             Task.WaitAll(
@@ -90,17 +87,18 @@ namespace VivaldiCustomLauncher {
             }
         }
 
-
         private static string getVivaldiApplicationDirectory() {
-            IEnumerable<(RegistryKey, string)> uninstallKeys = new[] {
-                (Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
-                (Registry.CurrentUser, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
-                (Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi"),
-                (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi")
+            const string UNINSTALL_REGISTRY_PATH       = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
+            const string UNINSTALL_REGISTRY_PATH_WOW64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
+            IEnumerable<(RegistryKey hive, string path)> uninstallKeys = new[] {
+                (Registry.CurrentUser, UNINSTALL_REGISTRY_PATH),
+                (Registry.CurrentUser, UNINSTALL_REGISTRY_PATH_WOW64),
+                (Registry.LocalMachine, UNINSTALL_REGISTRY_PATH),
+                (Registry.LocalMachine, UNINSTALL_REGISTRY_PATH_WOW64)
             };
 
             foreach ((RegistryKey hive, string path) in uninstallKeys) {
-                using RegistryKey key = hive.OpenSubKey(path, false);
+                using RegistryKey? key = hive.OpenSubKey(path, false);
                 if (key != null) {
                     return (string) key.GetValue("InstallLocation");
                 }
@@ -112,7 +110,7 @@ namespace VivaldiCustomLauncher {
         private static string getResourceDirectory(string applicationDirectory) {
             string versionDirectory = Directory.EnumerateDirectories(applicationDirectory)
                 .Where(absoluteSubdirectory => {
-                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory) ?? throw new InvalidOperationException("No final directory component in path " + applicationDirectory);
+                    string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory)!;
                     return Regex.IsMatch(relativeSubdirectory, @"\A(?:\d+\.){3}\d+\z");
                 })
                 .OrderByDescending(Path.GetFileName, new VersionNumberComparer())

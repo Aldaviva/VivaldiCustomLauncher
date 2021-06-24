@@ -20,10 +20,11 @@ namespace VivaldiCustomLauncher {
 
                 int segmentComparison = aSegment.CompareTo(bSegment);
 
-                if (segmentComparison < 0) {
-                    return -1;
-                } else if (segmentComparison > 0) {
-                    return 1;
+                switch (segmentComparison) {
+                    case < 0:
+                        return -1;
+                    case > 0:
+                        return 1;
                 }
             }
 
