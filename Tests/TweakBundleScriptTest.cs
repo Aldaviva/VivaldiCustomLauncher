@@ -10,16 +10,15 @@ namespace Tests {
 
     public class TweakBundleScriptTest {
 
-        private const string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/original-bundle.js";
+        private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/original-bundle.js";
+        private static readonly string ORIGINAL_BUNDLE_TEXT     = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
 
         private readonly BundleScriptTweak tweak = new();
 
         [Fact]
         public void originalBundleWasNotCustomized() {
-            string input = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
-
             try {
-                Assert.DoesNotContain("Customized by Ben", input);
+                Assert.DoesNotContain("Customized by Ben", ORIGINAL_BUNDLE_TEXT);
             } catch (DoesNotContainException e) {
                 throw new DoesNotContainException(e.Expected, "(omitted)");
             }
@@ -27,24 +26,21 @@ namespace Tests {
 
         [Fact]
         public void removeExtraSpacingFromTabBarRightSide() {
-            string input = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
+            string actual = tweak.removeExtraSpacingFromTabBarRightSide(ORIGINAL_BUNDLE_TEXT);
 
-            string actual = tweak.removeExtraSpacingFromTabBarRightSide(input);
+            const string EXPECTED =
+                @"Y(this,""getStyles"",()=>{const e=this.props.prefValues[R.kTabsThumbnails],t=this.createFlexBoxLayout(this.props.tabs,this.props.direction,this.props.maxWidth+62/* Customized by Ben */,this.props.maxHeight,{";
 
-            const string EXPECTED = @"(this,""getStyles"",e=>this.createFlexBoxLayout(this.props.tabs,this.props.direction,this.props.maxWidth+62/* Customized by Ben */,this.props.maxHeight,{";
-
-            safeAssertReplacement(input, actual, EXPECTED);
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
         [Fact]
         public void increaseMaximumTabWidth() {
-            string input = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
-
-            string actual = tweak.increaseMaximumTabWidth(input);
+            string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED = @"return t?(r.maxWidth=4000/* Customized by Ben */,r.maxHeight=";
 
-            safeAssertReplacement(input, actual, EXPECTED);
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
         /*
@@ -54,26 +50,22 @@ namespace Tests {
          */
         [Fact]
         public async Task closeTabOnBackGestureIfNoTabHistory() {
-            string input = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
-
-            string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(input);
+            string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"{name:""COMMAND_PAGE_BACK"",action:()=>{const c=_.b.getActivePage(),e=c&&a(160).a.getNavigationInfo(c.id);e&&e.canGoBack?Me.a.back():f.a.close()}/* Customized by Ben */,category:";
+                @"{name:""COMMAND_PAGE_BACK"",action:() => { const activePage = h.c.getActivePage(), navigationInfo = activePage && a(152).a.getNavigationInfo(activePage.id); navigationInfo && navigationInfo.canGoBack ? fe.a.back() : d.a.close() } /* Customized by Ben */,";
 
-            safeAssertReplacement(input, actual, EXPECTED);
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
         [Fact]
         public void formatDownloadProgress() {
-            string input = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
-
-            string actual = tweak.formatDownloadProgress(input);
+            string actual = tweak.formatDownloadProgress(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
                 @"u=function(e,t,a){return e&&t>a?m()(t)/* Customized by Ben */.fromNow(true):e&&t<=a?Object(r.a)(""about a second""):""""}(n,a,t),h=Object(r.a)(""$1/s"",[Object(c.a)(Object(d.a)(e))]),p=e.paused||e.state===E;return i.a.createElement(""div"",{className:""DownloadItem-FileSize"",__source:{fileName:""D:\\builder\\workers\\ow64\\build\\vivaldi\\vivapp\\src\\components\\downloads\\DownloadPanel\\DownloadSize.jsx"",lineNumber:60,columnNumber:5}},u&&`${u}, `,e.state===v?l:p?Object(r.a)(""$1/$2 - stopped"",[o,l]):Object(r.a)(""$3, $1/$2"",[o,l,h]))}";
 
-            safeAssertReplacement(input, actual, EXPECTED);
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
         private static void safeAssertReplacement(string originalInput, string actualInput, string expected) {

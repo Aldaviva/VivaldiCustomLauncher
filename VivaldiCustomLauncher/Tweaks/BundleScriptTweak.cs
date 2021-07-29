@@ -17,7 +17,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             string           bundleContents;
             using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
-            using (var reader = new StreamReader(file, Encoding.UTF8, false, 4 * 1024, true)) {
+            using (StreamReader reader = new(file, Encoding.UTF8, false, 4 * 1024, true)) {
                 char[] buffer = new char[EXPECTED_HEADER.Length];
                 await reader.ReadAsync(buffer, 0, buffer.Length);
 
@@ -61,14 +61,14 @@ namespace VivaldiCustomLauncher.Tweaks {
                 .Groups["dependencyVariable"].Value));
 
             Task<string?> closeMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
-                    @"{name:""COMMAND_CLOSE_TAB"",action:(?<dependencyVariable>[\w$]{1,2})\.a\.close,")
+                    @"{name:""COMMAND_CLOSE_TAB"",action:\(\)=>(?<dependencyVariable>[\w$]{1,2})\.a\.close\(\),")
                 .Groups["dependencyVariable"].Value));
 
             int?    navigationInfoDependencyId      = await navigationInfoMatchTask;
             string? getActivePageDependencyVariable = await getActivePageMatchTask;
             string? closeDependencyVariable         = await closeMatchTask;
 
-            if ((navigationInfoDependencyId != null) && (getActivePageDependencyVariable != null) && (closeDependencyVariable != null)) {
+            if (navigationInfoDependencyId != null && getActivePageDependencyVariable != null && closeDependencyVariable != null) {
                 return Regex.Replace(bundleContents,
                     @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.a\.back(?<suffix>,)",
                     match => match.Groups["prefix"].Value +
@@ -88,7 +88,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
         internal string removeExtraSpacingFromTabBarRightSide(string bundleContents) {
             return Regex.Replace(bundleContents,
-                @"(?<prefix>\bgetStyle.{1,20}e=>.{1,200}this\.props\.maxWidth)(?<suffix>,)",
+                @"(?<prefix>\bgetStyles.{1,20}=>.{1,200}this\.props\.maxWidth)(?<suffix>,)",
                 match => match.Groups["prefix"].Value + "+62" + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
         }
 
@@ -106,8 +106,8 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
-            using FileStream file   = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
-            using var        writer = new StreamWriter(file, Encoding.UTF8);
+            using FileStream   file   = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
+            using StreamWriter writer = new(file, Encoding.UTF8);
             file.Seek(0, SeekOrigin.Begin);
             await writer.WriteAsync(EXPECTED_HEADER);
             await writer.WriteAsync(fileContents);

@@ -10,7 +10,7 @@ namespace VivaldiCustomLauncher {
     internal static class CommandLine {
 
         public static string ArgvToCommandLine(IEnumerable<string> args) {
-            var sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (string s in args) {
                 sb.Append('"');
                 // Escape double quotes (") and backslashes (\).

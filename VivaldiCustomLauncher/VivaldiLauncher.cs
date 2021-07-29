@@ -31,7 +31,7 @@ namespace VivaldiCustomLauncher {
         }
 
         private static void tweakAndLaunch() {
-            var stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
             try {
                 string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
 
@@ -88,6 +88,10 @@ namespace VivaldiCustomLauncher {
         }
 
         private static string getVivaldiApplicationDirectory() {
+            if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vivaldi.exe", "Path", null) is string appPath) {
+                return appPath;
+            }
+
             const string UNINSTALL_REGISTRY_PATH       = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
             const string UNINSTALL_REGISTRY_PATH_WOW64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
             IEnumerable<(RegistryKey hive, string path)> uninstallKeys = new[] {
