@@ -68,6 +68,27 @@ namespace Tests {
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
+        [Fact]
+        public void navigateToSubdomainParts() {
+            string actual = tweak.navigateToSubdomainParts(ORIGINAL_BUNDLE_TEXT);
+
+            string expected =
+                @",s&&this.props.subdomain.split(""."").map((part, index, whole) => n.createElement(""span"", { className: ""UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain"", onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : """") + whole.slice(index).join(""."") + ""."" + this.props.basedomain + ""."" + this.props.tld + (this.props.port ? `:${this.props.port}` : """")); }}, part, ""."")) /* Customized by Ben */,n.createElement";
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, expected);
+
+            expected =
+                @".createElement(""span"",{className:""UrlFragment--Highlight UrlFragment-HostFragment-Basedomain"",onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : """") + this.props.basedomain + ""."" + this.props.tld + (this.props.port ? `:${this.props.port}` : """")); } /* Customized by Ben */,";
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, expected);
+
+            expected =
+                @".createElement(""span"",{className:""UrlFragment--Highlight UrlFragment-HostFragment-TLD"",onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : """") + this.props.basedomain + ""."" + this.props.tld + (this.props.port ? `:${this.props.port}` : """")); } /* Customized by Ben */,";
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, expected);
+
+            expected =
+                @".createElement(""span"",{className:""UrlFragment--Lowlight UrlFragment-HostFragment-Port"",onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : """") + this.props.basedomain + ""."" + this.props.tld + (this.props.port ? `:${this.props.port}` : """")); } /* Customized by Ben */,";
+            safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, expected);
+        }
+
         private static void safeAssertReplacement(string originalInput, string actualInput, string expected) {
             try {
                 Assert.DoesNotContain(expected, originalInput);

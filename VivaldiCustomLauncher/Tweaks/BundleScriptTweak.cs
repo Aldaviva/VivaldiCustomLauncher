@@ -34,6 +34,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
             newBundleContents = formatDownloadProgress(newBundleContents);
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
+            newBundleContents = navigateToSubdomainParts(newBundleContents);
             return newBundleContents;
         }
 
@@ -103,6 +104,38 @@ namespace VivaldiCustomLauncher.Tweaks {
                 @"\.fromNow\(\):(?<unmodified1>.{1,700}),(?<unmodified2>\w\.state===.{1,50})\(""\$1 of \$2 - stopped""(?<unmodified3>.{1,50})""\$1 of \$2 at \$3"",(?<unmodified4>.{1,50}),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)",
                 match =>
                     $"{CUSTOMIZED_COMMENT}.fromNow(true):{match.Groups["unmodified1"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["unmodified2"].Value}(\"$1/$2 - stopped\"{match.Groups["unmodified3"].Value}\"$3, $1/$2\",{match.Groups["unmodified4"].Value})");
+        }
+
+        internal string navigateToSubdomainParts(string bundleContents) {
+            Match moduleStartMatch = Regex.Match(bundleContents, @"\\\\HostFragment\.jsx.*?render\(\){");
+            if (!moduleStartMatch.Success) return bundleContents;
+            int searchStart = moduleStartMatch.Index + moduleStartMatch.Length; //start searching for invocations inside the render() method
+
+            Regex subdomainPattern = new(@"&&(?<domCreator>[\w$]{1,2})\.createElement\(""span"",{className:""UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain"",.*?\),");
+            bundleContents = subdomainPattern.Replace(bundleContents, match => "&&this.props.subdomain.split(\".\").map((part, index, whole) => " +
+                    $"{match.Groups["domCreator"].Value}.createElement(\"span\", {{ " +
+                    "className: \"UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain\", " +
+                    "onClick: e => { " +
+                    "e.stopPropagation(); " +
+                    "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); " +
+                    "}}, part, \".\")) " + CUSTOMIZED_COMMENT + ","
+                , 1, searchStart);
+
+            const string BASEDOMAIN_ONCLICK = "onClick: e => { " +
+                "e.stopPropagation(); " +
+                "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); " +
+                "} " + CUSTOMIZED_COMMENT + ",";
+
+            Regex basedomainPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-Basedomain"",");
+            bundleContents = basedomainPattern.Replace(bundleContents, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart);
+
+            Regex tldPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-TLD"",");
+            bundleContents = tldPattern.Replace(bundleContents, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart);
+
+            Regex portPattern = new(@"className:""UrlFragment--Lowlight UrlFragment-HostFragment-Port"",");
+            bundleContents = portPattern.Replace(bundleContents, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart);
+
+            return bundleContents;
         }
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
