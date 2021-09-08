@@ -10,11 +10,11 @@ namespace VivaldiCustomLauncher.Tweaks {
     public class BrowserHtmlTweak: Tweak<string, BrowserHtmlTweakParams> {
 
         public Task<string?> readFileAndEditIfNecessary(BrowserHtmlTweakParams tweakParams) {
-            string fileContents = File.ReadAllText(tweakParams.filename, Encoding.UTF8);
+            string fileContents          = File.ReadAllText(tweakParams.filename, Encoding.UTF8);
             string styleSheetRelativeUri = new UriBuilder { Path = tweakParams.customStyleSheetRelativeFilePath }.Path;
-            string scriptRelativeUri = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
+            string scriptRelativeUri     = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
 
-            bool fileModified = false;
+            bool   fileModified         = false;
             string modifiedFileContents = fileContents;
 
             if (!fileContents.Contains(styleSheetRelativeUri)) {
@@ -33,8 +33,8 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         public async Task saveFile(string fileContents, BrowserHtmlTweakParams tweakParams) {
-            using FileStream writeStream = File.OpenWrite(tweakParams.filename);
-            using var writer = new StreamWriter(writeStream, Encoding.UTF8);
+            using FileStream   writeStream = File.OpenWrite(tweakParams.filename);
+            using StreamWriter writer      = new(writeStream, Encoding.UTF8);
             await writer.WriteAsync(fileContents);
             await writer.FlushAsync();
         }
@@ -43,12 +43,12 @@ namespace VivaldiCustomLauncher.Tweaks {
 
     public class BrowserHtmlTweakParams: BaseTweakParams {
 
-        public string customStyleSheetRelativeFilePath { get;}
+        public string customStyleSheetRelativeFilePath { get; }
         public string customScriptRelativePath { get; }
 
         public BrowserHtmlTweakParams(string filename, string customStyleSheetRelativeFilePath, string customScriptRelativePath): base(filename) {
             this.customStyleSheetRelativeFilePath = customStyleSheetRelativeFilePath;
-            this.customScriptRelativePath = customScriptRelativePath;
+            this.customScriptRelativePath         = customScriptRelativePath;
         }
 
     }

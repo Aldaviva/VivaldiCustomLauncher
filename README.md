@@ -16,8 +16,8 @@ Intercept executions of Vivaldi to add custom arguments and apply tweaks files
 1. Tweaks and arguments will be applied.
 
 ## What does it do?
-- Includes a [custom style sheet](https://gist.github.com/Aldaviva/9fbe321331b7f80786a371e0fd4bcfaf#file-style-custom-css) in the browser chrome to clean up the UI and make it more minimal.
-- Includes a [custom script](https://gist.github.com/Aldaviva/9fbe321331b7f80786a371e0fd4bcfaf#file-scripts-custom-js) to
+- Includes a [custom style sheet](https://github.com/Aldaviva/VivaldiCustomResources/raw/master/style/custom.css) in the browser chrome to clean up the UI and make it more minimal.
+- Includes a [custom script](https://github.com/Aldaviva/VivaldiCustomResources/raw/master/scripts/custom.js) to
     - add more keyboard shortcuts to the browser
         |Keyboard shortcut|Action|
         |---|---|
