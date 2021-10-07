@@ -21,16 +21,16 @@ namespace VivaldiCustomLauncher {
         private static HttpClient httpClient => HTTP_CLIENT ??= new HttpClient();
 
         [STAThread]
-        public static void Main() {
+        public static int Main() {
             Application.EnableVisualStyles();
 
             Application.ThreadException                += (_, args) => onUncaughtException(args.Exception);
             AppDomain.CurrentDomain.UnhandledException += (_, args) => onUncaughtException((Exception) args.ExceptionObject);
 
-            tweakAndLaunch();
+            return tweakAndLaunch() ? 0 : 1;
         }
 
-        private static void tweakAndLaunch() {
+        private static bool tweakAndLaunch() {
             Stopwatch stopwatch = Stopwatch.StartNew();
             try {
                 string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
@@ -48,9 +48,16 @@ namespace VivaldiCustomLauncher {
                 stopwatch.Stop();
 
                 // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            } catch (TweakException e) {
+                MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.Message}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            } catch (InvalidOperationException e) {
+                MessageBox.Show(e.Message, "Failed to launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             } catch (Exception e) when (e is not OutOfMemoryException) {
                 onUncaughtException(e);
-                throw;
+                return false;
             }
         }
 
@@ -59,6 +66,7 @@ namespace VivaldiCustomLauncher {
             MessageBox.Show($"{e.GetType().Name}: {message}", "Failed to tweak and launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+        /// <exception cref="TweakException"></exception>
         private static void applyTweaks(string resourceDirectory) {
             string customStyleSheetRelativePath = Path.Combine("style", "custom.css");
             string customStyleSheetAbsolutePath = Path.Combine(resourceDirectory, customStyleSheetRelativePath);
@@ -72,14 +80,19 @@ namespace VivaldiCustomLauncher {
             string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
             string visualElementsDestinationPath = Path.Combine(resourceDirectory, "../../../..", Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml");
 
-            Task.WaitAll(
-                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
-                applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
-                applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),
-                applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(customScriptAbsolutePath)),
-                applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)));
+            try {
+                Task.WaitAll(
+                    applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
+                    applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
+                    applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),
+                    applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(customScriptAbsolutePath)),
+                    applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)));
+            } catch (AggregateException e) {
+                throw e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().First();
+            }
         }
 
+        /// <exception cref="TweakException"></exception>
         private static async Task applyTweakIfNecessary<OutputType, Params>(Tweak<OutputType, Params> tweak, Params tweakParams) where Params: TweakParams where OutputType: class {
             OutputType? editedFile = await tweak.readFileAndEditIfNecessary(tweakParams);
             if (editedFile != null) {
@@ -87,6 +100,7 @@ namespace VivaldiCustomLauncher {
             }
         }
 
+        /// <exception cref="InvalidOperationException"></exception>
         private static string getVivaldiApplicationDirectory() {
             if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vivaldi.exe", "Path", null) is string appPath) {
                 return appPath;

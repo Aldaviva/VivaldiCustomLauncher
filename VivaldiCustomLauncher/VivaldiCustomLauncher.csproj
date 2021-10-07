@@ -57,6 +57,7 @@
     <Compile Include="Tweaks\CustomScriptTweak.cs" />
     <Compile Include="Tweaks\CustomStyleSheetTweak.cs" />
     <Compile Include="Tweaks\Tweak.cs" />
+    <Compile Include="Tweaks\TweakException.cs" />
     <Compile Include="Tweaks\VisualElementsManifestTweak.cs" />
     <Compile Include="VivaldiLauncher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,6 +14,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         private const           string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
         private static readonly char[] EXPECTED_HEADER    = CUSTOMIZED_COMMENT.ToCharArray();
 
+        /// <exception cref="TweakException"></exception>
         public async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
             string           bundleContents;
             using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
@@ -32,7 +34,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
             string newBundleContents = increaseMaximumTabWidth(bundleContents);
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
-            newBundleContents = formatDownloadProgress(newBundleContents);
+            // newBundleContents = formatDownloadProgress(newBundleContents); //disabled because Vivaldi 4.3 has a new Downloads panel which might not need this tweak
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
             newBundleContents = navigateToSubdomainParts(newBundleContents);
             return newBundleContents;
@@ -45,45 +47,67 @@ namespace VivaldiCustomLauncher.Tweaks {
          * - a(93).a.getNavigationInfo(): find an invocation of _.a.getNavigationInfo() and find out how _ is declared
          * - p.a.close(): action of COMMAND_CLOSE_TAB
          */
+        /// <exception cref="TweakException">if the tweak can't be applied</exception>
         internal async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
-            Task<int?> navigationInfoMatchTask = Task.Run(() => {
-                Match  getNavigationInfoMatch       = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.a\.getNavigationInfo\(");
-                string dependencyVariable           = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
-                int    getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
+            Task<(string webpackInjector, int dependencyId, string intermediateVariable)?> navigationInfoMatchTask = Task.Run(
+                (Func<(string webpackInjector, int dependencyId, string intermediateVariable)?>) (() => {
+                    Match  getNavigationInfoMatch       = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.getNavigationInfo\(");
+                    string dependencyVariable           = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
+                    string intermediateVariable         = getNavigationInfoMatch.Groups["intermediateVariable"].Value;
+                    int    getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
 
-                Regex dependencyDeclarationPattern = new($@"\b{Regex.Escape(dependencyVariable)}=a\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
-                Match dependencyDeclarationMatch   = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
+                    Regex  dependencyDeclarationPattern = new($@"\b{Regex.Escape(dependencyVariable)}=(?<webpackInjector>[\w$]{{1,2}})\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
+                    Match  dependencyDeclarationMatch   = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
+                    string webpackInjector              = dependencyDeclarationMatch.Groups["webpackInjector"].Value;
+                    int?   dependencyId                 = int.TryParse(dependencyDeclarationMatch.Groups["dependencyId"].Value, out int id) ? id : null;
 
-                return int.TryParse(dependencyDeclarationMatch.Groups["dependencyId"].Value, out int id) ? id : (int?) null;
-            });
+                    return getNavigationInfoMatch.Success && dependencyDeclarationMatch.Success && dependencyId is not null
+                        ? (webpackInjector, (int) dependencyId, intermediateVariable)
+                        : null;
+                }));
 
             Task<string?> getActivePageMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
                     @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2}\.\w{1,2})\.unsafeGetActivePage\(\)")
                 .Groups["dependencyVariable"].Value));
 
-            Task<string?> closeMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
-                    @"{name:""COMMAND_CLOSE_TAB"",action:\(\)=>(?<dependencyVariable>[\w$]{1,2})\.a\.close\(\),")
-                .Groups["dependencyVariable"].Value));
+            Task<(string dependencyVariable, string intermediateVariable)?> closeMatchTask = Task.Run((Func<(string dependencyVariable, string intermediateVariable)?>) (() => {
+                Match  match = Regex.Match(bundleContents, @"{name:""COMMAND_CLOSE_TAB"",action:\(\)=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\),");
+                string dependencyVariable = match.Groups["dependencyVariable"].Value;
+                string intermediateVariable = match.Groups["intermediateVariable"].Value;
+                return match.Success ? (dependencyVariable, intermediateVariable) : null;
+            }));
 
-            int?    navigationInfoDependencyId      = await navigationInfoMatchTask;
-            string? getActivePageDependencyVariable = await getActivePageMatchTask;
-            string? closeDependencyVariable         = await closeMatchTask;
+            const string TYPE_NAME   = nameof(BundleScriptTweak);
+            const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
-            if (navigationInfoDependencyId != null && getActivePageDependencyVariable != null && closeDependencyVariable != null) {
-                return Regex.Replace(bundleContents,
-                    @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.a\.back(?<suffix>,)",
-                    match => match.Groups["prefix"].Value +
+            (string webpackInjector, int dependencyId, string intermediateVariable) navigationInfo = await navigationInfoMatchTask ??
+                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)");
+            string getActivePageDependencyVariable = await getActivePageMatchTask ??
+                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency name for active page (the variable you call .unsafeGetActivePage() on");
+            (string dependencyVariable, string intermediateVariable) closer = await closeMatchTask ??
+                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency name for close method (the variable you call .a.close() on)");
+
+            bool bundleWasReplaced = false;
+            string replacedBundle = Regex.Replace(bundleContents,
+                @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.(?<backIntermediateVariable>[\w$]{1,2})\.back(?<suffix>,)",
+                match => {
+                    bundleWasReplaced = true;
+                    return match.Groups["prefix"].Value +
                         "() => { " +
                         $"const activePage = {getActivePageDependencyVariable}.getActivePage(), " +
-                        $"navigationInfo = activePage && a({navigationInfoDependencyId}).a.getNavigationInfo(activePage.id); " +
+                        $"navigationInfo = activePage && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo(activePage.id); " +
                         "navigationInfo && navigationInfo.canGoBack" +
-                        $" ? {match.Groups["backDependencyVariable"].Value}.a.back()" +
-                        $" : {closeDependencyVariable}.a.close() " +
+                        $" ? {match.Groups["backDependencyVariable"].Value}.{match.Groups["backIntermediateVariable"].Value}.back()" +
+                        $" : {closer.dependencyVariable}.{closer.intermediateVariable}.close() " +
                         "} " +
                         CUSTOMIZED_COMMENT +
-                        match.Groups["suffix"].Value);
+                        match.Groups["suffix"].Value;
+                });
+
+            if (bundleWasReplaced) {
+                return replacedBundle;
             } else {
-                return bundleContents;
+                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find COMMAND_PAGE_BACK action to replace");
             }
         }
 

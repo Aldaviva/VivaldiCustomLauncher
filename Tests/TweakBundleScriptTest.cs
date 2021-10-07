@@ -58,7 +58,7 @@ namespace Tests {
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
-        [Fact]
+        [Fact(Skip = "disabled because Vivaldi 4.3 has a new, possibly better Downloads panel")]
         public void formatDownloadProgress() {
             string actual = tweak.formatDownloadProgress(ORIGINAL_BUNDLE_TEXT);
 

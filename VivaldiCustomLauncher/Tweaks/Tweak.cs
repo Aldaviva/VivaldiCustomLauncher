@@ -6,6 +6,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
     public interface Tweak<OutputType, in Params> where Params: TweakParams where OutputType: class {
 
+        /// <exception cref="TweakException"></exception>
         Task<OutputType?> readFileAndEditIfNecessary(Params tweakParams);
 
         Task saveFile(OutputType fileContents, Params tweakParams);
