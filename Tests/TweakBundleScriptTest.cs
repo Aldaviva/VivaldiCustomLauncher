@@ -10,7 +10,7 @@ namespace Tests {
 
     public class TweakBundleScriptTest {
 
-        private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/original-bundle.js";
+        private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/bundle.js";
         private static readonly string ORIGINAL_BUNDLE_TEXT     = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
 
         private readonly BundleScriptTweak tweak = new();
@@ -58,12 +58,12 @@ namespace Tests {
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
 
-        [Fact(Skip = "disabled because Vivaldi 4.3 has a new, possibly better Downloads panel")]
+        [Fact]
         public void formatDownloadProgress() {
             string actual = tweak.formatDownloadProgress(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"u=function(e,t,a){return e&&t>a?m()(t)/* Customized by Ben */.fromNow(true):e&&t<=a?Object(r.a)(""about a second""):""""}(n,a,t),h=Object(r.a)(""$1/s"",[Object(c.a)(Object(d.a)(e))]),p=e.paused||e.state===E;return i.a.createElement(""div"",{className:""DownloadItem-FileSize"",__source:{fileName:""D:\\builder\\workers\\ow64\\build\\vivaldi\\vivapp\\src\\components\\downloads\\DownloadPanel\\DownloadSize.jsx"",lineNumber:60,columnNumber:5}},u&&`${u}, `,e.state===v?l:p?Object(r.a)(""$1/$2 - stopped"",[o,l]):Object(r.a)(""$3, $1/$2"",[o,l,h]))}";
+                @"l=function(e,t,n){return e&&t>n?g()(t).fromNow(true)/* Customized by Ben */:e&&t<=n?(0,ue.Z)(""1 second""):""""}(i,n,t),c=(0,ue.Z)(""$1/s"",[Cr(e.currentSpeed)]),u=e.paused||e.state===oN,m=e.error?function(e){switch(e){case""FILE_NO_SPACE"":return(0,ue.Z)(""Disk is full"");case""FILE_TOO_LARGE"":return(0,ue.Z)(""File too large"");case""FILE_FAILED"":return(0,ue.Z)(""Download error"");case""FILE_ACCESS_DENIED"":return(0,ue.Z)(""Insufficient permissions"");case""FILE_NAME_TOO_LONG"":return(0,ue.Z)(""Path too long"");case""FILE_VIRUS_INFECTED"":return(0,ue.Z)(""Virus detected"");case""FILE_TRANSIENT_ERROR"":return(0,ue.Z)(""System busy"");case""FILE_BLOCKED"":return(0,ue.Z)(""Blocked"");case""FILE_SECURITY_CHECK_FAILED"":return(0,ue.Z)(""Virus scan failed"");case""FILE_TOO_SHORT"":return(0,ue.Z)(""File truncated"");case""FILE_SAME_AS_SOURCE"":return(0,ue.Z)(""Already downloaded"");case""FILE_HASH_MISMATCH"":return(0,ue.Z)(""Hash mismatch"");case""NETWORK_FAILED"":return(0,ue.Z)(""Network"");case""NETWORK_TIMEOUT"":return(0,ue.Z)(""Timeout"");case""NETWORK_DISCONNECTED"":return(0,ue.Z)(""Disconnected"");case""NETWORK_SERVER_DOWN"":return(0,ue.Z)(""Server unavailable"");case""NETWORK_INVALID_REQUEST"":return(0,ue.Z)(""Invalid network request"");case""SERVER_FAILED"":return(0,ue.Z)(""Server failed"");case""SERVER_NO_RANGE"":return(0,ue.Z)(""Server does not support range"");case""SERVER_BAD_CONTENT"":return(0,ue.Z)(""The server could not find the file"");case""SERVER_UNAUTHORIZED"":return(0,ue.Z)(""Unauthorized"");case""SERVER_CERT_PROBLEM"":return(0,ue.Z)(""Certificate problem"");case""SERVER_FORBIDDEN"":return(0,ue.Z)(""Forbidden"");case""SERVER_UNREACHABLE"":return(0,ue.Z)(""Unreachable"");case""SERVER_CONTENT_LENGTH_MISMATCH"":return(0,ue.Z)(""Content length mismatch"");case""SERVER_CROSS_ORIGIN_REDIRECT"":return(0,ue.Z)(""Cross origin redirect"");case""USER_CANCELED"":return(0,ue.Z)(""Cancelled"");case""USER_SHUTDOWN"":return(0,ue.Z)(""Shutdown"");case""CRASH"":return(0,ue.Z)(""Crashed"")}return e}(e.error):"""",d=u?(0,ue.Z)(""$1/$2 - stopped"",[a,o]):(0,ue.Z)(""$3, $1/$2"",[a,o,c]);return s.createElement(""div"",{className:""DownloadItem-FileSize"",__source:{fileName:""D:\\builder\\workers\\ow64\\build\\vivaldi\\vivapp\\src\\components\\downloads\\DownloadPanel\\DownloadSize.jsx"",lineNumber:159,columnNumber:5}},l&&`${l}, `,e.state===aN?o:e.error?m:d)/* Customized by Ben */}";
 
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }

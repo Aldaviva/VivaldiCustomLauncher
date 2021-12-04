@@ -9,7 +9,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         public string tweakTypeName { get; }
         public string tweakMethodName { get; }
 
-        public TweakException(string tweakTypeName, string tweakMethodName, string message): base(message) {
+        public TweakException(string message, string tweakTypeName, string tweakMethodName): base(message) {
             this.tweakTypeName   = tweakTypeName;
             this.tweakMethodName = tweakMethodName;
         }

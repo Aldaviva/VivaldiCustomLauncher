@@ -34,7 +34,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
             string newBundleContents = increaseMaximumTabWidth(bundleContents);
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
-            // newBundleContents = formatDownloadProgress(newBundleContents); //disabled because Vivaldi 4.3 has a new Downloads panel which might not need this tweak
+            newBundleContents = formatDownloadProgress(newBundleContents);
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
             newBundleContents = navigateToSubdomainParts(newBundleContents);
             return newBundleContents;
@@ -81,11 +81,11 @@ namespace VivaldiCustomLauncher.Tweaks {
             const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
             (string webpackInjector, int dependencyId, string intermediateVariable) navigationInfo = await navigationInfoMatchTask ??
-                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)");
+                throw new TweakException("Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)", TYPE_NAME, METHOD_NAME);
             string getActivePageDependencyVariable = await getActivePageMatchTask ??
-                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency name for active page (the variable you call .unsafeGetActivePage() on");
+                throw new TweakException("Failed to find dependency name for active page (the variable you call .unsafeGetActivePage() on", TYPE_NAME, METHOD_NAME);
             (string dependencyVariable, string intermediateVariable) closer = await closeMatchTask ??
-                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find dependency name for close method (the variable you call .a.close() on)");
+                throw new TweakException("Failed to find dependency name for close method (the variable you call .a.close() on)", TYPE_NAME, METHOD_NAME);
 
             bool bundleWasReplaced = false;
             string replacedBundle = Regex.Replace(bundleContents,
@@ -107,7 +107,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             if (bundleWasReplaced) {
                 return replacedBundle;
             } else {
-                throw new TweakException(TYPE_NAME, METHOD_NAME, "Failed to find COMMAND_PAGE_BACK action to replace");
+                throw new TweakException("Failed to find COMMAND_PAGE_BACK action to replace", TYPE_NAME, METHOD_NAME);
             }
         }
 
@@ -125,9 +125,9 @@ namespace VivaldiCustomLauncher.Tweaks {
 
         internal string formatDownloadProgress(string bundleContents) {
             return Regex.Replace(bundleContents,
-                @"\.fromNow\(\):(?<unmodified1>.{1,700}),(?<unmodified2>\w\.state===.{1,50})\(""\$1 of \$2 - stopped""(?<unmodified3>.{1,50})""\$1 of \$2 at \$3"",(?<unmodified4>.{1,50}),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)",
+                @"\.fromNow\(\)(?<unmodified1>.{1,52}?)about a second(?<unmodified2>.{1,7000}?)\$1 of \$2 - stopped(?<unmodified3>.{1,48}?)\$1 of \$2 at \$3(?<unmodified4>.{1,1000}?),(?<sizeExpr>[^,]{1,80}?),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)",
                 match =>
-                    $"{CUSTOMIZED_COMMENT}.fromNow(true):{match.Groups["unmodified1"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["unmodified2"].Value}(\"$1/$2 - stopped\"{match.Groups["unmodified3"].Value}\"$3, $1/$2\",{match.Groups["unmodified4"].Value})");
+                    $".fromNow(true){CUSTOMIZED_COMMENT}{match.Groups["unmodified1"].Value}1 second{match.Groups["unmodified2"].Value}$1/$2 - stopped{match.Groups["unmodified3"].Value}$3, $1/$2{match.Groups["unmodified4"].Value},{match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `,{match.Groups["sizeExpr"].Value}){CUSTOMIZED_COMMENT}");
         }
 
         internal string navigateToSubdomainParts(string bundleContents) {

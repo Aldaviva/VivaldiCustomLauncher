@@ -24,7 +24,7 @@ Intercept executions of Vivaldi to add custom arguments and apply tweaks files
         |`Ctrl`+`Shift`+`C`|Copy current page URL to clipboard|
         |`Ctrl`+`Alt`+`Shift`+`V`|Paste and Go in new tab|
         |`Ctrl`+`E`|Hide extension buttons from toolbar|
-        |`Alt`+`H`|Hibernate all background tabs in the current window|
+        |`Alt`+`H`|Hibernate all unpinned background tabs in the current window|
         |`Alt`+`Z`|Open history menu (backwards)|
         |`Alt`+`X`|Open history menu (forwards)|
     - send the current tab's URL to my [fork of the KeePass WebAutoType plugin](https://github.com/Aldaviva/WebAutoType) using a localhost AJAX request so KeePass can autotype the correct username and password entry. This is done because the accessibility technique normally used by WebAutoType (MSAA) requires Web Accessibility to be turned on, which frequently makes Vivaldi 3 completely freeze for 20 seconds at a time.
