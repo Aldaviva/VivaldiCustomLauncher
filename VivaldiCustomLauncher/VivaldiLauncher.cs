@@ -74,8 +74,9 @@ namespace VivaldiCustomLauncher {
             string customScriptRelativePath = Path.Combine("scripts", "custom.js");
             string customScriptAbsolutePath = Path.Combine(resourceDirectory, customScriptRelativePath);
 
-            string bundleScriptAbsolutePath = Path.Combine(resourceDirectory, "bundle.js");
-            string browserPageAbsolutePath  = Path.Combine(resourceDirectory, "browser.html");
+            string bundleScriptAbsolutePath                 = Path.Combine(resourceDirectory, "bundle.js");
+            string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-bundle-common.js");
+            string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
 
             string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
             string visualElementsDestinationPath = Path.Combine(resourceDirectory, "../../../..", Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml");
@@ -85,6 +86,7 @@ namespace VivaldiCustomLauncher {
                     applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
                     applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
                     applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),
+                    applyTweakIfNecessary(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(backgroundBundleCommonScriptAbsolutePath)),
                     applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(customScriptAbsolutePath)),
                     applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)));
             } catch (AggregateException e) {

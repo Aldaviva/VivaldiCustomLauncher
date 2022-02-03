@@ -51,6 +51,8 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tweaks\AbstractScriptTweak.cs" />
+    <Compile Include="Tweaks\BackgroundCommonBundleScriptTweak.cs" />
     <Compile Include="Tweaks\BrowserHtmlTweak.cs" />
     <Compile Include="CommandLine.cs" />
     <Compile Include="Tweaks\BundleScriptTweak.cs" />

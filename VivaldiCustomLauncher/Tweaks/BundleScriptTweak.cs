@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -9,36 +6,19 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks {
 
-    public class BundleScriptTweak: Tweak<string, BaseTweakParams> {
-
-        private const           string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
-        private static readonly char[] EXPECTED_HEADER    = CUSTOMIZED_COMMENT.ToCharArray();
+    public class BundleScriptTweak: AbstractScriptTweak {
 
         /// <exception cref="TweakException"></exception>
-        public async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
-            string           bundleContents;
-            using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
-
-            using (StreamReader reader = new(file, Encoding.UTF8, false, 4 * 1024, true)) {
-                char[] buffer = new char[EXPECTED_HEADER.Length];
-                await reader.ReadAsync(buffer, 0, buffer.Length);
-
-                if (EXPECTED_HEADER.SequenceEqual(buffer)) {
-                    return null;
-                }
-
-                file.Seek(0, SeekOrigin.Begin);
-                reader.DiscardBufferedData();
-                bundleContents = await reader.ReadToEndAsync();
-            }
-
+        protected override Task<string?> editFile(string bundleContents) => Task.Run((Func<Task<string?>>) (async () => {
             string newBundleContents = increaseMaximumTabWidth(bundleContents);
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
             newBundleContents = formatDownloadProgress(newBundleContents);
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
             newBundleContents = navigateToSubdomainParts(newBundleContents);
+            newBundleContents = hideMailPanelHeaders(newBundleContents);
+            newBundleContents = allowMovingMailToAnyFolder(newBundleContents);
             return newBundleContents;
-        }
+        }));
 
         /* Make Back also close the tab if the page can't go back
          * Secret code sources:
@@ -162,16 +142,32 @@ namespace VivaldiCustomLauncher.Tweaks {
             return bundleContents;
         }
 
-        public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
-            using FileStream   file   = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
-            using StreamWriter writer = new(file, Encoding.UTF8);
-            file.Seek(0, SeekOrigin.Begin);
-            await writer.WriteAsync(EXPECTED_HEADER);
-            await writer.WriteAsync(fileContents);
-            await writer.FlushAsync();
+        internal string hideMailPanelHeaders(string bundleContents) {
+            return Regex.Replace(bundleContents,
+                @"(?<prefix>,[\w$]{1,2}=[\w$]{1,2}\?\[[\w$]{1,2}\]:[\w$]{1,2}\.concat\([\w$]{1,2}\)),", // ,u=c?[X3]:l.concat(o),
+                match => $"{match.Groups["prefix"].Value}.slice(7){CUSTOMIZED_COMMENT},");
         }
 
-        private static string? emptyToNull(string input) => string.IsNullOrEmpty(input) ? null : input;
+        /// <summary>
+        /// Allow special folders (Sent, Trash, Junk) to be mail move destinations, not just Inbox and Other, so that I can mark messages as Spam and Not Spam.
+        /// In the Move menu, put folders in the top-level menu, not a submenu, because the extra inputs are annoying.
+        /// In the Move menu, only show subscribed folders to avoid cluttering the menu with worthless destinations.
+        /// In the Move menu, alphabetize the folders, but group them by special use (Inbox first, then Drafts, then Sent, etc) to make visual scanning easier.
+        /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundCommonBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
+        /// </summary>
+        internal string allowMovingMailToAnyFolder(string bundleContents) {
+            return Regex.Replace(bundleContents,
+                @"(?<prefix>getMoveToFolderMenu.{1,3000}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)",
+                match => match.Groups["prefix"].Value +
+                    CUSTOMIZED_COMMENT +
+                    "const typesOrdered = [\"Inbox\", \"Drafts\", \"Sent\", \"Archive\", \"Trash\", \"Junk\", \"Other\"];" +
+                    $"let {match.Groups["folderNamesVar"].Value} = Object.entries({match.Groups["folderManagerVars"].Value}.getFolders()[{match.Groups["smtpAddressVar"].Value}])" +
+                    ".filter(([path, folder]) => folder.subscribed)" +
+                    ".sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type))" +
+                    ".map(([path, folder]) => path);" +
+                    match.Groups["originalFiltering"].Value +
+                    $"...{match.Groups["handlerMap"].Value})");
+        }
 
     }
 
