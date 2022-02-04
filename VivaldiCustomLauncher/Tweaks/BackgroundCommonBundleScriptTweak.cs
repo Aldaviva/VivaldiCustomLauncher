@@ -14,7 +14,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         }));
 
         /// <summary>
-        /// This tweak is only needed to make <see cref="BundleScriptTweak.allowMovingMailToAnyFolder"/> work, since I would like to only show subscribed folders in the Move To menu.
+        /// This tweak is only needed to make <see cref="BundleScriptTweak.allowMovingMailBetweenAnyFolders"/> work, since I would like to only show subscribed folders in the Move To menu.
         /// </summary>
         internal string exposeFolderSubscriptionStatus(string bundleContents) {
             return Regex.Replace(bundleContents,

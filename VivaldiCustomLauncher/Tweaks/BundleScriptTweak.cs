@@ -16,7 +16,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
             newBundleContents = navigateToSubdomainParts(newBundleContents);
             newBundleContents = hideMailPanelHeaders(newBundleContents);
-            newBundleContents = allowMovingMailToAnyFolder(newBundleContents);
+            newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
             return newBundleContents;
         }));
 
@@ -149,24 +149,27 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         /// <summary>
-        /// Allow special folders (Sent, Trash, Junk) to be mail move destinations, not just Inbox and Other, so that I can mark messages as Spam and Not Spam.
+        /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move destinations, not just Inbox and Other, so that I can mark messages as Spam and Not Spam.
+        /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move sources, not just Inbox and Other, so that I can remove messages from the Junk E-mail heuristic folder.
         /// In the Move menu, put folders in the top-level menu, not a submenu, because the extra inputs are annoying.
         /// In the Move menu, only show subscribed folders to avoid cluttering the menu with worthless destinations.
         /// In the Move menu, alphabetize the folders, but group them by special use (Inbox first, then Drafts, then Sent, etc) to make visual scanning easier.
         /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundCommonBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
         /// </summary>
-        internal string allowMovingMailToAnyFolder(string bundleContents) {
+        internal string allowMovingMailBetweenAnyFolders(string bundleContents) {
             return Regex.Replace(bundleContents,
-                @"(?<prefix>getMoveToFolderMenu.{1,3000}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)",
-                match => match.Groups["prefix"].Value +
-                    CUSTOMIZED_COMMENT +
+                @"(?<prefix>getMoveToFolderMenu.{1,600}?\.isVirtualViewFolder\([\w$]{1,2}\)&&)\[.{3,50}?\]\.includes\([\w$]{1,2}\)&&(?<pushFolderSnippet>.{1,200}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)",
+                match =>
+                    match.Groups["prefix"].Value +
+                    match.Groups["pushFolderSnippet"].Value +
                     "const typesOrdered = [\"Inbox\", \"Drafts\", \"Sent\", \"Archive\", \"Trash\", \"Junk\", \"Other\"];" +
                     $"let {match.Groups["folderNamesVar"].Value} = Object.entries({match.Groups["folderManagerVars"].Value}.getFolders()[{match.Groups["smtpAddressVar"].Value}])" +
                     ".filter(([path, folder]) => folder.subscribed)" +
                     ".sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type))" +
                     ".map(([path, folder]) => path);" +
                     match.Groups["originalFiltering"].Value +
-                    $"...{match.Groups["handlerMap"].Value})");
+                    $"...{match.Groups["handlerMap"].Value})" +
+                    CUSTOMIZED_COMMENT);
         }
 
     }
