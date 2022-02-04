@@ -38,9 +38,8 @@ namespace VivaldiCustomLauncher.Tweaks {
         protected abstract Task<string?> editFile(string bundleContents);
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
-            using FileStream   file   = File.Open(tweakParams.filename, FileMode.Open, FileAccess.ReadWrite);
+            using FileStream   file   = File.Open(tweakParams.filename, FileMode.Truncate, FileAccess.ReadWrite);
             using StreamWriter writer = new(file, Encoding.UTF8);
-            file.Seek(0, SeekOrigin.Begin);
             await writer.WriteAsync(EXPECTED_HEADER);
             await writer.WriteAsync(fileContents);
             await writer.FlushAsync();
