@@ -32,13 +32,21 @@ namespace VivaldiCustomLauncher {
 
         private static bool tweakAndLaunch() {
             Stopwatch stopwatch = Stopwatch.StartNew();
+            bool      success   = true;
+
             try {
                 string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
 
-                using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
-                if (existingVivaldiProcess == null) {
-                    string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
-                    applyTweaks(resourceDirectory);
+                try {
+                    using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
+                    if (existingVivaldiProcess == null) {
+                        string resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
+                        applyTweaks(resourceDirectory);
+                    }
+
+                } catch (TweakException e) {
+                    MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.Message}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    success = false;
                 }
 
                 IEnumerable<string> originalArguments     = Environment.GetCommandLineArgs().Skip(1);
@@ -46,19 +54,17 @@ namespace VivaldiCustomLauncher {
 
                 createProcess(processToRun, processArgumentsToRun);
                 stopwatch.Stop();
+                // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return true;
-            } catch (TweakException e) {
-                MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.Message}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
             } catch (InvalidOperationException e) {
                 MessageBox.Show(e.Message, "Failed to launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                success = false;
             } catch (Exception e) when (e is not OutOfMemoryException) {
                 onUncaughtException(e);
-                return false;
+                success = false;
             }
+
+            return success;
         }
 
         private static void onUncaughtException(Exception e) {
@@ -75,7 +81,7 @@ namespace VivaldiCustomLauncher {
             string customScriptAbsolutePath = Path.Combine(resourceDirectory, customScriptRelativePath);
 
             string bundleScriptAbsolutePath                 = Path.Combine(resourceDirectory, "bundle.js");
-            string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-bundle-common.js");
+            string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-common-bundle.js");
             string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
 
             string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
@@ -90,7 +96,11 @@ namespace VivaldiCustomLauncher {
                     applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(customScriptAbsolutePath)),
                     applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)));
             } catch (AggregateException e) {
-                throw e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().First();
+                if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
+                    throw tweakException;
+                } else {
+                    throw e.InnerException;
+                }
             }
         }
 
