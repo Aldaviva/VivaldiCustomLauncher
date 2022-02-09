@@ -38,7 +38,7 @@ namespace Tests {
         public void increaseMaximumTabWidth() {
             string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
-            const string EXPECTED = @"return t?(r.maxWidth=4000/* Customized by Ben */,r.maxHeight=";
+            const string EXPECTED = @"const l8=4000/* Customized by Ben */,";
 
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -53,7 +53,7 @@ namespace Tests {
             string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"{name:""COMMAND_PAGE_BACK"",action:() => { const activePage = h.c.getActivePage(), navigationInfo = activePage && a(152).a.getNavigationInfo(activePage.id); navigationInfo && navigationInfo.canGoBack ? fe.a.back() : d.a.close() } /* Customized by Ben */,";
+                @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=b.ZP.getActivePage(e.windowId);/* Customized by Ben */const navigationInfo = t && n(1877).Z.getNavigationInfo(t.id);if(!navigationInfo || navigationInfo.canGoBack){t&&ye.Z.back(e.windowId,t.id)} else {g.Z.close();}},";
 
             safeAssertReplacement(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }

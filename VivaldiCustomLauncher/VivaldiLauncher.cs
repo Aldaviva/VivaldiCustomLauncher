@@ -45,7 +45,7 @@ namespace VivaldiCustomLauncher {
                     }
 
                 } catch (TweakException e) {
-                    MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.Message}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.bareMessage}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     success = false;
                 }
 

@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 #nullable enable
@@ -46,6 +48,26 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         protected static string? emptyToNull(string input) => string.IsNullOrEmpty(input) ? null : input;
+
+        /// <exception cref="TweakException"></exception>
+        protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, TweakException toThrowIfNoReplacement) => replaceOrThrow(input, pattern, evaluator, -1,
+            (pattern.Options & RegexOptions.RightToLeft) != 0 ? input.Length : 0, toThrowIfNoReplacement);
+
+        /// <exception cref="TweakException"></exception>
+        protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, int count, int startat, TweakException toThrowIfNoReplacement) {
+            bool wasReplaced = false;
+
+            string result = pattern.Replace(input, match => {
+                wasReplaced = true;
+                return evaluator(match);
+            });
+
+            if (!wasReplaced) {
+                throw toThrowIfNoReplacement;
+            } else {
+                return result;
+            }
+        }
 
     }
 
