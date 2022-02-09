@@ -29,6 +29,9 @@ namespace VivaldiCustomLauncher.Tweaks {
          */
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
         internal async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
+            const string TYPE_NAME   = nameof(BundleScriptTweak);
+            const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
+
             Task<(string webpackInjector, int dependencyId, string intermediateVariable)?> navigationInfoMatchTask = Task.Run(
                 (Func<(string webpackInjector, int dependencyId, string intermediateVariable)?>) (() => {
                     Match  getNavigationInfoMatch       = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.getNavigationInfo\(");
@@ -56,9 +59,6 @@ namespace VivaldiCustomLauncher.Tweaks {
                 string intermediateVariable = match.Groups["intermediateVariable"].Value;
                 return match.Success ? (dependencyVariable, intermediateVariable) : null;
             }));
-
-            const string TYPE_NAME   = nameof(BundleScriptTweak);
-            const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
             (string webpackInjector, int dependencyId, string intermediateVariable) navigationInfo = await navigationInfoMatchTask ??
                 throw new TweakException("Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)", TYPE_NAME, METHOD_NAME);
@@ -99,8 +99,8 @@ namespace VivaldiCustomLauncher.Tweaks {
 
         internal string increaseMaximumTabWidth(string bundleContents) {
             return Regex.Replace(bundleContents,
-                @"(?<prefix>\bmaxWidth=)(?<minTabWidth>180)(?<suffix>,)",
-                match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value);
+                @"(?<prefix>TabStrip\.jsx.{1,2000}\b[\w$]{1,2}=)180\b",
+                match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT);
         }
 
         internal string formatDownloadProgress(string bundleContents) {
