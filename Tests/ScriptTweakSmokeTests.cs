@@ -78,6 +78,18 @@ namespace Tests {
             safeAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
         }
 
+        [Fact]
+        public void formatPhoneNumbersChangesBundle() {
+            string actual = bundleTweak.formatPhoneNumbers(ORIGINAL_BUNDLE_TEXT);
+            safeAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+        }
+
+        /// <summary>
+        /// Don't print the actual or (optionally) expected strings, they might be several megabytes and freeze the unit test output
+        /// </summary>
+        /// <param name="assertion">an action that calls an assertion, like the following lambda: <c>() =&gt; Assert.Equal("a", "b")</c></param>
+        /// <param name="preserveExpected"><c>true</c> if the expected value from the assertion should be printed, or <c>false</c> if <c>(omitted)</c> should be printed instead. You should set this parameter to <c>false</c> if the expected value is very long.</param>
+        /// <param name="writeActualToTempFile">If <c>true</c> and the <c>assertion</c> fails, create a new empty temporary file on disk and write the actual value to it. Its filename will be printed in the exception message so you can open it and inspect it in your favorite text editor. If <c>false</c>, or if the <c>assertion</c> succeeds, don't create any file.</param>
         private static void safeAssert(Action assertion, bool preserveExpected = true, bool writeActualToTempFile = true) {
             try {
                 assertion();

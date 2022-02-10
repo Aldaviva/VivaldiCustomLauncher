@@ -19,6 +19,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             newBundleContents = navigateToSubdomainParts(newBundleContents);
             newBundleContents = hideMailPanelHeaders(newBundleContents);
             newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
+            newBundleContents = formatPhoneNumbers(newBundleContents);
             return newBundleContents;
         }));
 
@@ -192,6 +193,33 @@ namespace VivaldiCustomLauncher.Tweaks {
                 $"...{match.Groups["handlerMap"].Value})" +
                 CUSTOMIZED_COMMENT,
             new TweakException("Failed to find getMoveToFolderMenu method", TWEAK_TYPE));
+
+        /// <summary>
+        /// Format phone numbers in the Contacts panel using the US E164 formats:
+        /// <para>1 (234) 567-8901</para>
+        /// <para>(234) 567-8901</para>
+        /// <para>567-8901</para>
+        /// </summary>
+        /// <remarks>Formatting algorithm and unit tests: https://jsbin.com/sorohuv/edit?js,output </remarks>
+        /// <exception cref="TweakException">if the tweak can't be applied</exception>
+        internal string formatPhoneNumbers(string bundleContents) => replaceOrThrow(bundleContents,
+            // balanced capturing group pairs: https://www.regular-expressions.info/balancing.html
+            new Regex(@"(?<=[""']addSpaces['""],)(?>(?>(?'open'\()[^()]*)+(?>(?'-open'\))[^()]*)+)+(?(open)(?!))"),
+            _ => "raw => {" +
+                "const digits = raw.replace(/[^0-9a-z]/ig, '');" +
+                "switch (digits.length){" +
+                "case 7:" +
+                "  return digits.substr(0,3) + '-' + digits.substr(3,4);" +
+                "case 10:" +
+                "  return '(' + digits.substr(0,3) + ') ' + digits.substr(3,3) + '-' + digits.substr(6,4);" +
+                "case 11:" +
+                "  return digits[0] + ' (' + digits.substr(1,3) + ') ' + digits.substr(4,3) + '-' + digits.substr(7,4);" +
+                "default:" +
+                "  return digits;" +
+                "}" +
+                "}"
+                + CUSTOMIZED_COMMENT,
+            new TweakException("Failed to find addSpaces function", TWEAK_TYPE));
 
     }
 
