@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace VivaldiCustomLauncher {
@@ -7,6 +8,7 @@ namespace VivaldiCustomLauncher {
     /// <summary>
     ///     From https://stackoverflow.com/a/2611075/979493
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal static class CommandLine {
 
         public static string ArgvToCommandLine(IEnumerable<string> args) {

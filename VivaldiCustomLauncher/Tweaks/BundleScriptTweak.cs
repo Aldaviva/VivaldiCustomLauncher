@@ -131,7 +131,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         internal string navigateToSubdomainParts(string bundleContents) {
             Match moduleStartMatch = Regex.Match(bundleContents, @"\\\\HostFragment\.jsx.*?render\(\){");
             if (!moduleStartMatch.Success) {
-                throw new TweakException("Failed to find start of HostFragment module", TWEAK_TYPE);
+                throw new TweakException("Failed to find render() method in HostFragment module", TWEAK_TYPE);
             }
 
             int searchStart = moduleStartMatch.Index + moduleStartMatch.Length; //start searching for invocations inside the render() method
@@ -220,6 +220,22 @@ namespace VivaldiCustomLauncher.Tweaks {
                 "}"
                 + CUSTOMIZED_COMMENT,
             new TweakException("Failed to find addSpaces function", TWEAK_TYPE));
+
+        /// <summary>
+        /// <para>Format dates in calendar agenda view to include the day of the week.</para>
+        /// <para>Before: Feb 13, 2022</para>
+        /// <para>After:  Sun, Feb 13, 2022</para>
+        /// <para>Sadly, the new format is no longer localized, but there is no localized format which produces this output in Moment.js</para>
+        /// <para>Moment.js formatting documentation: https://momentjs.com/docs/#/displaying/format/ </para>
+        /// </summary>
+        /// <param name="bundleContents"></param>
+        /// <returns></returns>
+        internal string formatCalendarAgendaDates(string bundleContents) => replaceOrThrow(bundleContents,
+            new Regex(@"(?<prefix>['""]cal-tasks-row-date['""].{1,200}?\.format\()['""]ll['""](?=\))"),
+            match => match.Groups["prefix"].Value +
+                @"""ddd, MMM D, YYYY""" +
+                CUSTOMIZED_COMMENT,
+            new TweakException("Failed to find localized Moment formatting call", TWEAK_TYPE));
 
     }
 

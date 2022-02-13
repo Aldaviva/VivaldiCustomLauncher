@@ -43,7 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assertions\FastAssert.cs" />
+    <Compile Include="Assertions\FastAssertTest.cs" />
     <Compile Include="ScriptTweakSmokeTests.cs" />
+    <Compile Include="BackgroundCommonBundleScriptTweakTest.cs" />
     <Compile Include="TweakBundleScriptTest.cs" />
     <Compile Include="VersionNumberComparerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
