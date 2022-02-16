@@ -11,8 +11,9 @@ namespace VivaldiCustomLauncher.Tweaks {
         private const string TWEAK_TYPE = nameof(BundleScriptTweak);
 
         /// <exception cref="TweakException"></exception>
-        protected override Task<string?> editFile(string bundleContents) => Task.Run((Func<Task<string?>>) (async () => {
-            string newBundleContents = increaseMaximumTabWidth(bundleContents);
+        protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<Task<string?>>) (async () => {
+            string newBundleContents = bundleContents;
+            newBundleContents = increaseMaximumTabWidth(newBundleContents);
             newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
             newBundleContents = formatDownloadProgress(newBundleContents);
             newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
@@ -20,6 +21,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             newBundleContents = hideMailPanelHeaders(newBundleContents);
             newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
             newBundleContents = formatPhoneNumbers(newBundleContents);
+            newBundleContents = formatCalendarAgendaDates(newBundleContents);
             return newBundleContents;
         }));
 
@@ -31,7 +33,7 @@ namespace VivaldiCustomLauncher.Tweaks {
          * - p.a.close(): action of COMMAND_CLOSE_TAB
          */
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
+        internal virtual async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
             const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
             Task<(string webpackInjector, int dependencyId, string intermediateVariable)?> navigationInfoMatchTask = Task.Run(
@@ -51,10 +53,6 @@ namespace VivaldiCustomLauncher.Tweaks {
                         : null;
                 }));
 
-            // Task<string?> getActivePageMatchTask = Task.Run(() => emptyToNull(Regex.Match(bundleContents,
-            //         @"{name:""COMMAND_CLONE_TAB"",action:.*?(?<dependencyVariable>[\w$]{1,2}\.\w{1,2})\.unsafeGetActivePage\(\)")
-            //     .Groups["dependencyVariable"].Value));
-
             Task<(string dependencyVariable, string intermediateVariable)?> closeMatchTask = Task.Run((Func<(string dependencyVariable, string intermediateVariable)?>) (() => {
                 Match  match = Regex.Match(bundleContents, @"{name:""COMMAND_CLOSE_TAB"",action:\(\)=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\),");
                 string dependencyVariable = match.Groups["dependencyVariable"].Value;
@@ -64,18 +62,14 @@ namespace VivaldiCustomLauncher.Tweaks {
 
             (string webpackInjector, int dependencyId, string intermediateVariable) navigationInfo = await navigationInfoMatchTask ??
                 throw new TweakException("Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)", TWEAK_TYPE, METHOD_NAME);
-            // string getActivePageDependencyVariable = await getActivePageMatchTask ??
-            //     throw new TweakException("Failed to find dependency name for active page (the variable you call .unsafeGetActivePage() on", TWEAK_TYPE, METHOD_NAME);
             (string dependencyVariable, string intermediateVariable) closer = await closeMatchTask ??
                 throw new TweakException("Failed to find dependency name for close method (the variable you call .a.close() on)", TWEAK_TYPE, METHOD_NAME);
 
             bool bundleWasReplaced = false;
             string replacedBundle = Regex.Replace(bundleContents,
-                // @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:)(?<backDependencyVariable>[\w$]{1,2})\.(?<backIntermediateVariable>[\w$]{1,2})\.back(?<suffix>,)",
                 @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:[\w$]{1,2}=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)",
                 match => {
                     bundleWasReplaced = true;
-                    // ${prefix}\nconst navigationInfo = $activePage && w(d).i.getNavigationInfo($activePage.id);\nif(!navigationInfo || navigationInfo.canGoBack){\n\t$goBack\n} else {\n\tcd.ci.close();\n}\n
                     return match.Groups["prefix"].Value +
                         CUSTOMIZED_COMMENT +
                         $"const navigationInfo = {match.Groups["activePage"].Value} && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo({match.Groups["activePage"].Value}.id);" +
@@ -84,16 +78,6 @@ namespace VivaldiCustomLauncher.Tweaks {
                         "} else {" +
                         $"{closer.dependencyVariable}.{closer.intermediateVariable}.close();" +
                         "}";
-                    /*return match.Groups["prefix"].Value +
-                        "() => { " +
-                        // $"const activePage = {getActivePageDependencyVariable}.getActivePage(), " +
-                        $"navigationInfo = activePage && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo(activePage.id); " +
-                        "navigationInfo && navigationInfo.canGoBack" +
-                        $" ? {match.Groups["backDependencyVariable"].Value}.{match.Groups["backIntermediateVariable"].Value}.back()" +
-                        $" : {closer.dependencyVariable}.{closer.intermediateVariable}.close() " +
-                        "} " +
-                        CUSTOMIZED_COMMENT +
-                        match.Groups["suffix"].Value;*/
                 });
 
             if (bundleWasReplaced) {
@@ -104,23 +88,19 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string removeExtraSpacingFromTabBarRightSide(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string removeExtraSpacingFromTabBarRightSide(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(@"(?<prefix>\bgetStyles.{1,20}=>.{1,200}this\.props\.maxWidth)(?<suffix>,)"),
             match => match.Groups["prefix"].Value + "+62" + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value,
             new TweakException("Failed to find maxWidth to add to", TWEAK_TYPE));
 
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(@"(?<prefix>TabStrip\.jsx.{1,2000}\b[\w$]{1,2}=)180\b"),
             match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT,
             new TweakException("Failed to find old max tab width to replace", TWEAK_TYPE));
 
-        // return Regex.Replace(bundleContents,
-        //     @"(?<prefix>TabStrip\.jsx.{1,2000}\b[\w$]{1,2}=)180\b",
-        //     match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT);
-
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string formatDownloadProgress(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string formatDownloadProgress(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(
                 @"\.fromNow\(\)(?<unmodified1>.{1,52}?)about a second(?<unmodified2>.{1,7000}?)\$1 of \$2 - stopped(?<unmodified3>.{1,48}?)\$1 of \$2 at \$3(?<unmodified4>.{1,1000}?),(?<sizeExpr>[^,]{1,80}?),(?<timeVar>\w+)&&` \(\$\{\k<timeVar>\}\)`\)"),
             match =>
@@ -128,7 +108,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             new TweakException("Failed to find old date manipulation to replace", TWEAK_TYPE));
 
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string navigateToSubdomainParts(string bundleContents) {
+        internal virtual string navigateToSubdomainParts(string bundleContents) {
             Match moduleStartMatch = Regex.Match(bundleContents, @"\\\\HostFragment\.jsx.*?render\(\){");
             if (!moduleStartMatch.Success) {
                 throw new TweakException("Failed to find render() method in HostFragment module", TWEAK_TYPE);
@@ -163,7 +143,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             return bundleContents;
         }
 
-        internal string hideMailPanelHeaders(string bundleContents) {
+        internal virtual string hideMailPanelHeaders(string bundleContents) {
             return Regex.Replace(bundleContents,
                 @"(?<prefix>,[\w$]{1,2}=[\w$]{1,2}\?\[[\w$]{1,2}\]:[\w$]{1,2}\.concat\([\w$]{1,2}\)),", // ,u=c?[X3]:l.concat(o),
                 match => $"{match.Groups["prefix"].Value}.slice(7){CUSTOMIZED_COMMENT},");
@@ -178,7 +158,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundCommonBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
         /// </summary>
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string allowMovingMailBetweenAnyFolders(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string allowMovingMailBetweenAnyFolders(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(
                 @"(?<prefix>getMoveToFolderMenu.{1,600}?\.isVirtualViewFolder\([\w$,]{1,20}\)&&)\[.{3,50}?\]\.includes\([\w$]{1,2}\)&&(?<pushFolderSnippet>.{1,200}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)"),
             match =>
@@ -202,7 +182,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         /// </summary>
         /// <remarks>Formatting algorithm and unit tests: https://jsbin.com/sorohuv/edit?js,output </remarks>
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
-        internal string formatPhoneNumbers(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string formatPhoneNumbers(string bundleContents) => replaceOrThrow(bundleContents,
             // balanced capturing group pairs: https://www.regular-expressions.info/balancing.html
             new Regex(@"(?<=[""']addSpaces['""],)(?>(?>(?'open'\()[^()]*)+(?>(?'-open'\))[^()]*)+)+(?(open)(?!))"),
             _ => "raw => {" +
@@ -230,7 +210,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         /// </summary>
         /// <param name="bundleContents"></param>
         /// <returns></returns>
-        internal string formatCalendarAgendaDates(string bundleContents) => replaceOrThrow(bundleContents,
+        internal virtual string formatCalendarAgendaDates(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(@"(?<prefix>['""]cal-tasks-row-date['""].{1,200}?\.format\()['""]ll['""](?=\))"),
             match => match.Groups["prefix"].Value +
                 @"""ddd, MMM D, YYYY""" +

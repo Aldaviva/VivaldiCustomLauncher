@@ -1,6 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using FakeItEasy;
 using Tests.Assertions;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
@@ -24,6 +28,29 @@ namespace Tests {
                 Assert.DoesNotContain("Customized by Ben", ORIGINAL_BUNDLE_TEXT);
             } catch (DoesNotContainException e) {
                 throw new DoesNotContainException(e.Expected, "(omitted)");
+            }
+        }
+
+        [Fact]
+        public async Task allTweaksAreCalled() {
+            IList<string>     fakedCalls = new List<string>();
+            BundleScriptTweak tweakSpy   = A.Fake<BundleScriptTweak>();
+
+            // for this to work, the methods being called by editFile() must be virtual, and the assembly under test must have InternalsVisibleTo DynamicProxyGenAssembly2 (since the methods are internal, not public)
+            A.CallTo(tweakSpy).Invokes(call => fakedCalls.Add(call.Method.Name));
+            A.CallTo(() => tweakSpy.editFile(A<string>._)).CallsBaseMethod();
+
+            await tweakSpy.editFile(ORIGINAL_BUNDLE_TEXT);
+
+            IEnumerable<MethodInfo> expectedMethods = typeof(BundleScriptTweak)
+                .GetMethods(BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(method => method.Name != nameof(BundleScriptTweak.editFile))
+                .ToList();
+
+            Assert.NotEmpty(expectedMethods);
+            foreach (MethodInfo expectedMethod in expectedMethods) {
+                // If this assertion fails but editFile() is actually calling the expected method, make sure the expected method is virtual, so that FakeItEasy can proxy it and detect it being called
+                Assert.Contains(expectedMethod.Name, fakedCalls);
             }
         }
 

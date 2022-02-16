@@ -37,7 +37,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         }
 
         /// <exception cref="TweakException"></exception>
-        protected abstract Task<string?> editFile(string bundleContents);
+        protected internal abstract Task<string?> editFile(string bundleContents);
 
         public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
             using FileStream   file   = File.Open(tweakParams.filename, FileMode.Truncate, FileAccess.ReadWrite);
