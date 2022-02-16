@@ -84,36 +84,13 @@ namespace Tests.Assertions {
             }
 
             if (!newHaystack.Contains(needle)) {
-                // string newHaystackFilename = Path.GetTempFileName();
-                // File.WriteAllText(newHaystackFilename, newHaystack);
-                // Assert.True(false,
-                //     $"strings differ in the ranges newHaystack[{newHaystackHeaderIndex:N0} - {newHaystackTrailerIndex:N0}] and oldHaystack[{oldHaystackHeaderIndex:N0} - {oldHaystackTrailerIndex:N0}].\n" +
-                //     $"See {newHaystackFilename} for newHaystack.\n" +
-                //     "Beginning of diff:\n" +
-                //     "oldHaystack:\n" +
-                //     substringWithClipping(oldHaystack, oldHaystackHeaderIndex - 10, 20) +
-                //     "\nnewHaystack:\n" +
-                //     substringWithClipping(newHaystack, newHaystackHeaderIndex - 10, 20) +
-                //     "\nEnd of diff:\n" +
-                //     "oldHaystack:\n" +
-                //     substringWithClipping(oldHaystack, oldHaystackTrailerIndex - 10, 20) +
-                //     "\nnewHaystack:\n" +
-                //     substringWithClipping(newHaystack, newHaystackTrailerIndex - 10, 20));
                 string newHaystackDiff = substringWithClipping(newHaystack, newHaystackHeaderIndex - DIFF_EXTRA_CHARACTERS,
                     newHaystackTrailerIndex - newHaystackHeaderIndex + 2 * DIFF_EXTRA_CHARACTERS);
-                // newHaystack.Substring(newHaystackHeaderIndex, newHaystackTrailerIndex - newHaystackHeaderIndex + 1);
 
                 throw new XunitException("Not found:\n" +
                     needle +
                     "\n\nIn actual. Diff between original and actual:\n" +
                     newHaystackDiff);
-
-                Assert.True(false, "Not found:\n" +
-                    needle +
-                    "\nIn actual. Diff between original and actual:\n" +
-                    newHaystackDiff);
-
-                // Assert.Contains(needle, newHaystackDiff);
             }
         }
 

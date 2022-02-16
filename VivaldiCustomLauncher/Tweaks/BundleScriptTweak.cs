@@ -180,7 +180,7 @@ namespace VivaldiCustomLauncher.Tweaks {
         /// <exception cref="TweakException">if the tweak can't be applied</exception>
         internal string allowMovingMailBetweenAnyFolders(string bundleContents) => replaceOrThrow(bundleContents,
             new Regex(
-                @"(?<prefix>getMoveToFolderMenu.{1,600}?\.isVirtualViewFolder\([\w$]{1,2}\)&&)\[.{3,50}?\]\.includes\([\w$]{1,2}\)&&(?<pushFolderSnippet>.{1,200}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)"),
+                @"(?<prefix>getMoveToFolderMenu.{1,600}?\.isVirtualViewFolder\([\w$,]{1,20}\)&&)\[.{3,50}?\]\.includes\([\w$]{1,2}\)&&(?<pushFolderSnippet>.{1,200}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)"),
             match =>
                 match.Groups["prefix"].Value +
                 match.Groups["pushFolderSnippet"].Value +

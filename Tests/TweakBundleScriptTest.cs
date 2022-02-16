@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Tests.Assertions;
@@ -131,23 +130,6 @@ namespace Tests {
                 @"])=>{const typesOrdered = [""Inbox"", ""Drafts"", ""Sent"", ""Archive"", ""Trash"", ""Junk"", ""Other""];let i = Object.entries(c.Z.getFolders()[t]).filter(([path, folder]) => folder.subscribed).sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type)).map(([path, folder]) => path);i=i.filter((e=>e!==n)),i.length>0&&s.push(...i.map((i=>({handler:()=>W(e,t,n,i),...(0,ie.Z)(i)}))))/* Customized by Ben */})),";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-        }
-
-        [Obsolete]
-        private static void safeAssertReplacement(string originalInput, string actualInput, string expected) {
-            try {
-                Assert.DoesNotContain(expected, originalInput);
-            } catch (DoesNotContainException e) {
-                throw new DoesNotContainException(e.Expected, "(too large, omitted)");
-            }
-
-            try {
-                Assert.Contains(expected, actualInput);
-            } catch (ContainsException e) {
-                string actualFileName = Path.GetTempFileName();
-                File.WriteAllText(actualFileName, actualInput);
-                throw new ContainsException(e.Expected, $"(too large, see {actualFileName})");
-            }
         }
 
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
         public async Task saveFile(Stream downloadStream, BaseTweakParams tweakParams) {
             try {
-                Directory.CreateDirectory(Path.GetDirectoryName(tweakParams.filename) ?? throw new InvalidOperationException("Could not get path of custom script file " + tweakParams.filename));
+                Directory.CreateDirectory(Path.GetDirectoryName(tweakParams.filename)!);
 
                 using FileStream fileStream = File.OpenWrite(tweakParams.filename);
                 await downloadStream.CopyToAsync(fileStream);

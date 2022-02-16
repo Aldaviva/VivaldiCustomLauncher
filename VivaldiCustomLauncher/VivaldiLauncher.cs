@@ -73,6 +73,7 @@ namespace VivaldiCustomLauncher {
         }
 
         /// <exception cref="TweakException"></exception>
+        /// <exception cref="Exception">Ignore.</exception>
         private static void applyTweaks(string resourceDirectory) {
             string customStyleSheetRelativePath = Path.Combine("style", "custom.css");
             string customStyleSheetAbsolutePath = Path.Combine(resourceDirectory, customStyleSheetRelativePath);
@@ -99,7 +100,7 @@ namespace VivaldiCustomLauncher {
                 if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
                     throw tweakException;
                 } else {
-                    throw e.InnerException;
+                    throw e.InnerException!;
                 }
             }
         }
