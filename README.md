@@ -3,13 +3,12 @@
 Intercept executions of Vivaldi to add custom arguments and apply tweaks files
 
 ## Usage
-1. Download `VivaldiCustomLauncher.exe` from the [latest release](https://github.com/Aldaviva/VivaldiCustomLauncher/releases/latest).
-1. Copy `VivaldiCustomLauncher.exe` somewhere.
-1. Update your file type and URL scheme associations to use this program instead of `vivaldi.exe`, *e.g.*
-    - `HKEY_CLASSES_ROOT\http\shell\open\command`
-    - `HKEY_CLASSES_ROOT\https\shell\open\command`
-    - `HKEY_CLASSES_ROOT\VivaldiHTM*\shell\open\command`
-1. You may want to use [SetDefaultBrowser](https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/) to set the scheme and other associations.
+1. Download `VivaldiCustomLauncher.exe` from the [latest release](https://github.com/Aldaviva/VivaldiCustomLauncher/releases/latest) and save it somewhere, such as `C:\Program Files\Vivaldi\VivaldiCustomLauncher.exe`.
+1. Download [`VivaldiCustomLauncher.reg`](https://raw.githubusercontent.com/Aldaviva/VivaldiCustomLauncher/master/VivaldiCustomLauncher.reg).
+1. Edit `VivaldiCustomLauncher.reg` to have the correct paths to `VivaldiCustomLauncher.exe`, depending on where you saved it.
+1. Merge `VivaldiCustomLauncher.reg` into the registry.
+1. Download [SetDefaultBrowser](https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/).
+1. Run `SetDefaultBrowser.exe hkcu VivaldiCustomLauncher` to make VivaldiCustomLauncher the default browser.
 1. Update any shortcuts to `vivaldi.exe` to refer to this program instead, for example, shortcuts in the Start Menu.
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
