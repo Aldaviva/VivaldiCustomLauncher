@@ -1,7 +1,7 @@
 Windows Registry Editor Version 5.00
 
-; If you saved VivaldiCustomLaunchere.exe to a different directory, edit this file before merging it into the registry.
-; After merging this, you can set it as the default browser by running "SetDefaultBrowser.exe hkcu VivaldiCustomLauncher"
+; If you saved VivaldiCustomLauncher.exe to a different directory, then edit this file before merging it into the registry.
+; After merging this, you can set it as the default browser by running "SetDefaultBrowser.exe hkcu VivaldiCustomLauncher".
 ; Download SetDefaultBrowser from https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/
 ; Source: https://kolbi.cz/blog/2019/01/27/register-a-portable-browser-and-make-it-the-default/
 
