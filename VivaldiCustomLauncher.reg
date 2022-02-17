@@ -1,0 +1,59 @@
+; Source: https://kolbi.cz/blog/2019/01/27/register-a-portable-browser-and-make-it-the-default/
+; After merging this into the registry, you can set it as the default browser by running SetDefaultBrowser.exe hkcu VivaldiCustomLauncher
+; Download SetDefaultBrowser.exe from https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/
+
+Windows Registry Editor Version 5.00 
+
+[HKEY_CURRENT_USER\Software\RegisteredApplications]
+"VivaldiCustomLauncher"="Software\Clients\StartMenuInternet\VivaldiCustomLauncher\Capabilities"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher]
+@="VivaldiCustomLauncher"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\Capabilities]
+"ApplicationDescription"="VivaldiCustomLauncher"
+"ApplicationIcon"="C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe,0"
+"ApplicationName"="VivaldiCustomLauncher"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\Capabilities\FileAssociations]
+; you can add additional filetypes like .pdf if your browser supports it
+".htm"="VivaldiCustomLauncherHTM"
+".html"="VivaldiCustomLauncherHTM"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\Capabilities\Startmenu]
+"StartMenuInternet"="VivaldiCustomLauncher"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\Capabilities\URLAssociations]
+; you can add additional protocols like mailto for example
+"http"="VivaldiCustomLauncherHTM"
+"https"="VivaldiCustomLauncherHTM"
+"ftp"="VivaldiCustomLauncherHTM"
+"mailto"="VivaldiCustomLauncherHTM"
+"webcal"="VivaldiCustomLauncherHTM"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\DefaultIcon]
+@="C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe,0"
+
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\shell]
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\shell\open]
+[HKEY_CURRENT_USER\Software\Clients\StartMenuInternet\VivaldiCustomLauncher\shell\open\command]
+@="\"C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe\""
+
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM]
+@="VivaldiCustomLauncher Handler"
+"AppUserModelId"="VivaldiCustomLauncher"
+
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM\Application]
+"AppUserModelId"="VivaldiCustomLauncher"
+"ApplicationIcon"="C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe,0"
+"ApplicationName"="VivaldiCustomLauncher"
+"ApplicationCompany"="VivaldiCustomLauncher"
+
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM\DefaultIcon]
+@="C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe,0"
+
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM\shell]
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM\shell\open]
+[HKEY_CURRENT_USER\Software\Classes\VivaldiCustomLauncherHTM\shell\open\command]
+; your browser might offer different arguments here - %1 opens just the argument given
+@="\"C:\\Programs\\Internet\\Vivaldi\\VivaldiCustomLauncher.exe\" \"%1\""
