@@ -10,6 +10,9 @@ Intercept executions of Vivaldi to add custom arguments and apply tweaks files
 1. Download [SetDefaultBrowser](https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/).
 1. Run `SetDefaultBrowser.exe hkcu VivaldiCustomLauncher` to make VivaldiCustomLauncher the default browser.
 1. Update any shortcuts to `vivaldi.exe` to refer to this program instead, for example, shortcuts in the Start Menu.
+1. If you pin Vivaldi to the taskbar, you will see double Vivaldi icons when it's running, because `VivaldiCustomLauncher.exe` is a different executable than `vivaldi.exe`. To fix this, you can set the `VivaldiCustomLauncher.exe` shortcut's AppId to Vivaldi's AppId.
+    1. Download [`Win7AppId1.1.exe`](https://code.google.com/archive/p/win7appid/downloads).
+    1. Run `Win7AppId1.1.exe "%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Vivaldi.lnk" Vivaldi._crx_mpognobbkiajifpdfhcoklimli`, or whatever your shortcut is called.
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
 1. Tweaks and arguments will be applied.
@@ -35,6 +38,7 @@ Intercept executions of Vivaldi to add custom arguments and apply tweaks files
     - hide unused sections from the Mail panel (All Messages, Custom Folders, Mailing Lists, Filters, Flags, Labels, and Feeds), leaving only All Accounts where all your IMAP folders live
     - allow mail to be moved from any folder to any folder, which can be useful for marking messages as spam or not spam on your IMAP server. Destination folders are alphabetized, limited to subscribed folders only, and shown at the top level of the Move To Folder menu instead of in a submenu.
     - format US phone numbers in the Contacts panel (does not support multi-digit country codes, extensions, or trailing DTMF digits)
+    - format dates in the Calendar panel's agenda view to include the day of the week, e.g. "Thu, Feb 17, 2022"
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapply all of the above tweaks if needed when the browser is restarted.
 
