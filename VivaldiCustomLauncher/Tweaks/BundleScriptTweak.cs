@@ -54,8 +54,9 @@ namespace VivaldiCustomLauncher.Tweaks {
                 }));
 
             Task<(string dependencyVariable, string intermediateVariable)?> closeMatchTask = Task.Run((Func<(string dependencyVariable, string intermediateVariable)?>) (() => {
-                Match  match = Regex.Match(bundleContents, @"{name:""COMMAND_CLOSE_TAB"",action:\(\)=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\),");
-                string dependencyVariable = match.Groups["dependencyVariable"].Value;
+                Match match = Regex.Match(bundleContents,
+                    @"{name:""COMMAND_CLOSE_TAB"",action:(?<eventVariable>[\w$]{1,2})=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\k<eventVariable>\.windowId\),");
+                string dependencyVariable   = match.Groups["dependencyVariable"].Value;
                 string intermediateVariable = match.Groups["intermediateVariable"].Value;
                 return match.Success ? (dependencyVariable, intermediateVariable) : null;
             }));
@@ -67,7 +68,7 @@ namespace VivaldiCustomLauncher.Tweaks {
 
             bool bundleWasReplaced = false;
             string replacedBundle = Regex.Replace(bundleContents,
-                @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:[\w$]{1,2}=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)",
+                @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:(?<eventVariable>[\w$]{1,2})=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)",
                 match => {
                     bundleWasReplaced = true;
                     return match.Groups["prefix"].Value +
@@ -76,7 +77,7 @@ namespace VivaldiCustomLauncher.Tweaks {
                         "if(!navigationInfo || navigationInfo.canGoBack){" +
                         match.Groups["goBack"].Value +
                         "} else {" +
-                        $"{closer.dependencyVariable}.{closer.intermediateVariable}.close();" +
+                        $"{closer.dependencyVariable}.{closer.intermediateVariable}.close({match.Groups["eventVariable"].Value}.windowId);" +
                         "}";
                 });
 

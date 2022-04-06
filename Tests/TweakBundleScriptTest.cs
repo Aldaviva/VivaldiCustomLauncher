@@ -68,7 +68,7 @@ namespace Tests {
         public void increaseMaximumTabWidth() {
             string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
-            const string EXPECTED = @"const l8=4000/* Customized by Ben */,";
+            const string EXPECTED = @"x9=4000/* Customized by Ben */,";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -83,7 +83,7 @@ namespace Tests {
             string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=b.ZP.getActivePage(e.windowId);/* Customized by Ben */const navigationInfo = t && n(1877).Z.getNavigationInfo(t.id);if(!navigationInfo || navigationInfo.canGoBack){t&&ye.Z.back(e.windowId,t.id)} else {g.Z.close();}},";
+                @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=N.Z.getActivePage(e.windowId);/* Customized by Ben */const navigationInfo = t && n(1877).Z.getNavigationInfo(t.id);if(!navigationInfo || navigationInfo.canGoBack){t&&D.Z.back(e.windowId,t.id)} else {b.Z.close(e.windowId);}},";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -93,7 +93,7 @@ namespace Tests {
             string actual = tweak.formatDownloadProgress(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"return e&&t>n?g()(t).fromNow(true)/* Customized by Ben */:e&&t<=n?(0,fe.Z)(""1 second""):""""}(s,n,t),c=(0,fe.Z)(""$1/s"",[Or(e.currentSpeed)]),u=e.paused||e.state===Ef,m=e.error?function(e){switch(e){case""FILE_NO_SPACE"":return(0,fe.Z)(""Disk is full"");case""FILE_TOO_LARGE"":return(0,fe.Z)(""File too large"");case""FILE_FAILED"":return(0,fe.Z)(""Download error"");case""FILE_ACCESS_DENIED"":return(0,fe.Z)(""Insufficient permissions"");case""FILE_NAME_TOO_LONG"":return(0,fe.Z)(""Path too long"");case""FILE_VIRUS_INFECTED"":return(0,fe.Z)(""Virus detected"");case""FILE_TRANSIENT_ERROR"":return(0,fe.Z)(""System busy"");case""FILE_BLOCKED"":return(0,fe.Z)(""Blocked"");case""FILE_SECURITY_CHECK_FAILED"":return(0,fe.Z)(""Virus scan failed"");case""FILE_TOO_SHORT"":return(0,fe.Z)(""File truncated"");case""FILE_SAME_AS_SOURCE"":return(0,fe.Z)(""Already downloaded"");case""FILE_HASH_MISMATCH"":return(0,fe.Z)(""Hash mismatch"");case""NETWORK_FAILED"":return(0,fe.Z)(""Network"");case""NETWORK_TIMEOUT"":return(0,fe.Z)(""Timeout"");case""NETWORK_DISCONNECTED"":return(0,fe.Z)(""Disconnected"");case""NETWORK_SERVER_DOWN"":return(0,fe.Z)(""Server unavailable"");case""NETWORK_INVALID_REQUEST"":return(0,fe.Z)(""Invalid network request"");case""SERVER_FAILED"":return(0,fe.Z)(""Server failed"");case""SERVER_NO_RANGE"":return(0,fe.Z)(""Server does not support range"");case""SERVER_BAD_CONTENT"":return(0,fe.Z)(""The server could not find the file"");case""SERVER_UNAUTHORIZED"":return(0,fe.Z)(""Unauthorized"");case""SERVER_CERT_PROBLEM"":return(0,fe.Z)(""Certificate problem"");case""SERVER_FORBIDDEN"":return(0,fe.Z)(""Forbidden"");case""SERVER_UNREACHABLE"":return(0,fe.Z)(""Unreachable"");case""SERVER_CONTENT_LENGTH_MISMATCH"":return(0,fe.Z)(""Content length mismatch"");case""SERVER_CROSS_ORIGIN_REDIRECT"":return(0,fe.Z)(""Cross origin redirect"");case""USER_CANCELED"":return(0,fe.Z)(""Cancelled"");case""USER_SHUTDOWN"":return(0,fe.Z)(""Shutdown"");case""CRASH"":return(0,fe.Z)(""Crashed"")}return e}(e.error):"""",d=u?(0,fe.Z)(""$1/$2 - stopped"",[a,o]):(0,fe.Z)(""$3, $1/$2"",[a,o,c]);return i.createElement(""div"",{className:""DownloadItem-FileSize"",__source:{fileName:""D:\\builder\\workers\\ow64\\build\\vivaldi\\vivapp\\src\\components\\downloads\\DownloadPanel\\DownloadSize.jsx"",lineNumber:159,columnNumber:5}},l&&`${l}, `,e.state===vf?o:e.error?m:d)/* Customized by Ben */}";
+                @"return e&&t>n?g()(t).fromNow(true)/* Customized by Ben */:e&&t<=n?(0,he.Z)(""1 second""):""""}(s,n,t),c=(0,he.Z)(""$1/s"",[Zr(e.currentSpeed)]),u=e.paused||e.state===Cf,m=e.error?function(e){switch(e){case""FILE_NO_SPACE"":return(0,he.Z)(""Disk is full"");case""FILE_TOO_LARGE"":return(0,he.Z)(""File too large"");case""FILE_FAILED"":return(0,he.Z)(""Download error"");case""FILE_ACCESS_DENIED"":return(0,he.Z)(""Insufficient permissions"");case""FILE_NAME_TOO_LONG"":return(0,he.Z)(""Path too long"");case""FILE_VIRUS_INFECTED"":return(0,he.Z)(""Virus detected"");case""FILE_TRANSIENT_ERROR"":return(0,he.Z)(""System busy"");case""FILE_BLOCKED"":return(0,he.Z)(""Blocked"");case""FILE_SECURITY_CHECK_FAILED"":return(0,he.Z)(""Virus scan failed"");case""FILE_TOO_SHORT"":return(0,he.Z)(""File truncated"");case""FILE_SAME_AS_SOURCE"":return(0,he.Z)(""Already downloaded"");case""FILE_HASH_MISMATCH"":return(0,he.Z)(""Hash mismatch"");case""NETWORK_FAILED"":return(0,he.Z)(""Network"");case""NETWORK_TIMEOUT"":return(0,he.Z)(""Timeout"");case""NETWORK_DISCONNECTED"":return(0,he.Z)(""Disconnected"");case""NETWORK_SERVER_DOWN"":return(0,he.Z)(""Server unavailable"");case""NETWORK_INVALID_REQUEST"":return(0,he.Z)(""Invalid network request"");case""SERVER_FAILED"":return(0,he.Z)(""Server failed"");case""SERVER_NO_RANGE"":return(0,he.Z)(""Server does not support range"");case""SERVER_BAD_CONTENT"":return(0,he.Z)(""The server could not find the file"");case""SERVER_UNAUTHORIZED"":return(0,he.Z)(""Unauthorized"");case""SERVER_CERT_PROBLEM"":return(0,he.Z)(""Certificate problem"");case""SERVER_FORBIDDEN"":return(0,he.Z)(""Forbidden"");case""SERVER_UNREACHABLE"":return(0,he.Z)(""Unreachable"");case""SERVER_CONTENT_LENGTH_MISMATCH"":return(0,he.Z)(""Content length mismatch"");case""SERVER_CROSS_ORIGIN_REDIRECT"":return(0,he.Z)(""Cross origin redirect"");case""USER_CANCELED"":return(0,he.Z)(""Cancelled"");case""USER_SHUTDOWN"":return(0,he.Z)(""Shutdown"");case""CRASH"":return(0,he.Z)(""Crashed"")}return e}(e.error):"""",d=u?(0,he.Z)(""$1/$2 - stopped"",[a,o]):(0,he.Z)(""$3, $1/$2"",[a,o,c]);return i.createElement(""div"",{className:""DownloadItem-FileSize"",__source:{fileName:""D:\\builder\\workers\\ow64\\build\\vivaldi\\vivapp\\src\\components\\downloads\\DownloadPanel\\DownloadSize.jsx"",lineNumber:159,columnNumber:5}},l&&`${l},";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -134,7 +134,7 @@ namespace Tests {
             string actual = tweak.formatCalendarAgendaDates(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"i.createElement(""div"",{className:""cal-tasks-row-date"",__source:{fileName:LY,lineNumber:358,columnNumber:13}},g()(r).format(""ddd, MMM D, YYYY""/* Customized by Ben */)),";
+                @"i.createElement(""div"",{className:""cal-tasks-row-date"",__source:{fileName:l$,lineNumber:355,columnNumber:13}},l?.format(""ddd, MMM D, YYYY""/* Customized by Ben */)),";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -144,7 +144,7 @@ namespace Tests {
             string actual = tweak.hideMailPanelHeaders(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @",u=c?[O4]:l.concat(o).slice(7)/* Customized by Ben */,";
+                @",u=c?[c4]:l.concat(o).slice(7)/* Customized by Ben */,";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
@@ -154,7 +154,7 @@ namespace Tests {
             string actual = tweak.allowMovingMailBetweenAnyFolders(ORIGINAL_BUNDLE_TEXT);
 
             const string EXPECTED =
-                @"])=>{const typesOrdered = [""Inbox"", ""Drafts"", ""Sent"", ""Archive"", ""Trash"", ""Junk"", ""Other""];let i = Object.entries(c.Z.getFolders()[t]).filter(([path, folder]) => folder.subscribed).sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type)).map(([path, folder]) => path);i=i.filter((e=>e!==n)),i.length>0&&s.push(...i.map((i=>({handler:()=>W(e,t,n,i),...(0,ie.Z)(i)}))))/* Customized by Ben */})),";
+                @"])=>{const typesOrdered = [""Inbox"", ""Drafts"", ""Sent"", ""Archive"", ""Trash"", ""Junk"", ""Other""];let i = Object.entries(c.Z.getFolders()[e]).filter(([path, folder]) => folder.subscribed).sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type)).map(([path, folder]) => path);i=i.filter((e=>e!==n)),i.length>0&&a.push(...i.map((i=>({handler:()=>V(t,e,n,i),...(0,te.Z)(i)}))))/* Customized by Ben */})),";
 
             FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
         }
