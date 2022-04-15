@@ -5,49 +5,47 @@ using VisualElementsManifest.Data;
 
 #nullable enable
 
-namespace VivaldiCustomLauncher.Tweaks {
+namespace VivaldiCustomLauncher.Tweaks; 
 
-    public class VisualElementsManifestTweak: Tweak<Application, VisualElementsManifestTweakParams> {
+public class VisualElementsManifestTweak: Tweak<Application, VisualElementsManifestTweakParams> {
 
-        private readonly VisualElementsManifestEditor visualElementsManifestEditor = new VisualElementsManifestEditorImpl();
+    private readonly VisualElementsManifestEditor visualElementsManifestEditor = new VisualElementsManifestEditorImpl();
 
-        public async Task<Application?> readFileAndEditIfNecessary(VisualElementsManifestTweakParams tweakParams) {
+    public async Task<Application?> readFileAndEditIfNecessary(VisualElementsManifestTweakParams tweakParams) {
 
-            Task<Application> loadSourceTask = Task.Run(() => {
-                Application sourceManifest = visualElementsManifestEditor.LoadFile(tweakParams.sourceFilename);
-                visualElementsManifestEditor.RelativizeUris(sourceManifest, "Application");
-                return sourceManifest;
-            });
+        Task<Application> loadSourceTask = Task.Run(() => {
+            Application sourceManifest = visualElementsManifestEditor.LoadFile(tweakParams.sourceFilename);
+            visualElementsManifestEditor.RelativizeUris(sourceManifest, "Application");
+            return sourceManifest;
+        });
 
-            Task<Application?> loadDestinationTask = Task.Run(() => {
-                try {
-                    return visualElementsManifestEditor.LoadFile(tweakParams.filename);
-                } catch (FileNotFoundException) {
-                    return null;
-                }
-            });
+        Task<Application?> loadDestinationTask = Task.Run(() => {
+            try {
+                return visualElementsManifestEditor.LoadFile(tweakParams.filename);
+            } catch (FileNotFoundException) {
+                return null;
+            }
+        });
 
-            Application source = await loadSourceTask;
-            Application? destination = await loadDestinationTask;
+        Application  source      = await loadSourceTask;
+        Application? destination = await loadDestinationTask;
 
-            return destination?.Equals(source) ?? false ? null : source;
-        }
-
-        public Task saveFile(Application fileContents, VisualElementsManifestTweakParams tweakParams) {
-            visualElementsManifestEditor.Save(fileContents, tweakParams.filename);
-            return Task.CompletedTask;
-        }
-
+        return destination?.Equals(source) ?? false ? null : source;
     }
 
-    public class VisualElementsManifestTweakParams: BaseTweakParams {
+    public Task saveFile(Application fileContents, VisualElementsManifestTweakParams tweakParams) {
+        visualElementsManifestEditor.Save(fileContents, tweakParams.filename);
+        return Task.CompletedTask;
+    }
 
-        public string sourceFilename { get; }
+}
 
-        public VisualElementsManifestTweakParams(string sourceFilename, string destinationFilename): base(destinationFilename) {
-            this.sourceFilename = sourceFilename;
-        }
+public class VisualElementsManifestTweakParams: BaseTweakParams {
 
+    public string sourceFilename { get; }
+
+    public VisualElementsManifestTweakParams(string sourceFilename, string destinationFilename): base(destinationFilename) {
+        this.sourceFilename = sourceFilename;
     }
 
 }

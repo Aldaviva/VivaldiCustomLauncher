@@ -2,31 +2,29 @@
 
 #nullable enable
 
-namespace VivaldiCustomLauncher.Tweaks {
+namespace VivaldiCustomLauncher.Tweaks; 
 
-    public interface Tweak<OutputType, in Params> where Params: TweakParams where OutputType: class {
+public interface Tweak<OutputType, in Params> where Params: TweakParams where OutputType: class {
 
-        /// <exception cref="TweakException"></exception>
-        Task<OutputType?> readFileAndEditIfNecessary(Params tweakParams);
+    /// <exception cref="TweakException"></exception>
+    Task<OutputType?> readFileAndEditIfNecessary(Params tweakParams);
 
-        Task saveFile(OutputType fileContents, Params tweakParams);
+    Task saveFile(OutputType fileContents, Params tweakParams);
 
-    }
+}
 
-    public interface TweakParams {
+public interface TweakParams {
 
-        string filename { get; }
+    string filename { get; }
 
-    }
+}
 
-    public class BaseTweakParams: TweakParams {
+public class BaseTweakParams: TweakParams {
 
-        public string filename { get; }
+    public string filename { get; }
 
-        public BaseTweakParams(string filename) {
-            this.filename = filename;
-        }
-
+    public BaseTweakParams(string filename) {
+        this.filename = filename;
     }
 
 }
