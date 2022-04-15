@@ -22,6 +22,7 @@ namespace VivaldiCustomLauncher.Tweaks {
             newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
             newBundleContents = formatPhoneNumbers(newBundleContents);
             newBundleContents = formatCalendarAgendaDates(newBundleContents);
+            newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
             return newBundleContents;
         }));
 
@@ -217,6 +218,22 @@ namespace VivaldiCustomLauncher.Tweaks {
                 @"""ddd, MMM D, YYYY""" +
                 CUSTOMIZED_COMMENT,
             new TweakException("Failed to find localized Moment formatting call", TWEAK_TYPE));
+
+        /// <summary>
+        /// By default, images in mail messages have their height set to auto using Vivaldi's built-in stylesheet. This overrides the height set in the img element's height attribute, making
+        /// transparent spacer GIFs appear way too tall. This is caused by the actual GIF being small (10×10px) but the width attribute is set to a large value, like 200px. The height attribute is set
+        /// to a small value like 1px, but Vivaldi's height: auto rule makes the image as tall as its width, so it becomes 200px tall instead of 1px tall.
+        /// </summary>
+        /// <param name="newBundleContents"></param>
+        /// <returns></returns>
+        internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string newBundleContents) => replaceOrThrow(newBundleContents,
+            new Regex(@"(?<prefix>['""]getDefaultStyle['""].{1,1000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
+            match => match.Groups["prefix"].Value +
+                match.Groups["innerSuffix"].Value +
+                "img:not([height]) { height: auto; } " +
+                CUSTOMIZED_COMMENT +
+                match.Groups["outerSuffix"].Value
+            , new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
 
     }
 
