@@ -104,6 +104,10 @@ public static class VivaldiLauncher {
         string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-common-bundle.js");
         string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
 
+        string showFeedPageAbsolutePath     = Path.Combine(resourceDirectory, "rss", "showfeed.html");
+        string customFeedScriptRelativePath = Path.Combine("..", "scripts", "feed-custom.js");
+        string customFeedScriptAbsolutePath = Path.Combine(resourceDirectory, "rss", customFeedScriptRelativePath);
+
         string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
         string visualElementsDestinationPath = Path.Combine(resourceDirectory, "../../../..", ASSEMBLY_NAME.Name + ".VisualElementsManifest.xml");
 
@@ -114,7 +118,10 @@ public static class VivaldiLauncher {
                 applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),
                 applyTweakIfNecessary(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(backgroundBundleCommonScriptAbsolutePath)),
                 applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(customScriptAbsolutePath)),
-                applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)));
+                applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(visualElementsSourcePath, visualElementsDestinationPath)),
+                applyTweakIfNecessary(new ShowFeedHtmlTweak(), new ShowFeedHtmlTweakParams(showFeedPageAbsolutePath, customFeedScriptRelativePath)),
+                applyTweakIfNecessary(new CustomFeedScriptTweak(httpClient), new BaseTweakParams(customFeedScriptAbsolutePath))
+            );
         } catch (AggregateException e) {
             if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
                 throw tweakException;

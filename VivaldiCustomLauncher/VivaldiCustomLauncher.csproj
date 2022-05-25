@@ -58,11 +58,16 @@
     <Compile Include="ProgramUpgrader.cs" />
     <Compile Include="Tweaks\AbstractScriptTweak.cs" />
     <Compile Include="Tweaks\BackgroundCommonBundleScriptTweak.cs" />
+    <Compile Include="Tweaks\BaseStreamTweak.cs" />
+    <Compile Include="Tweaks\BaseStringTweak.cs" />
     <Compile Include="Tweaks\BrowserHtmlTweak.cs" />
     <Compile Include="CommandLine.cs" />
     <Compile Include="Tweaks\BundleScriptTweak.cs" />
+    <Compile Include="Tweaks\CustomFeedScriptTweak.cs" />
     <Compile Include="Tweaks\CustomScriptTweak.cs" />
     <Compile Include="Tweaks\CustomStyleSheetTweak.cs" />
+    <Compile Include="Tweaks\BaseDownloadableTweak.cs" />
+    <Compile Include="Tweaks\ShowFeedHtmlTweak.cs" />
     <Compile Include="Tweaks\Tweak.cs" />
     <Compile Include="Tweaks\TweakException.cs" />
     <Compile Include="Tweaks\VisualElementsManifestTweak.cs" />

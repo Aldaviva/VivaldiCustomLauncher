@@ -1,15 +1,15 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-#nullable enable
+namespace VivaldiCustomLauncher.Tweaks;
 
-namespace VivaldiCustomLauncher.Tweaks; 
+public class BrowserHtmlTweak: BaseStringTweak<BrowserHtmlTweakParams> {
 
-public class BrowserHtmlTweak: Tweak<string, BrowserHtmlTweakParams> {
-
-    public Task<string?> readFileAndEditIfNecessary(BrowserHtmlTweakParams tweakParams) {
+    public override Task<string?> readFileAndEditIfNecessary(BrowserHtmlTweakParams tweakParams) {
         string fileContents          = File.ReadAllText(tweakParams.filename, Encoding.UTF8);
         string styleSheetRelativeUri = new UriBuilder { Path = tweakParams.customStyleSheetRelativeFilePath }.Path;
         string scriptRelativeUri     = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
@@ -30,13 +30,6 @@ public class BrowserHtmlTweak: Tweak<string, BrowserHtmlTweakParams> {
         }
 
         return Task.FromResult(fileModified ? modifiedFileContents : null);
-    }
-
-    public async Task saveFile(string fileContents, BrowserHtmlTweakParams tweakParams) {
-        using FileStream   writeStream = File.OpenWrite(tweakParams.filename);
-        using StreamWriter writer      = new(writeStream, Encoding.UTF8);
-        await writer.WriteAsync(fileContents);
-        await writer.FlushAsync();
     }
 
 }
