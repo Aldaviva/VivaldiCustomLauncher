@@ -1,13 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Tests.Assertions;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 
-#nullable enable
-
-namespace Tests; 
+namespace Tests;
 
 [SuppressMessage("Microsoft.Design", "UnhandledExceptions:Unhandled exception(s)", Justification = "They're tests")]
 public class ScriptTweakSmokeTests {
@@ -68,18 +69,13 @@ public class ScriptTweakSmokeTests {
     }
 
     [Fact]
-    public void hideMailPanelHeadersChangesBundle() {
-        string actual = bundleTweak.hideMailPanelHeaders(ORIGINAL_BUNDLE_TEXT);
-        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
-    }
-
-    [Fact]
     public void allowMovingMailBetweenAnyFoldersChangesBundle() {
         string actual = bundleTweak.allowMovingMailBetweenAnyFolders(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
-    [Fact]
+    [Fact(Skip = "unused")]
+    [Obsolete]
     public void formatPhoneNumbersChangesBundle() {
         string actual = bundleTweak.formatPhoneNumbers(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);

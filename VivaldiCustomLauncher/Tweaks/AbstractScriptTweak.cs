@@ -1,13 +1,13 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-#nullable enable
-
-namespace VivaldiCustomLauncher.Tweaks; 
+namespace VivaldiCustomLauncher.Tweaks;
 
 public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
 
@@ -60,7 +60,7 @@ public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
         string result = pattern.Replace(input, match => {
             wasReplaced = true;
             return evaluator(match);
-        });
+        }, count, startat);
 
         if (!wasReplaced) {
             throw toThrowIfNoReplacement;

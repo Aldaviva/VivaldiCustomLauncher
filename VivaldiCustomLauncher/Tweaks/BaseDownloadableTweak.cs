@@ -18,7 +18,12 @@ public abstract class BaseDownloadableTweak: BaseStreamTweak<BaseTweakParams> {
     }
 
     public override async Task<Stream?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
-        return !File.Exists(tweakParams.filename) ? await httpClient.GetStreamAsync(downloadUri) : null;
+        try {
+            return !File.Exists(tweakParams.filename) ? await httpClient.GetStreamAsync(downloadUri) : null;
+        } catch (HttpRequestException e) {
+            e.Data["uri"] = downloadUri;
+            throw;
+        }
     }
 
 }

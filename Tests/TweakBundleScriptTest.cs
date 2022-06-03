@@ -1,18 +1,20 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Castle.Core.Internal;
 using FakeItEasy;
 using Tests.Assertions;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 using Xunit.Sdk;
 
-#nullable enable
-
-namespace Tests; 
+namespace Tests;
 
 [SuppressMessage("Microsoft.Design", "UnhandledExceptions:Unhandled exception(s)", Justification = "They're tests")]
 public class TweakBundleScriptTest {
@@ -44,7 +46,7 @@ public class TweakBundleScriptTest {
 
         IEnumerable<MethodInfo> expectedMethods = typeof(BundleScriptTweak)
             .GetMethods(BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Instance)
-            .Where(method => method.Name != nameof(BundleScriptTweak.editFile))
+            .Where(method => method.Name != nameof(BundleScriptTweak.editFile) && method.GetAttribute<ObsoleteAttribute>() is null)
             .ToList();
 
         Assert.NotEmpty(expectedMethods);
@@ -68,7 +70,7 @@ public class TweakBundleScriptTest {
     public void increaseMaximumTabWidth() {
         string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
-        const string EXPECTED = @"x9=4000/* Customized by Ben */,";
+        const string EXPECTED = @",Hie=4000/* Customized by Ben */,";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
@@ -119,7 +121,8 @@ public class TweakBundleScriptTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, expected);
     }
 
-    [Fact]
+    [Fact(Skip = "unused")]
+    [Obsolete]
     public void formatPhoneNumber() {
         string actual = tweak.formatPhoneNumbers(ORIGINAL_BUNDLE_TEXT);
 
@@ -140,21 +143,11 @@ public class TweakBundleScriptTest {
     }
 
     [Fact]
-    public void hideMailPanelHeaders() {
-        string actual = tweak.hideMailPanelHeaders(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED =
-            @",u=c?[c4]:l.concat(o).slice(7)/* Customized by Ben */,";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-    }
-
-    [Fact]
     public void allowMovingMailBetweenAnyFolders() {
         string actual = tweak.allowMovingMailBetweenAnyFolders(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @"])=>{const typesOrdered = [""Inbox"", ""Drafts"", ""Sent"", ""Archive"", ""Trash"", ""Junk"", ""Other""];let i = Object.entries(c.Z.getFolders()[e]).filter(([path, folder]) => folder.subscribed).sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type)).map(([path, folder]) => path);i=i.filter((e=>e!==n)),i.length>0&&a.push(...i.map((i=>({handler:()=>V(t,e,n,i),...(0,te.Z)(i)}))))/* Customized by Ben */})),";
+            @"getMoveToFolderMenu=e=>{const t=ie(e),n=t.map((e=>{const t=[];return e.sources.forEach(((e,n)=>{e.internal||e.deleted||t.push(n)})),t}));if(0===n.length)return[];const s=n.reduce(((e,t)=>e.filter((e=>t.includes(e))))),i=[];if(o.C.getByIds(s).forEach((e=>{const{accountId:t,path:n}=e,s=N.Z.getFolderType(t,n);m.Z.isMailAccount(t)&&te.includes(s)&&i.push([t,n])})),0===i.length){return[{...1===t.length?(0,X.Z)(""Can not move from this folder.""):(0,X.Z)(""No common folder. Can not move this selection.""),enabled:!1,mnemonic:!1}]}const a=m.Z.getAccounts(),r=[];return i.forEach((([e,n])=>{const s=m.Z.getFolderName(e,n);const typesOrdered = [""Inbox"", ""Drafts"", ""Sent"", ""Archive"", ""Trash"", ""Junk"", ""Other""];const accountFolders = N.Z.getFolders()[e];let o=[];for(const t of te)o.push(...N.Z.getPathsByType(e,t));if(o=o.filter(x => accountFolders[x].subscribed).filter((e=>e!==n)),o.length>0){const l=o.map((s=>{const i=m.Z.getFolderName(e,s);return{folder: accountFolders[s],handler:()=>x(t,e,n,e,s),label:(0,Y.e)(i),labelEnglish:i}})),d=[];for(const s in a)if(!i.find((e=>e[0]===s))){const i=a[s].folders;for(const o in i)for(const a of i[o]){const i=a.path;if(te.includes(o)){const o=m.Z.getFolderName(s,i);d.push({handler:()=>x(t,e,n,s,i),label:`${s}/${(0,Y.e)(o)}`,labelEnglish:`${s}/${o}`})}}}const c=l.concat(d);r.push(...c.sort((entryA, entryB) => (entryA.folder.type === entryB.folder.type) ? entryA.label.localeCompare(entryB.label) : typesOrdered.indexOf(entryA.folder.type) - typesOrdered.indexOf(entryB.folder.type)))/* Customized by Ben */}})),r};getCustomLabelsMenu=";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }

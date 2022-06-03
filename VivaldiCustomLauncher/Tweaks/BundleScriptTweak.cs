@@ -1,10 +1,10 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-#nullable enable
-
-namespace VivaldiCustomLauncher.Tweaks; 
+namespace VivaldiCustomLauncher.Tweaks;
 
 public class BundleScriptTweak: AbstractScriptTweak {
 
@@ -18,9 +18,8 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = formatDownloadProgress(newBundleContents);
         newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
         newBundleContents = navigateToSubdomainParts(newBundleContents);
-        newBundleContents = hideMailPanelHeaders(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
-        newBundleContents = formatPhoneNumbers(newBundleContents);
+        // newBundleContents = formatPhoneNumbers(newBundleContents);
         newBundleContents = formatCalendarAgendaDates(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
         return newBundleContents;
@@ -97,7 +96,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<prefix>TabStrip\.jsx.{1,2000}\b[\w$]{1,2}=)180\b"),
+        new Regex(@"(?<prefix>\b[\w$]{1,3}=)180(?=[;,])"),
         match => match.Groups["prefix"].Value + 4000 + CUSTOMIZED_COMMENT,
         new TweakException("Failed to find old max tab width to replace", TWEAK_TYPE));
 
@@ -111,70 +110,86 @@ public class BundleScriptTweak: AbstractScriptTweak {
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string navigateToSubdomainParts(string bundleContents) {
-        Match moduleStartMatch = Regex.Match(bundleContents, @"\\\\HostFragment\.jsx.*?render\(\){");
+        Match moduleStartMatch = Regex.Match(bundleContents, @"\brender\(\){.{1,600}UrlFragment--Lowlight");
         if (!moduleStartMatch.Success) {
             throw new TweakException("Failed to find render() method in HostFragment module", TWEAK_TYPE);
         }
 
-        int searchStart = moduleStartMatch.Index + moduleStartMatch.Length; //start searching for invocations inside the render() method
+        int searchStart = moduleStartMatch.Index; //start searching for invocations inside the render() method
 
-        Regex subdomainPattern = new(@"&&(?<domCreator>[\w$]{1,2})\.createElement\(""span"",{className:""UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain"",.*?\),");
+        Regex subdomainPattern = new(@"&&(?<domCreator>[\w$]{1,3})\(""span"",{className:""UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain"".*?\),");
         bundleContents = replaceOrThrow(bundleContents, subdomainPattern, match => "&&this.props.subdomain.split(\".\").map((part, index, whole) => " +
-                $"{match.Groups["domCreator"].Value}.createElement(\"span\", {{ " +
+                $"{match.Groups["domCreator"].Value}(\"span\", {{ " +
                 "className: \"UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain\", " +
                 "onClick: e => { " +
                 "e.stopPropagation(); " +
                 "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); " +
-                "}}, part, \".\")) " + CUSTOMIZED_COMMENT + ","
+                "}}, undefined, part, \".\")) " + CUSTOMIZED_COMMENT + ","
             , 1, searchStart, new TweakException("Failed to find subdomain", TWEAK_TYPE));
 
-        const string BASEDOMAIN_ONCLICK = "onClick: e => { " +
+        const string BASEDOMAIN_ONCLICK = ",onClick: e => { " +
             "e.stopPropagation(); " +
             "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); " +
-            "} " + CUSTOMIZED_COMMENT + ",";
+            "} " + CUSTOMIZED_COMMENT;
 
-        Regex basedomainPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-Basedomain"",");
+        Regex basedomainPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-Basedomain""");
         bundleContents = replaceOrThrow(bundleContents, basedomainPattern, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart, new TweakException("Failed to find basedomain", TWEAK_TYPE));
 
-        Regex tldPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-TLD"",");
+        Regex tldPattern = new(@"className:""UrlFragment--Highlight UrlFragment-HostFragment-TLD""");
         bundleContents = replaceOrThrow(bundleContents, tldPattern, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart, new TweakException("Failed to find TLD", TWEAK_TYPE));
 
-        Regex portPattern = new(@"className:""UrlFragment--Lowlight UrlFragment-HostFragment-Port"",");
+        Regex portPattern = new(@"className:""UrlFragment--Lowlight UrlFragment-HostFragment-Port""");
         bundleContents = replaceOrThrow(bundleContents, portPattern, match => match.Value + BASEDOMAIN_ONCLICK, 1, searchStart, new TweakException("Failed to find port", TWEAK_TYPE));
 
         return bundleContents;
     }
 
-    internal virtual string hideMailPanelHeaders(string bundleContents) {
-        return Regex.Replace(bundleContents,
-            @"(?<prefix>,[\w$]{1,2}=[\w$]{1,2}\?\[[\w$]{1,2}\]:[\w$]{1,2}\.concat\([\w$]{1,2}\)),", // ,u=c?[X3]:l.concat(o),
-            match => $"{match.Groups["prefix"].Value}.slice(7){CUSTOMIZED_COMMENT},");
-    }
-
     /// <summary>
-    /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move destinations, not just Inbox and Other, so that I can mark messages as Spam and Not Spam.
-    /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move sources, not just Inbox and Other, so that I can remove messages from the Junk E-mail heuristic folder.
+    /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move destinations, not just Inbox and Other, so that I can mark messages as Spam and Not Spam. (not needed in 5.3)
+    /// Allow special folders (e.g. Sent, Trash, Junk) to be mail move sources, not just Inbox and Other, so that I can remove messages from the Junk E-mail heuristic folder. (not needed in 5.3)
     /// In the Move menu, put folders in the top-level menu, not a submenu, because the extra inputs are annoying.
     /// In the Move menu, only show subscribed folders to avoid cluttering the menu with worthless destinations.
     /// In the Move menu, alphabetize the folders, but group them by special use (Inbox first, then Drafts, then Sent, etc) to make visual scanning easier.
     /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundCommonBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
-    internal virtual string allowMovingMailBetweenAnyFolders(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(
-            @"(?<prefix>getMoveToFolderMenu.{1,600}?\.isVirtualViewFolder\([\w$,]{1,20}\)&&)\[.{3,50}?\]\.includes\([\w$]{1,2}\)&&(?<pushFolderSnippet>.{1,200}?{)let (?<folderNamesVar>[\w$]{1,2})=(?<folderManagerVars>[\w$.]{1,5}?)\.getPathsByType\((?<smtpAddressVar>[\w$]{1,2}),.{1,100}?(?<originalFiltering>\k<folderNamesVar>=\k<folderNamesVar>\.filter.{1,100}?\.push\(){items:(?<handlerMap>.{1,100}?\){3}),\.{3}.{1,100}?\]\)\}\)"),
-        match =>
-            match.Groups["prefix"].Value +
-            match.Groups["pushFolderSnippet"].Value +
-            "const typesOrdered = [\"Inbox\", \"Drafts\", \"Sent\", \"Archive\", \"Trash\", \"Junk\", \"Other\"];" +
-            $"let {match.Groups["folderNamesVar"].Value} = Object.entries({match.Groups["folderManagerVars"].Value}.getFolders()[{match.Groups["smtpAddressVar"].Value}])" +
-            ".filter(([path, folder]) => folder.subscribed)" +
-            ".sort(([pathA, folderA], [pathB, folderB]) => (folderA.type === folderB.type) ? pathA.localeCompare(pathB) : typesOrdered.indexOf(folderA.type) - typesOrdered.indexOf(folderB.type))" +
-            ".map(([path, folder]) => path);" +
-            match.Groups["originalFiltering"].Value +
-            $"...{match.Groups["handlerMap"].Value})" +
-            CUSTOMIZED_COMMENT,
-        new TweakException("Failed to find getMoveToFolderMenu method", TWEAK_TYPE));
+    internal virtual string allowMovingMailBetweenAnyFolders(string bundleContents) {
+        Match functionStartMatch = Regex.Match(bundleContents, @"getMoveToFolderMenu=");
+        if (!functionStartMatch.Success) {
+            throw new TweakException("Failed to find getMoveToFolderMenu() function", TWEAK_TYPE);
+        }
+
+        int searchStart = functionStartMatch.Index + functionStartMatch.Length; //start searching for matches inside the getMoveToFolderMenu() method
+
+        Match folderManagerVarMatch = new Regex(@"\b(?<folderManagerVar>[\w$.]{1,7}?)\.getPathsByType\(").Match(bundleContents, searchStart);
+        if (!folderManagerVarMatch.Success) {
+            throw new TweakException("Failed to find folder manager variable (on which to call getFolders())", TWEAK_TYPE, nameof(allowMovingMailBetweenAnyFolders));
+        }
+
+        string folderManagerVar = folderManagerVarMatch.Groups["folderManagerVar"].Value;
+
+        bundleContents = replaceOrThrow(bundleContents, new Regex(@"\.getFolderName\((?<smtpAddressVar>[\w$]{1,3}),[\w$]{1,3}\);"),
+            match => match.Value +
+                "const typesOrdered = [\"Inbox\", \"Drafts\", \"Sent\", \"Archive\", \"Trash\", \"Junk\", \"Other\"];" +
+                $"const accountFolders = {folderManagerVar}.getFolders()[{match.Groups["smtpAddressVar"].Value}];",
+            1, searchStart, new TweakException("Failed to find account name and origin path variables", TWEAK_TYPE));
+
+        bundleContents = replaceOrThrow(bundleContents, new Regex(@"(?<folderNamesVar>[\w$]{1,2})=\k<folderNamesVar>\.filter\("),
+            match => match.Value + "x => accountFolders[x].subscribed).filter(",
+            1, searchStart, new TweakException("Failed to insert filter", TWEAK_TYPE));
+
+        bundleContents = replaceOrThrow(bundleContents, new Regex(@"\b(?<folderPathVar>[\w$]{1,3})\);return{"),
+            match => match.Value + $"folder: accountFolders[{match.Groups["folderPathVar"].Value}],",
+            1, searchStart, new TweakException("Failed to find menu item object", TWEAK_TYPE));
+
+        bundleContents = replaceOrThrow(bundleContents, new Regex(@"\.push\({items:(?<allMenuItemsVar>[\w$]{1,3}).{1,200}?}\)"),
+            match => $".push(...{match.Groups["allMenuItemsVar"].Value}.sort((entryA, entryB) => " +
+                "(entryA.folder.type === entryB.folder.type) ? entryA.label.localeCompare(entryB.label) : typesOrdered.indexOf(entryA.folder.type) - typesOrdered.indexOf(entryB.folder.type)))" +
+                CUSTOMIZED_COMMENT,
+            1, searchStart, new TweakException("Failed to find final push", TWEAK_TYPE));
+
+        return bundleContents;
+    }
 
     /// <summary>
     /// Format phone numbers in the Contacts panel using the US E164 formats:
@@ -184,6 +199,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// </summary>
     /// <remarks>Formatting algorithm and unit tests: https://jsbin.com/sorohuv/edit?js,output </remarks>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
+    [Obsolete]
     internal virtual string formatPhoneNumbers(string bundleContents) => replaceOrThrow(bundleContents,
         // balanced capturing group pairs: https://www.regular-expressions.info/balancing.html
         new Regex(@"(?<=[""']addSpaces['""],)(?>(?>(?'open'\()[^()]*)+(?>(?'-open'\))[^()]*)+)+(?(open)(?!))"),
@@ -227,7 +243,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// <param name="newBundleContents"></param>
     /// <returns></returns>
     internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string newBundleContents) => replaceOrThrow(newBundleContents,
-        new Regex(@"(?<prefix>['""]getDefaultStyle['""].{1,1000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
+        new Regex(@"(?<prefix>getDefaultStyle=.{1,1000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
         match => match.Groups["prefix"].Value +
             match.Groups["innerSuffix"].Value +
             "img:not([height]) { height: auto; } " +
