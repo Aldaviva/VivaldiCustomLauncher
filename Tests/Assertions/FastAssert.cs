@@ -1,15 +1,23 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
-#nullable enable
+[assembly: TestFramework("Tests.Assertions.FastAssertCleanup", "Tests")]
 
-namespace Tests.Assertions; 
+namespace Tests.Assertions;
 
 internal static class FastAssert {
 
     private const int DIFF_EXTRA_CHARACTERS = 64;
+
+    internal static readonly string                TEMP_OUTPUT_DIR         = Environment.ExpandEnvironmentVariables("%temp%\\VivaldiCustomLauncher.Tests\\");
+    private static readonly  RandomNumberGenerator RANDOM_NUMBER_GENERATOR = RandomNumberGenerator.Create();
 
     /// <summary>
     /// Don't print the actual or (optionally) expected strings, they might be several megabytes and freeze the unit test output
@@ -26,7 +34,7 @@ internal static class FastAssert {
             string actual;
 
             if (writeActualToTempFile) {
-                string actualFileName = Path.GetTempFileName();
+                string actualFileName = getTempFileName();
                 File.WriteAllText(actualFileName, e.Actual);
                 actual = $"(omitted, see {actualFileName})";
             } else {
@@ -48,9 +56,10 @@ internal static class FastAssert {
     /// <param name="oldHaystack"></param>
     /// <param name="newHaystack"></param>
     /// <param name="needle"></param>
+    /// <param name="writeActualToTempFile"></param>
     /// <exception cref="DoesNotContainException"></exception>
     /// <exception cref="XunitException"></exception>
-    public static void fastAssertSingleReplacementDiff(string oldHaystack, string newHaystack, string needle) {
+    public static void fastAssertSingleReplacementDiff(string oldHaystack, string newHaystack, string needle, bool writeActualToTempFile = false) {
         try {
             // Fast sanity check to see if the before-replacement text has the search text in it, and bail out early with an error message with small output
             Assert.DoesNotContain(needle, oldHaystack);
@@ -87,10 +96,17 @@ internal static class FastAssert {
             string newHaystackDiff = substringWithClipping(newHaystack, newHaystackHeaderIndex - DIFF_EXTRA_CHARACTERS,
                 newHaystackTrailerIndex - newHaystackHeaderIndex + 2 * DIFF_EXTRA_CHARACTERS);
 
-            throw new XunitException("Not found:\n" +
+            string? actualFileName = null;
+            if (writeActualToTempFile) {
+                actualFileName = getTempFileName();
+                File.WriteAllText(actualFileName, newHaystack);
+            }
+
+            throw new XunitException("Expected, but not found:\n" +
                 needle +
-                "\n\nIn actual. Diff between original and actual:\n" +
-                newHaystackDiff);
+                "\n\nDiff between original and actual:\n" +
+                newHaystackDiff +
+                (writeActualToTempFile ? $"\n\nActual output written to {actualFileName}" : ""));
         }
     }
 
@@ -98,6 +114,49 @@ internal static class FastAssert {
         int clippedStart = Math.Min(original.Length, Math.Max(0, start));
         int clippedEnd   = Math.Min(original.Length, Math.Max(0, clippedStart + length));
         return original.Substring(clippedStart, clippedEnd - clippedStart);
+    }
+
+    private static string getTempFileName() {
+        string candidate;
+        Directory.CreateDirectory(TEMP_OUTPUT_DIR);
+        do {
+            candidate = Path.Combine(TEMP_OUTPUT_DIR, $"tmp{generateRandomString(4)}.txt");
+            File.Create(candidate).Dispose();
+        } while (!File.Exists(candidate));
+
+        return candidate;
+    }
+
+    /// https://stackoverflow.com/a/1344255/979493
+    private static string generateRandomString(int length) {
+        const string CHARACTERS          = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        char[]       possibleChars       = CHARACTERS.ToCharArray();
+        int          possibleCharsLength = possibleChars.Length;
+
+        StringBuilder result = new(length);
+
+        byte[] randomBuffer = new byte[length * 4];
+        RANDOM_NUMBER_GENERATOR.GetBytes(randomBuffer);
+
+        for (int randomByteIndex = 0; randomByteIndex < length; randomByteIndex++) {
+            result.Append(possibleChars[BitConverter.ToUInt32(randomBuffer, randomByteIndex * 4) % possibleCharsLength]);
+        }
+
+        return result.ToString();
+    }
+
+}
+
+// https://stackoverflow.com/a/53143426/979493
+internal class FastAssertCleanup: XunitTestFramework {
+
+    public FastAssertCleanup(IMessageSink messageSink): base(messageSink) {
+        //clean up before all tests are run
+        try {
+            Directory.Delete(FastAssert.TEMP_OUTPUT_DIR, true);
+        } catch (DirectoryNotFoundException) {
+            // already gone
+        }
     }
 
 }

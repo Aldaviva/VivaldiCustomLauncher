@@ -40,7 +40,7 @@ public class FastAssertTest {
             FastAssert.fastAssertSingleReplacementDiff(OLD_HAYSTACK, NEW_HAYSTACK, NEEDLE);
             Assert.False(true, "should have thrown a ContainsException above");
         } catch (XunitException e) {
-            Assert.Equal("Not found:\ne\n\nIn actual. Diff between original and actual:\nadc", e.Message);
+            Assert.Equal("Expected, but not found:\ne\n\nDiff between original and actual:\nadc", e.Message);
         }
     }
 

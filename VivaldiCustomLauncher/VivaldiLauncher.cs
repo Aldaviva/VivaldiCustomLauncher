@@ -105,7 +105,7 @@ public static class VivaldiLauncher {
         string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
 
         string showFeedPageAbsolutePath     = Path.Combine(resourceDirectory, "rss", "showfeed.html");
-        string customFeedScriptRelativePath = Path.Combine("..", "scripts", "feed-custom.js");
+        string customFeedScriptRelativePath = Path.Combine("..", "scripts", "custom-feed.js");
         string customFeedScriptAbsolutePath = Path.Combine(resourceDirectory, "rss", customFeedScriptRelativePath);
 
         string visualElementsSourcePath      = Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml");
