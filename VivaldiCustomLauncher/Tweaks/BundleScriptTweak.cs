@@ -20,7 +20,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         // newBundleContents = formatPhoneNumbers(newBundleContents);
-        newBundleContents = formatCalendarAgendaDates(newBundleContents);
+        // newBundleContents = formatCalendarAgendaDates(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
         return newBundleContents;
     }));
@@ -199,7 +199,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// </summary>
     /// <remarks>Formatting algorithm and unit tests: https://jsbin.com/sorohuv/edit?js,output </remarks>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
-    [Obsolete]
+    [Obsolete("unused")]
     internal virtual string formatPhoneNumbers(string bundleContents) => replaceOrThrow(bundleContents,
         // balanced capturing group pairs: https://www.regular-expressions.info/balancing.html
         new Regex(@"(?<=[""']addSpaces['""],)(?>(?>(?'open'\()[^()]*)+(?>(?'-open'\))[^()]*)+)+(?(open)(?!))"),
@@ -228,6 +228,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// </summary>
     /// <param name="bundleContents"></param>
     /// <returns></returns>
+    [Obsolete("Available in official Vivaldi 5.3")]
     internal virtual string formatCalendarAgendaDates(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<prefix>['""]cal-tasks-row-date['""].{1,200}?\.format\()['""]ll['""](?=\))"),
         match => match.Groups["prefix"].Value +
@@ -240,9 +241,9 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// transparent spacer GIFs appear way too tall. This is caused by the actual GIF being small (10×10px) but the width attribute is set to a large value, like 200px. The height attribute is set
     /// to a small value like 1px, but Vivaldi's height: auto rule makes the image as tall as its width, so it becomes 200px tall instead of 1px tall.
     /// </summary>
-    /// <param name="newBundleContents"></param>
+    /// <param name="bundleContents"></param>
     /// <returns></returns>
-    internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string newBundleContents) => replaceOrThrow(newBundleContents,
+    internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<prefix>getDefaultStyle=.{1,1000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
         match => match.Groups["prefix"].Value +
             match.Groups["innerSuffix"].Value +

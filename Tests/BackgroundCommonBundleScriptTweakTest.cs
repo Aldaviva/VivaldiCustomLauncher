@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -9,8 +11,6 @@ using Tests.Assertions;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 using Xunit.Sdk;
-
-#nullable enable
 
 namespace Tests; 
 
@@ -54,11 +54,19 @@ public class BackgroundCommonBundleScriptTweakTest {
     }
 
     [Fact]
-    public void removeExtraSpacingFromTabBarRightSide() {
+    public void exposeFolderSubscriptionStatus() {
         string actual = tweak.exposeFolderSubscriptionStatus(ORIGINAL_BUNDLE_TEXT);
 
-        const string EXPECTED =
-            @"]={type:n,subscribed:t.subscribed/* Customized by Ben */}}";
+        const string EXPECTED = @"]={type:n,subscribed:t.subscribed/* Customized by Ben */}}";
+
+        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
+    [Fact]
+    public void classifyJunkEmailAsNormalFolder() {
+        string actual = tweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BUNDLE_TEXT);
+
+        const string EXPECTED = @"function xt(e){if(e.path === ""Junk E-mail""){ return false; }/* Customized by Ben */if(e.flags)for(let ";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }

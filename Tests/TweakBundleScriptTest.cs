@@ -132,7 +132,7 @@ public class TweakBundleScriptTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
-    [Fact]
+    [Fact(Skip = "mainlined")]
     public void formatCalendarAgendaDates() {
         string actual = tweak.formatCalendarAgendaDates(ORIGINAL_BUNDLE_TEXT);
 

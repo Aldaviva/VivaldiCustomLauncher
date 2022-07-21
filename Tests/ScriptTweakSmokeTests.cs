@@ -81,7 +81,7 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
-    [Fact]
+    [Fact(Skip = "mainlined")]
     public void formatCalendarAgendaDatesChangesBundle() {
         string actual = bundleTweak.formatCalendarAgendaDates(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
@@ -91,6 +91,12 @@ public class ScriptTweakSmokeTests {
     public void disableAutoHeightForImagesInMailWithHeightAttributeChangesBundle() {
         string actual = bundleTweak.disableAutoHeightForImagesInMailWithHeightAttribute(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
+    [Fact]
+    public void classifyJunkEmailAsNormalFolder() {
+        string actual = backgroundCommonBundleTweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT, actual), false, false);
     }
 
 }
