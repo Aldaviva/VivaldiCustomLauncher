@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +15,6 @@ using Xunit.Sdk;
 
 namespace Tests;
 
-[SuppressMessage("Microsoft.Design", "UnhandledExceptions:Unhandled exception(s)", Justification = "They're tests")]
 public class TweakBundleScriptTest {
 
     private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/bundle.js";
@@ -119,26 +117,6 @@ public class TweakBundleScriptTest {
         expected =
             @"OC(""span"",{className:""UrlFragment--Lowlight UrlFragment-HostFragment-Port"",onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : """") + this.props.basedomain + ""."" + this.props.tld + (this.props.port ? `:${this.props.port}` : """")); } /* Customized by Ben */},";
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, expected);
-    }
-
-    [Fact(Skip = "unused")]
-    [Obsolete]
-    public void formatPhoneNumber() {
-        string actual = tweak.formatPhoneNumbers(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED =
-            @"(this,""addSpaces"",raw => {const digits = raw.replace(/[^0-9a-z]/ig, '');switch (digits.length){case 7:  return digits.substr(0,3) + '-' + digits.substr(3,4);case 10:  return '(' + digits.substr(0,3) + ') ' + digits.substr(3,3) + '-' + digits.substr(6,4);case 11:  return digits[0] + ' (' + digits.substr(1,3) + ') ' + digits.substr(4,3) + '-' + digits.substr(7,4);default:  return digits;}}/* Customized by Ben */),";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-    }
-
-    [Fact(Skip = "mainlined")]
-    public void formatCalendarAgendaDates() {
-        string actual = tweak.formatCalendarAgendaDates(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED = @"(""span"",{className:""cal-tasks-row-doy""},void 0,r?.format(""ddd, MMM D, YYYY""/* Customized by Ben */)))";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
     [Fact]

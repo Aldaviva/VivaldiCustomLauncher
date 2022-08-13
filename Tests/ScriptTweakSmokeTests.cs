@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Tests.Assertions;
@@ -10,7 +8,6 @@ using Xunit;
 
 namespace Tests;
 
-[SuppressMessage("Microsoft.Design", "UnhandledExceptions:Unhandled exception(s)", Justification = "They're tests")]
 public class ScriptTweakSmokeTests {
 
     private const string ORIGINAL_BUNDLE_FILENAME                   = "Data/BundleScript/bundle.js";
@@ -71,19 +68,6 @@ public class ScriptTweakSmokeTests {
     [Fact]
     public void allowMovingMailBetweenAnyFoldersChangesBundle() {
         string actual = bundleTweak.allowMovingMailBetweenAnyFolders(ORIGINAL_BUNDLE_TEXT);
-        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
-    }
-
-    [Fact(Skip = "unused")]
-    [Obsolete]
-    public void formatPhoneNumbersChangesBundle() {
-        string actual = bundleTweak.formatPhoneNumbers(ORIGINAL_BUNDLE_TEXT);
-        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
-    }
-
-    [Fact(Skip = "mainlined")]
-    public void formatCalendarAgendaDatesChangesBundle() {
-        string actual = bundleTweak.formatCalendarAgendaDates(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
