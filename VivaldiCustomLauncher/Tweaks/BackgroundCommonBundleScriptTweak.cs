@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -16,6 +17,26 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
         newBundleContents = classifyJunkEmailAsNormalFolder(newBundleContents);
         return newBundleContents;
     }));
+
+    /// <summary>
+    /// Possible fix for https://github.com/Aldaviva/VivaldiCustomLauncher/issues/4
+    /// </summary>
+    public override async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
+        string? newFileContentsToWrite = await base.readFileAndEditIfNecessary(tweakParams);
+        if (newFileContentsToWrite is not null) {
+            DirectoryInfo serviceWorkerScriptCacheDirectory = new(Environment.ExpandEnvironmentVariables(
+                @"%LOCALAPPDATA%\Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\ScriptCache\"));
+            string backupServiceWorkerScriptCacheDirectory = Path.Combine(serviceWorkerScriptCacheDirectory.Parent!.FullName, serviceWorkerScriptCacheDirectory.Name + "-old");
+
+            try {
+                Directory.Delete(backupServiceWorkerScriptCacheDirectory, true);
+            } catch (DirectoryNotFoundException) { }
+
+            Directory.Move(serviceWorkerScriptCacheDirectory.FullName, backupServiceWorkerScriptCacheDirectory);
+        }
+
+        return newFileContentsToWrite;
+    }
 
     /// <summary>
     /// This tweak is only needed to make <see cref="BundleScriptTweak.allowMovingMailBetweenAnyFolders"/> work, since I would like to only show subscribed folders in the Move To menu.

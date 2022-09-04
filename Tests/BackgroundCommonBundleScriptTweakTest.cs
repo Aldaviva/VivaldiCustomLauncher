@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using FakeItEasy;
+using FluentAssertions;
 using Tests.Assertions;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
@@ -69,6 +71,34 @@ public class BackgroundCommonBundleScriptTweakTest {
         const string EXPECTED = @"function xt(e){if(e.path === ""Junk E-mail""){ return false; }/* Customized by Ben */if(e.flags)for(let ";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
+    [Fact]
+    public async Task deleteServiceWorkerScriptCacheOnChange() {
+        const string LOCAL_APP_DATA       = "LOCALAPPDATA";
+        string       originalLocalAppData = Environment.GetEnvironmentVariable(LOCAL_APP_DATA)!;
+        string       fakeBundleFile       = Path.GetTempFileName();
+        string       fakeLocalAppData     = Path.Combine(Path.GetTempPath(), "VivaldiCustomLauncherTest", "deleteServiceWorkerScriptCacheOnChange");
+        string       fakeScriptCache      = Path.Combine(fakeLocalAppData, @"Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\ScriptCache\");
+        string       backedUpCacheFile    = Path.Combine(fakeScriptCache, "..", "ScriptCache-old", "fakeCacheFile");
+        try {
+            Directory.CreateDirectory(fakeScriptCache);
+            string fakeCacheFile = Path.Combine(fakeScriptCache, "fakeCacheFile");
+            File.WriteAllText(fakeCacheFile, "cached service worker file");
+            Environment.SetEnvironmentVariable(LOCAL_APP_DATA, fakeLocalAppData);
+
+            BackgroundCommonBundleScriptTweak fakeTweak = A.Fake<BackgroundCommonBundleScriptTweak>();
+            A.CallTo(() => fakeTweak.readFileAndEditIfNecessary(A<BaseTweakParams>._)).CallsBaseMethod();
+            A.CallTo(() => fakeTweak.editFile(A<string>._)).Returns("fake non-null new file contents");
+
+            await fakeTweak.readFileAndEditIfNecessary(new BaseTweakParams(fakeBundleFile));
+
+            Directory.Exists(fakeScriptCache).Should().BeFalse();
+            File.ReadAllText(backedUpCacheFile).Should().Be("cached service worker file");
+        } finally {
+            Directory.Delete(Path.Combine(Path.GetTempPath(), "VivaldiCustomLauncherTest"), true);
+            Environment.SetEnvironmentVariable(LOCAL_APP_DATA, originalLocalAppData);
+        }
     }
 
 }
