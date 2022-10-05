@@ -19,20 +19,23 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
     }));
 
     /// <summary>
-    /// Possible fix for https://github.com/Aldaviva/VivaldiCustomLauncher/issues/4
+    /// <para>Invalidate service worker script cache so that our changes to <c>background-common-bundle.js</c> take effect on the next launch.</para>
+    /// <para>Possible fix for issue #4</para>
     /// </summary>
     public override async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
         string? newFileContentsToWrite = await base.readFileAndEditIfNecessary(tweakParams);
         if (newFileContentsToWrite is not null) {
-            DirectoryInfo serviceWorkerScriptCacheDirectory = new(Environment.ExpandEnvironmentVariables(
-                @"%LOCALAPPDATA%\Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\ScriptCache\"));
-            string backupServiceWorkerScriptCacheDirectory = Path.Combine(serviceWorkerScriptCacheDirectory.Parent!.FullName, serviceWorkerScriptCacheDirectory.Name + "-old");
+            DirectoryInfo serviceWorkerDirectory = new(Environment.ExpandEnvironmentVariables(
+                @"%LOCALAPPDATA%\Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\"));
+            string backupServiceWorkerDirectory = Path.Combine(serviceWorkerDirectory.Parent!.FullName, serviceWorkerDirectory.Name + "-old");
 
             try {
-                Directory.Delete(backupServiceWorkerScriptCacheDirectory, true);
-            } catch (DirectoryNotFoundException) { }
+                Directory.Delete(backupServiceWorkerDirectory, true);
+            } catch (DirectoryNotFoundException) {
+                // An old backup already didn't exist, so we can continue with renaming the current directory to its backup name
+            }
 
-            Directory.Move(serviceWorkerScriptCacheDirectory.FullName, backupServiceWorkerScriptCacheDirectory);
+            Directory.Move(serviceWorkerDirectory.FullName, backupServiceWorkerDirectory);
         }
 
         return newFileContentsToWrite;
