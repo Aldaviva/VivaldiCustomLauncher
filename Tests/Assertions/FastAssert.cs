@@ -30,8 +30,8 @@ internal static class FastAssert {
         try {
             assertion();
         } catch (AssertActualExpectedException e) {
-            string expected = preserveExpected ? e.Expected : "(omitted)";
-            string actual;
+            string? expected = preserveExpected ? e.Expected : "(omitted)";
+            string  actual;
 
             if (writeActualToTempFile) {
                 string actualFileName = getTempFileName();
@@ -44,7 +44,7 @@ internal static class FastAssert {
             AssertActualExpectedException newException = (AssertActualExpectedException) (
                     e.GetType().GetConstructor(new[] { typeof(object), typeof(object) }) ??
                     e.GetType().GetConstructor(new[] { typeof(string), typeof(string) }))!
-                .Invoke(new object[] { expected, actual });
+                .Invoke(new object?[] { expected, actual });
 
             throw newException;
         }

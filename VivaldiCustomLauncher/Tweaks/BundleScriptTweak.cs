@@ -197,7 +197,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// <param name="bundleContents"></param>
     /// <returns></returns>
     internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<prefix>getDefaultStyle=.{1,1000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
+        new Regex(@"(?<prefix>getDefaultStyle=.{1,2000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
         match => match.Groups["prefix"].Value +
             match.Groups["innerSuffix"].Value +
             "img:not([height]) { height: auto; } " +
