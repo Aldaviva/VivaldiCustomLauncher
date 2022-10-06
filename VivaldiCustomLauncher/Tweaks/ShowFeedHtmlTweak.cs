@@ -10,7 +10,7 @@ namespace VivaldiCustomLauncher.Tweaks;
 public class ShowFeedHtmlTweak: BaseStringTweak<ShowFeedHtmlTweakParams> {
 
     public override Task<string?> readFileAndEditIfNecessary(ShowFeedHtmlTweakParams tweakParams) {
-        string fileContents      = File.ReadAllText(tweakParams.filename, Encoding.UTF8);
+        string fileContents      = File.ReadAllText(tweakParams.filename, new UTF8Encoding(true, true));
         string scriptRelativeUri = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
 
         bool   fileModified         = false;
