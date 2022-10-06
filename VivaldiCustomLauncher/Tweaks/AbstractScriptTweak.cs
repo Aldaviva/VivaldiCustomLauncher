@@ -55,9 +55,10 @@ public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
     }
 
     /// <exception cref="TweakException"></exception>
-    protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, TweakException toThrowIfNoReplacement) => replaceOrThrow(input, pattern, evaluator, -1,
-        (pattern.Options & RegexOptions.RightToLeft) != 0 ? input.Length : 0, toThrowIfNoReplacement);
+    protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, TweakException toThrowIfNoReplacement) =>
+        replaceOrThrow(input, pattern, evaluator, 1, (pattern.Options & RegexOptions.RightToLeft) != 0 ? input.Length : 0, toThrowIfNoReplacement);
 
+    /// <param name="count">maximum number of matches to replace, or <c>-1</c> to replace all matches</param>
     /// <exception cref="TweakException"></exception>
     protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, int count, int startat, TweakException toThrowIfNoReplacement) {
         bool wasReplaced = false;

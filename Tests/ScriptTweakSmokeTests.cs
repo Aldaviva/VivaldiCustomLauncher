@@ -83,4 +83,10 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT, actual), false, false);
     }
 
+    [Fact]
+    public void fixAllDayCalendarEventOffByOneDay() {
+        string actual = bundleTweak.fixAllDayCalendarEventOffByOneDay(ORIGINAL_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
 }

@@ -20,6 +20,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
+        newBundleContents = fixAllDayCalendarEventOffByOneDay(newBundleContents);
         return newBundleContents;
     }));
 
@@ -194,15 +195,31 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// transparent spacer GIFs appear way too tall. This is caused by the actual GIF being small (10×10px) but the width attribute is set to a large value, like 200px. The height attribute is set
     /// to a small value like 1px, but Vivaldi's height: auto rule makes the image as tall as its width, so it becomes 200px tall instead of 1px tall.
     /// </summary>
-    /// <param name="bundleContents"></param>
-    /// <returns></returns>
     internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<prefix>getDefaultStyle=.{1,2000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
         match => match.Groups["prefix"].Value +
             match.Groups["innerSuffix"].Value +
             "img:not([height]) { height: auto; } " +
             CUSTOMIZED_COMMENT +
-            match.Groups["outerSuffix"].Value
-        , new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
+            match.Groups["outerSuffix"].Value,
+        new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
+
+    /// <summary>
+    /// In time zones with negative UTC offsets, saving all-day calendar events to a CalDAV server sends DTSTART and DTEND values that are one day too early.
+    /// This is caused by Vivaldi internally representing these timeless local dates as a datetime whose time components are midnight UTC.
+    /// Unfortunately, when this is serialized into iCalendar values, it is not serialized in UTC but in the local zone, resulting in the wrong day of the month.
+    /// To fix this, serialize the Moment objects in UTC mode.
+    /// </summary>
+    internal virtual string fixAllDayCalendarEventOffByOneDay(string bundleContents) => replaceOrThrow(bundleContents,
+        new Regex(@"(?<prefix>"";VALUE=DATE"".{1,16}?\.start\))\.format\((?<infix>.{1,40}?\.end\))\.format\("),
+        match => match.Groups["prefix"].Value +
+            ".utc()" +
+            CUSTOMIZED_COMMENT +
+            ".format(" +
+            match.Groups["infix"].Value +
+            ".utc()" +
+            CUSTOMIZED_COMMENT +
+            ".format(",
+        new TweakException("Failed to find iCalendar Moment date formatting calls", TWEAK_TYPE));
 
 }

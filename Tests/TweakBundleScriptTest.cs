@@ -139,4 +139,14 @@ public class TweakBundleScriptTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
+    [Fact]
+    public void fixAllDayCalendarEventOffByOneDay() {
+        string actual = tweak.fixAllDayCalendarEventOffByOneDay(ORIGINAL_BUNDLE_TEXT);
+
+        const string EXPECTED =
+            @".allDay?(c="";VALUE=DATE"",r=`${E(e.start).utc()/* Customized by Ben */.format(b.O5)}`,l=e.end&&E(e.end).utc()/* Customized by Ben */.format(b.O5),";
+
+        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
 }
