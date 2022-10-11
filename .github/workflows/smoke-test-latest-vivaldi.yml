@@ -39,15 +39,13 @@ jobs:
         if: steps.existing-test-data.outputs.VIVALDI_VERSION == steps.latest-version.outputs.LATEST_VERSION
 
       - name: Download Vivaldi
-        run: Invoke-WebRequest -Uri (Get-Content .\latest-download-url.txt) -OutFile vivaldi-installer.exe
+        run: Invoke-WebRequest -Uri (Get-Content "${{ steps.latest-version.output.DOWNLOAD_URL }}") -OutFile vivaldi-installer.exe
       
       - name: Install Vivaldi
         run: Start-Process -FilePath .\vivaldi-installer.exe -ArgumentList @('--vivaldi-silent', '--vivaldi-standalone', '--vivaldi-install-dir="${env:GITHUB_WORKSPACE}\vivaldi-installation"', '--do-not-launch-chrome') -Wait
         
       - name: Copy updated installation files into test data
-        run: |
-          Copy-Item -Force -Path @('.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js', '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js') -Destination .\Tests\Data\BundleScript\
-          Copy-Item -Force -Path .\latest-vivaldi-version.txt -Destination .\Tests\Data\vivaldi-version.txt
+        run: Copy-Item -Force -Path @('.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js', '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js') -Destination .\Tests\Data\BundleScript\
           
       - name: Update version number in test data
         run: Out-File -InputObject "${{ steps.latest-version.outputs.LATEST_VERSION }}" -FilePath .\Tests\Data\vivaldi-version.txt -Encoding UTF8 
