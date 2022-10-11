@@ -1,0 +1,66 @@
+name: Smoke Test Latest Vivaldi
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2/6 * * *'
+
+jobs:
+  smoke-test-latest-vivaldi:
+    runs-on: windows-latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Read Vivaldi version of existing test data
+        id: existing-test-data
+        run: Out-File -InputObject "VIVALDI_VERSION=$(Get-Content .\Tests\Data\vivaldi-version.txt)" -FilePath $env:GITHUB_OUTPUT -Append -Encoding UTF8 
+
+      - name: Check for latest Vivaldi version
+        id: latest-version
+        run: |
+          Invoke-WebRequest "https://vivaldi.com/wp-content/vivaldi-versions.js" -OutFile vivaldi-versions.js
+
+          Out-File -FilePath .\vivaldi-versions.js -Append -Encoding UTF8 -InputObject ";`
+            const { writeFileSync } = require('node:fs');
+            const { env } = require('node:process');
+
+            const output =
+              'LATEST_VERSION=' + vivaldi_versions.vivaldi_version_number + '\n' +
+              'DOWNLOAD_URL=https://downloads.vivaldi.com/stable/' + vivaldi_versions.vivaldi_version_win64 + '\n';
+
+            writeFileSync(env.GITHUB_OUTPUT, output, { flag: 'a' });";
+
+          node .\vivaldi-versions.js
+
+      - name: Cancel job because test data are already up to date
+        uses: andymckay/cancel-action@0.2
+        if: steps.existing-test-data.outputs.VIVALDI_VERSION == steps.latest-version.outputs.LATEST_VERSION
+
+      - name: Download Vivaldi
+        run: Invoke-WebRequest -Uri (Get-Content .\latest-download-url.txt) -OutFile vivaldi-installer.exe
+      
+      - name: Install Vivaldi
+        run: Start-Process -FilePath .\vivaldi-installer.exe -ArgumentList @('--vivaldi-silent', '--vivaldi-standalone', '--vivaldi-install-dir="${env:GITHUB_WORKSPACE}\vivaldi-installation"', '--do-not-launch-chrome') -Wait
+        
+      - name: Copy updated installation files into test data
+        run: |
+          Copy-Item -Force -Path @('.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js', '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js') -Destination .\Tests\Data\BundleScript\
+          Copy-Item -Force -Path .\latest-vivaldi-version.txt -Destination .\Tests\Data\vivaldi-version.txt
+          
+      - name: Update version number in test data
+        run: Out-File -InputObject "${{ steps.latest-version.outputs.LATEST_VERSION }}" -FilePath .\Tests\Data\vivaldi-version.txt -Encoding UTF8 
+        
+      - name: Commit and push new test data
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: ./Tests/Data
+          message: Updated test data from Vivaldi ${{ steps.latest-version.outputs.LATEST_VERSION }}
+          pathspec_error_handling: exitImmediately
+          committer_name: GitHub Actionsbas
+          committer_email: 41898282+github-actions[bot]@users.noreply.github.com
+          push: true
+
+      - name: Smoke test
+        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --verbosity normal
