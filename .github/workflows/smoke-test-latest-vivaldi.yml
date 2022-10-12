@@ -2,8 +2,6 @@ name: Smoke test latest Vivaldi
 
 on:
   workflow_dispatch:
-  push: 
-    branches: [ auto-smoke-test ]
   schedule:
     - cron: '52 2/6 * * *'
 
