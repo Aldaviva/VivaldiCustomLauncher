@@ -1,37 +1,35 @@
-name: .NET Framework
+name: Build
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-
   build:
-
     env:
       ProjectName: VivaldiCustomLauncher
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: windows-latest
 
     steps:
+    - name: Set up MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+
     - name: Clone
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    - name: Restore
+      run: msbuild /p:Configuration=Release /t:restore
+
+    - name: Build
+      run: msbuild /p:Configuration=Release /t:build
+
+    - name: Smoke test
+      run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --no-build --verbosity normal
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
       with:
-        fetch-depth: 0
-
-    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    # Create the executable by restoring NuGet packages and building the EXE (which uses an ILRepack build task to inline dependencies into a single EXE)
-    - name: Restore and Build
-      run: msbuild $env:ProjectName /p:Configuration=Release -t:build -restore
-
-    # Upload the EXE: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: VivaldiCustomLauncher.exe
+        name: ${{ env.ProjectName }}
         path: ${{ env.ProjectName }}\bin\Release\*.exe
         if-no-files-found: error
