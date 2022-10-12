@@ -1,64 +1,122 @@
-name: Smoke Test Latest Vivaldi
+name: Smoke test latest Vivaldi
 
 on:
   workflow_dispatch:
+  push: 
+    branches: [ auto-smoke-test ]
   schedule:
-    - cron: '17 2/6 * * *'
+    - cron: '52 2/6 * * *'
 
 jobs:
   smoke-test-latest-vivaldi:
     runs-on: windows-latest
 
+    env:
+      BUILD_CONFIG: Debug
+
     steps:
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+
       - name: Clone
         uses: actions/checkout@v3
 
       - name: Read Vivaldi version of existing test data
         id: existing-test-data
-        run: Out-File -InputObject "VIVALDI_VERSION=$(Get-Content .\Tests\Data\vivaldi-version.txt)" -FilePath $env:GITHUB_OUTPUT -Append -Encoding UTF8 
+        run: |
+          $existingVersion = (Get-Content .\Tests\Data\vivaldi-version.txt -TotalCount 1).Trim()
+          Out-File -InputObject "EXISTING_VERSION=$existingVersion" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8 
+          Write-Output "Repository's existing test data is from Vivaldi $existingVersion"
 
       - name: Check for latest Vivaldi version
         id: latest-version
         run: |
-          Invoke-WebRequest "https://vivaldi.com/wp-content/vivaldi-versions.js" -OutFile vivaldi-versions.js
+          Invoke-WebRequest "https://vivaldi.com/wp-content/vivaldi-versions.js?_=$([System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" -OutFile vivaldi-versions.js
 
           Out-File -FilePath .\vivaldi-versions.js -Append -Encoding UTF8 -InputObject ";`
             const { writeFileSync } = require('node:fs');
             const { env } = require('node:process');
 
-            const output =
-              'LATEST_VERSION=' + vivaldi_versions.vivaldi_version_number + '\n' +
-              'DOWNLOAD_URL=https://downloads.vivaldi.com/stable/' + vivaldi_versions.vivaldi_version_win64 + '\n';
+            const latestVersion = vivaldi_versions.vivaldi_version_number;
+            const downloadUrl = 'https://downloads.vivaldi.com/stable/' + vivaldi_versions.vivaldi_version_win64;
 
-            writeFileSync(env.GITHUB_OUTPUT, output, { flag: 'a' });";
+            const output =
+              'LATEST_VERSION=' + latestVersion + '\r\n' +
+              'DOWNLOAD_URL=' + downloadUrl + '\r\n';
+
+            writeFileSync(env.GITHUB_ENV, output, { flag: 'a' });
+
+            console.log('Latest Vivaldi version is '+latestVersion);
+            console.log('Latest Vivaldi can be downloaded from '+downloadUrl);"
 
           node .\vivaldi-versions.js
 
-      - name: Cancel job because test data are already up to date
-        uses: andymckay/cancel-action@0.2
-        if: steps.existing-test-data.outputs.VIVALDI_VERSION == steps.latest-version.outputs.LATEST_VERSION
+      - name: Compare existing and latest version numbers
+        run: |
+          $isUpToDate = $env:EXISTING_VERSION -eq $env:LATEST_VERSION
+          Out-File -InputObject "UP_TO_DATE=$isUpToDate" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8
+          If ($isUpToDate) {
+            Write-Output "::notice title=No Vivaldi update::Test data was already up-to-date with the latest Vivaldi version (${env:LATEST_VERSION}). Not updating or testing."
+          } Else {
+            Write-Output "::notice title=Vivaldi update released::Test data version (${env:EXISTING_VERSION}) is lower than the latest Vivaldi version (${env:LATEST_VERSION}). Updating test data and running smoke tests."
+          }
 
       - name: Download Vivaldi
-        run: Invoke-WebRequest -Uri (Get-Content "${{ steps.latest-version.output.DOWNLOAD_URL }}") -OutFile vivaldi-installer.exe
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: |
+          Write-Output "Downloading Vivaldi $env:LATEST_VERSION from $env:DOWNLOAD_URL"
+          Invoke-WebRequest -Uri $env:DOWNLOAD_URL -OutFile vivaldi-installer.exe
       
       - name: Install Vivaldi
-        run: Start-Process -FilePath .\vivaldi-installer.exe -ArgumentList @('--vivaldi-silent', '--vivaldi-standalone', '--vivaldi-install-dir="${env:GITHUB_WORKSPACE}\vivaldi-installation"', '--do-not-launch-chrome') -Wait
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: |
+          Write-Output "Installing Vivaldi in silent standalone mode"
+          Start-Process -FilePath .\vivaldi-installer.exe -ArgumentList @(`
+            '--vivaldi-silent',
+            '--vivaldi-standalone',
+            '--vivaldi-install-dir="${{ github.workspace }}\vivaldi-installation"',
+            '--do-not-launch-chrome'
+          ) -Wait
+          cat $env:TEMP\vivaldi_installer.log
         
-      - name: Copy updated installation files into test data
-        run: Copy-Item -Force -Path @('.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js', '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js') -Destination .\Tests\Data\BundleScript\
+      - name: Copy installation files into test data
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: |
+          Copy-Item -Force -Path @(`
+            '.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js',
+            '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js'
+          ) -Destination .\Tests\Data\BundleScript\
+          Write-Output "Updated bundle.js and background-common-bundle.js in test data"
           
       - name: Update version number in test data
-        run: Out-File -InputObject "${{ steps.latest-version.outputs.LATEST_VERSION }}" -FilePath .\Tests\Data\vivaldi-version.txt -Encoding UTF8 
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: |
+          Out-File -InputObject $env:LATEST_VERSION -FilePath .\Tests\Data\vivaldi-version.txt -Encoding UTF8 
+          Write-Output "Marked test data as coming from Vivaldi $env:LATEST_VERSION"
         
       - name: Commit and push new test data
+        if: ${{ env.UP_TO_DATE == 'False' }}
         uses: EndBug/add-and-commit@v9
+        env:
+          HOME: "~" # get rid of a benign warning
         with:
           add: ./Tests/Data
-          message: Updated test data from Vivaldi ${{ steps.latest-version.outputs.LATEST_VERSION }}
+          message: Update test data for Vivaldi ${{ env.LATEST_VERSION }}
           pathspec_error_handling: exitImmediately
-          committer_name: GitHub Actionsbas
+          author_name: Ben Hutchison
+          author_email: ben@aldaviva.com
+          committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
           push: true
 
+      - name: Restore solution
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: msbuild /p:Configuration=${{ env.BUILD_CONFIG }} -t:restore
+
+      - name: Build solution
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: msbuild /p:Configuration=${{ env.BUILD_CONFIG }} -t:build
+
       - name: Smoke test
-        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --verbosity normal
+        if: ${{ env.UP_TO_DATE == 'False' }}
+        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration ${{ env.BUILD_CONFIG }} --no-build --verbosity normal
