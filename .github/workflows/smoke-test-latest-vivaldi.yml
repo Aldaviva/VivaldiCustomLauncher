@@ -121,13 +121,21 @@ jobs:
         run: dotnet test Tests --filter DisplayName~SmokeTests --configuration ${{ env.BUILD_CONFIG }} --no-build --verbosity normal
 
       - name: Smoke test Vivaldi startup
-        if: false # WIP: we need to run the launcher, apply tweaks with a custom application directory, then run vivaldi without the launcher so we can get its PID to kill it
-        # if: ${{ env.UP_TO_DATE == 'False' }}
+        if: ${{ env.UP_TO_DATE == 'False' }}
         run: |
+          echo "Tweaking standalone installation"
+
+          Start-Process -FilePath '.\VivaldiCustomLauncher\bin\${{ env.BUILD_CONFIG }}\VivaldiCustomLauncher.exe' -ArgumentList @(`
+            '--vivaldi-application-directory="${{ github.workspace }}\vivaldi-installation\Application"',
+            '--do-not-launch-vivaldi'
+          ) -Wait
+
+          echo "Tweaks applied, starting Vivaldi"
+
           $debugLogFile = '.\vivaldi-installation\User Data\chrome_debug.log'
           Out-File -FilePath $debugLogFile -InputObject ""
 
-          $vivaldiProcess = Start-Process -FilePath .\vivaldi-installation\Application\vivaldi.exe -ArgumentList @("--enable-logging", "--v=1") -PassThru -WindowStyle Minimized
+          $vivaldiProcess = Start-Process -FilePath .\vivaldi-installation\Application\vivaldi.exe -ArgumentList @("--enable-logging", "--v=1") -PassThru
           echo "Started Vivaldi with PID $($vivaldiProcess.Id)"
 
           $deadline = [DateTime]::Now.AddMinutes(3)

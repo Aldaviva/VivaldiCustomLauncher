@@ -19,14 +19,14 @@ namespace VivaldiCustomLauncher;
 public static class VivaldiLauncher {
 
     private static readonly VersionNumberComparer VERSION_NUMBER_COMPARER = new();
-    private static          HttpClient?           HTTP_CLIENT;
-    private static readonly AssemblyName          ASSEMBLY_NAME = Assembly.GetExecutingAssembly().GetName();
+    private static          HttpClient?           cachedHttpClient;
+    public static readonly  AssemblyName          ASSEMBLY_NAME = Assembly.GetExecutingAssembly().GetName();
 
-    private static HttpClient httpClient => HTTP_CLIENT ??= new HttpClient(new HttpClientHandler {
+    private static HttpClient httpClient => cachedHttpClient ??= new HttpClient(new HttpClientHandler {
         MaxConnectionsPerServer = 24,
         AllowAutoRedirect       = true
     }) {
-        Timeout               = TimeSpan.FromSeconds(3),
+        Timeout               = TimeSpan.FromSeconds(10),
         DefaultRequestHeaders = { UserAgent = { new ProductInfoHeaderValue(ASSEMBLY_NAME.Name, ASSEMBLY_NAME.Version.ToString()) } }
     };
 
@@ -40,7 +40,7 @@ public static class VivaldiLauncher {
         try {
             return await tweakAndLaunch() ? 0 : 1;
         } finally {
-            HTTP_CLIENT?.Dispose();
+            cachedHttpClient?.Dispose();
         }
     }
 
@@ -49,7 +49,13 @@ public static class VivaldiLauncher {
         bool      success   = true;
 
         try {
-            string processToRun = Path.Combine(getVivaldiApplicationDirectory(), "vivaldi.exe");
+            CommandLine.Parser.Arguments arguments = CommandLine.Parser.parse();
+            if (arguments.HelpInvoked) {
+                // Help message is shown by CommandLine.Parser.Arguments.OnHelpInvoked
+                return true;
+            }
+
+            string processToRun = Path.Combine(getVivaldiApplicationDirectory(arguments), "vivaldi.exe");
 
             try {
                 using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
@@ -68,11 +74,13 @@ public static class VivaldiLauncher {
                 success = false;
             }
 
-            IEnumerable<string> originalArguments     = Environment.GetCommandLineArgs().Skip(1);
-            string              processArgumentsToRun = CommandLine.ArgvToCommandLine(customizeArguments(originalArguments));
+            IEnumerable<string> originalArguments     = arguments.Operands;
+            string              processArgumentsToRun = CommandLine.Serializer.argvToCommandLine(customizeArguments(originalArguments));
 
-            // TODO allow users to pass a command-line argument that prevents Vivaldi from being launched, so only tweaks are applied, useful for automated testing
-            createProcess(processToRun, processArgumentsToRun);
+            if (!arguments.doNotLaunchVivaldi) {
+                createProcess(processToRun, processArgumentsToRun);
+            }
+
             stopwatch.Stop();
             // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -141,8 +149,10 @@ public static class VivaldiLauncher {
     }
 
     /// <exception cref="InvalidOperationException"></exception>
-    private static string getVivaldiApplicationDirectory() {
-        //TODO allow users to pass a command-line argument that specifies the Vivaldi application directory, useful for standalone installations and automated testing
+    private static string getVivaldiApplicationDirectory(CommandLine.Parser.Arguments args) {
+        if (args.vivaldiApplicationDirectory != null) {
+            return args.vivaldiApplicationDirectory;
+        }
 
         if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vivaldi.exe", "Path", null) is string appPath) {
             return appPath;
@@ -187,7 +197,8 @@ public static class VivaldiLauncher {
     }
 
     private static int createProcess(string process, string arguments) {
-        return Process.Start(process, arguments)?.Id ?? -1;
+        using Process? createdProcess = Process.Start(process, arguments);
+        return createdProcess?.Id ?? -1;
     }
 
 }
