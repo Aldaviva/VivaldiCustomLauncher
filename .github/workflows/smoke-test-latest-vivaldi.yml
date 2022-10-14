@@ -57,6 +57,7 @@ jobs:
             Write-Output "::notice title=No Vivaldi update::Test data was already up-to-date with the latest Vivaldi version (${env:LATEST_VERSION}). Not updating or testing."
           } Else {
             Write-Output "::notice title=Vivaldi update released::Test data version (${env:EXISTING_VERSION}) is lower than the latest Vivaldi version (${env:LATEST_VERSION}). Updating test data and running smoke tests."
+            Out-File -InputObject "### Updated to Vivaldi **${env:LATEST_VERSION}**" -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8 
           }
 
       - name: Download Vivaldi
@@ -115,6 +116,40 @@ jobs:
         if: ${{ env.UP_TO_DATE == 'False' }}
         run: msbuild /p:Configuration=${{ env.BUILD_CONFIG }} -t:build
 
-      - name: Smoke test
+      - name: Smoke test tweaks
         if: ${{ env.UP_TO_DATE == 'False' }}
         run: dotnet test Tests --filter DisplayName~SmokeTests --configuration ${{ env.BUILD_CONFIG }} --no-build --verbosity normal
+
+      - name: Smoke test Vivaldi startup
+        if: false # WIP: we need to run the launcher, apply tweaks with a custom application directory, then run vivaldi without the launcher so we can get its PID to kill it
+        # if: ${{ env.UP_TO_DATE == 'False' }}
+        run: |
+          $debugLogFile = '.\vivaldi-installation\User Data\chrome_debug.log'
+          Out-File -FilePath $debugLogFile -InputObject ""
+
+          $vivaldiProcess = Start-Process -FilePath .\vivaldi-installation\Application\vivaldi.exe -ArgumentList @("--enable-logging", "--v=1") -PassThru -WindowStyle Minimized
+          echo "Started Vivaldi with PID $($vivaldiProcess.Id)"
+
+          $deadline = [DateTime]::Now.AddMinutes(3)
+
+          while([DateTime]::Now -lt $deadline) {
+            $logContents = Get-Content $debugLogFile
+
+            $consoleError = $logContents | where { $_ -like "*:ERROR:CONSOLE(*" } | select -First 1
+
+            if($consoleError.Length -gt 0){
+              Stop-Process $vivaldiProcess
+              Write-Output "::error title=Failed to start Vivaldi::Error in Vivaldi console: $consoleError"
+              exit 1
+            } elseif(($logContents | where { $_ -like "*JS init startup:*" } | select -first 1).Length -gt 0){
+              Stop-Process $vivaldiProcess
+              Write-Output "Vivaldi started successfully with no console errors"
+              exit 0
+            }
+
+            Start-Sleep -Seconds 2
+          }
+
+          Stop-Process $vivaldiProcess
+          Write-Output "::error title=Failed to start Vivaldi::Timed out"
+          exit 1

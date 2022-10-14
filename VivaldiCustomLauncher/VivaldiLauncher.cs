@@ -71,6 +71,7 @@ public static class VivaldiLauncher {
             IEnumerable<string> originalArguments     = Environment.GetCommandLineArgs().Skip(1);
             string              processArgumentsToRun = CommandLine.ArgvToCommandLine(customizeArguments(originalArguments));
 
+            // TODO allow users to pass a command-line argument that prevents Vivaldi from being launched, so only tweaks are applied, useful for automated testing
             createProcess(processToRun, processArgumentsToRun);
             stopwatch.Stop();
             // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -141,6 +142,8 @@ public static class VivaldiLauncher {
 
     /// <exception cref="InvalidOperationException"></exception>
     private static string getVivaldiApplicationDirectory() {
+        //TODO allow users to pass a command-line argument that specifies the Vivaldi application directory, useful for standalone installations and automated testing
+
         if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vivaldi.exe", "Path", null) is string appPath) {
             return appPath;
         }
