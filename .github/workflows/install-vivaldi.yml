@@ -1,0 +1,57 @@
+name: Install Vivaldi
+
+on:
+  workflow_call:
+    outputs:
+      latest-version:
+        value: ${{ jobs.smoke-test.outputs.latest-version }}
+      download-url:
+        value: ${{ jobs.smoke-test.outputs.latest-version }}
+
+jobs:
+  smoke-test:
+    runs-on: windows-latest
+    outputs:
+      latest-version: ${{ steps.latest-version.outputs.LATEST_VERSION }}
+      download-url: ${{ steps.latest-version.outputs.DOWNLOAD_URL }}
+
+    steps:
+    - name: Check for latest Vivaldi version
+      id: latest-version
+      run: |
+        Invoke-WebRequest "https://vivaldi.com/wp-content/vivaldi-versions.js?_=$([System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" -OutFile vivaldi-versions.js
+
+        Out-File -FilePath .\vivaldi-versions.js -Append -Encoding UTF8 -InputObject ";`
+          const { writeFileSync } = require('node:fs');
+          const { env } = require('node:process');
+
+          const latestVersion = vivaldi_versions.vivaldi_version_number;
+          const downloadUrl = 'https://downloads.vivaldi.com/stable/' + vivaldi_versions.vivaldi_version_win64;
+
+          const output =
+            'LATEST_VERSION=' + latestVersion + '\r\n' +
+            'DOWNLOAD_URL=' + downloadUrl + '\r\n';
+
+          writeFileSync(env.GITHUB_ENV, output, { flag: 'a' });
+          writeFileSync(env.GITHUB_OUTPUT, output, { flag: 'a' });
+
+          console.log('Latest Vivaldi version is '+latestVersion);
+          console.log('Latest Vivaldi can be downloaded from '+downloadUrl);"
+
+        node .\vivaldi-versions.js
+
+    - name: Download Vivaldi
+      run: |
+        Write-Output "Downloading Vivaldi $env:LATEST_VERSION from $env:DOWNLOAD_URL"
+        Invoke-WebRequest -Uri $env:DOWNLOAD_URL -OutFile vivaldi-installer.exe
+    
+    - name: Install Vivaldi
+      run: |
+        Write-Output "Installing Vivaldi in silent standalone mode"
+        Start-Process -FilePath .\vivaldi-installer.exe -ArgumentList @(`
+          '--vivaldi-silent',
+          '--vivaldi-standalone',
+          '--vivaldi-install-dir="${{ github.workspace }}\vivaldi-installation"',
+          '--do-not-launch-chrome'
+        ) -Wait
+        cat $env:TEMP\vivaldi_installer.log

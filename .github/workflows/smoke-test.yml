@@ -1,0 +1,63 @@
+name: Smoke test
+
+on:
+  workflow_call:
+    inputs:
+      build-config:
+        required: false
+        default: 'Debug'
+        type: choice
+        options:
+        - Debug
+        - Release
+
+jobs:
+  smoke-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Smoke test tweaks
+      if: ${{ env.UP_TO_DATE != 'True' }}
+      run: dotnet test Tests --filter DisplayName~SmokeTests --configuration ${{ inputs.build-config }} --no-build --verbosity normal
+
+    - name: Smoke test Vivaldi startup
+      if: ${{ env.UP_TO_DATE != 'True' }}
+      run: |
+        echo "Tweaking standalone installation"
+
+        Start-Process -FilePath '.\VivaldiCustomLauncher\bin\${{ inputs.build-config }}\VivaldiCustomLauncher.exe' -ArgumentList @(`
+          '--vivaldi-application-directory="${{ github.workspace }}\vivaldi-installation\Application"',
+          '--do-not-launch-vivaldi'
+        ) -Wait
+
+        echo "Tweaks applied, starting Vivaldi"
+
+        $debugLogFile = '.\vivaldi-installation\User Data\chrome_debug.log'
+        Out-File -FilePath $debugLogFile -InputObject ""
+
+        $vivaldiProcess = Start-Process -FilePath .\vivaldi-installation\Application\vivaldi.exe -ArgumentList @("--enable-logging", "--v=1") -PassThru
+        echo "Started Vivaldi with PID $($vivaldiProcess.Id)"
+
+        $deadline = [DateTime]::Now.AddMinutes(3)
+
+        while([DateTime]::Now -lt $deadline) {
+          $logContents = Get-Content $debugLogFile
+
+          $consoleError = $logContents | where { $_ -like "*:ERROR:CONSOLE(*" } | select -First 1
+
+          if($consoleError.Length -gt 0){
+            Stop-Process $vivaldiProcess
+            Write-Output "::error title=Failed to start Vivaldi::Error in Vivaldi console: $consoleError"
+            exit 1
+          } elseif(($logContents | where { $_ -like "*JS init startup:*" } | select -first 1).Length -gt 0){
+            Stop-Process $vivaldiProcess
+            Write-Output "Vivaldi started successfully with no console errors"
+            exit 0
+          }
+
+          Start-Sleep -Seconds 2
+        }
+
+        Stop-Process $vivaldiProcess
+        Write-Output "::error title=Failed to start Vivaldi::Timed out"
+        exit 1

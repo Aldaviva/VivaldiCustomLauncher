@@ -5,11 +5,11 @@ on:
   push:
     branches: [ master ]
 
+env:
+  ProjectName: VivaldiCustomLauncher
+
 jobs:
   build:
-    env:
-      ProjectName: VivaldiCustomLauncher
-
     runs-on: windows-latest
 
     steps:
@@ -25,9 +25,20 @@ jobs:
     - name: Build
       run: msbuild /p:Configuration=Release /t:build
 
-    - name: Smoke test
-      run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --no-build --verbosity normal
+  install-vivaldi:
+    uses: ./.github/workflows/install-vivaldi.yml
 
+  smoke-test:
+    uses: ./.github/workflows/smoke-test.yml
+    needs: [build, install-vivaldi]
+    with:
+      build-config: Release
+
+  upload-artifacts:
+    runs-on: windows-latest
+    needs: smoke-test
+
+    steps:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
