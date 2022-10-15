@@ -97,7 +97,7 @@ public static class VivaldiLauncher {
 
     private static void onUncaughtException(Exception e) {
         string message = (e as AggregateException)?.InnerException?.Message ?? e.Message;
-        MessageBox.Show($"{e.GetType().Name}: {message}", "Failed to tweak and launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show($"{e.GetType().Name}: {message}\n\n{e.StackTrace}", "Failed to tweak and launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     /// <exception cref="TweakException"></exception>

@@ -5,7 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace VivaldiCustomLauncher.Tweaks; 
+namespace VivaldiCustomLauncher.Tweaks;
 
 public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
 
@@ -32,10 +32,14 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
             try {
                 Directory.Delete(backupServiceWorkerDirectory, true);
             } catch (DirectoryNotFoundException) {
-                // An old backup already didn't exist, so we can continue with renaming the current directory to its backup name
+                // An old backup already didn't exist, so we can continue with renaming the current directory to its backup name.
             }
 
-            Directory.Move(serviceWorkerDirectory.FullName, backupServiceWorkerDirectory);
+            try {
+                Directory.Move(serviceWorkerDirectory.FullName, backupServiceWorkerDirectory);
+            } catch (DirectoryNotFoundException) {
+                // The Service Worker directory didn't even exist in the first place, so we're already done. This can happen on a new Vivaldi installation.
+            }
         }
 
         return newFileContentsToWrite;
