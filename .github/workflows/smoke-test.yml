@@ -6,10 +6,7 @@ on:
       build-config:
         required: false
         default: 'Debug'
-        type: choice
-        options:
-        - Debug
-        - Release
+        type: string
 
 jobs:
   smoke-test:

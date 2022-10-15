@@ -9,7 +9,7 @@ on:
         value: ${{ jobs.smoke-test.outputs.latest-version }}
 
 jobs:
-  smoke-test:
+  install-vivaldi:
     runs-on: windows-latest
     outputs:
       latest-version: ${{ steps.latest-version.outputs.LATEST_VERSION }}
