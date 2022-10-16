@@ -107,10 +107,10 @@ jobs:
           push: true
 
       - name: Restore solution
-        run: msbuild /p:Configuration=$env:BUILD_CONFIG -t:restore
+        run: msbuild -p:Configuration=$env:BUILD_CONFIG -t:restore -p:RestoreLockedMode=true
 
       - name: Build solution
-        run: msbuild /p:Configuration=$env:BUILD_CONFIG -t:build
+        run: msbuild -p:Configuration=$env:BUILD_CONFIG -t:build
 
       - name: Smoke test tweaks
         run: dotnet test Tests --filter DisplayName~SmokeTests --configuration $env:BUILD_CONFIG --no-build --verbosity normal
@@ -119,7 +119,7 @@ jobs:
         run: |
           echo "Tweaking standalone installation"
 
-          Start-Process -FilePath '.\$env:PROJECT_NAME\bin\$env:BUILD_CONFIG\$env:PROJECT_NAME.exe' -ArgumentList @(`
+          Start-Process -FilePath ".\$env:PROJECT_NAME\bin\$env:BUILD_CONFIG\$env:PROJECT_NAME.exe" -ArgumentList @(`
             '--vivaldi-application-directory="${{ github.workspace }}\vivaldi-installation\Application"',
             '--do-not-launch-vivaldi'
           ) -Wait
