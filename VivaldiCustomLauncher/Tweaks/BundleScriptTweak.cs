@@ -96,7 +96,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"=180(?=[;,])"),
-        _ => '=' + 4000 + CUSTOMIZED_COMMENT,
+        _ => "=4000" + CUSTOMIZED_COMMENT,
         new TweakException("Failed to find old max tab width to replace", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
@@ -162,7 +162,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
 
         Match folderManagerVarMatch = new Regex(@"\b(?<folderManagerVar>[\w$.]{1,7}?)\.getPathsByType\(").Match(bundleContents, searchStart);
         if (!folderManagerVarMatch.Success) {
-            throw new TweakException("Failed to find folder manager variable (on which to call getFolders())", TWEAK_TYPE, nameof(allowMovingMailBetweenAnyFolders));
+            throw new TweakException("Failed to find folder manager variable (on which to call getFolders())", TWEAK_TYPE);
         }
 
         string folderManagerVar = folderManagerVarMatch.Groups["folderManagerVar"].Value;
