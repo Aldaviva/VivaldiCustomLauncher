@@ -125,17 +125,14 @@ jobs:
           ) -Wait
 
           echo "Tweaks applied, starting Vivaldi"
-
-          $debugLogFile = '.\vivaldi-installation\User Data\chrome_debug.log'
-          Out-File -FilePath $debugLogFile -InputObject ""
-
           $vivaldiProcess = Start-Process -FilePath .\vivaldi-installation\Application\vivaldi.exe -ArgumentList @("--enable-logging", "--v=1") -PassThru
           echo "Started Vivaldi with PID $($vivaldiProcess.Id)"
 
+          $debugLogFile = '.\vivaldi-installation\User Data\chrome_debug.log'
           $deadline = [DateTime]::Now.AddMinutes(3)
 
           while([DateTime]::Now -lt $deadline) {
-            $logContents = Get-Content $debugLogFile
+            $logContents = Get-Content $debugLogFile -ErrorAction Ignore
 
             $consoleError = $logContents | where { $_ -like "*:ERROR:CONSOLE(*" } | select -First 1
 
