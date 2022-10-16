@@ -1,7 +1,7 @@
 VivaldiCustomLauncher
 ===
 
-[![Smoke tests](https://img.shields.io/github/workflow/status/Aldaviva/VivaldiCustomLauncher/Smoke%20test%20latest%20Vivaldi/master?label=smoke%20tests&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/smoke-test-latest-vivaldi.yml) [![Build](https://img.shields.io/github/workflow/status/Aldaviva/VivaldiCustomLauncher/Build/master?label=build&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/netframework.yml)
+[![Build](https://img.shields.io/github/workflow/status/Aldaviva/VivaldiCustomLauncher/Build/master?label=build&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml)
 
 Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to add custom arguments and apply tweaks files
 
