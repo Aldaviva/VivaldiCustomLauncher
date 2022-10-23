@@ -2,13 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
-using EntryPoint;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace VivaldiCustomLauncher;
 
@@ -72,59 +69,36 @@ internal static class CommandLine {
         }
 
         public static Arguments parse(string[] args) {
-            return Cli.Parse<Arguments>(args);
+            var parser = new CommandLineApplication<Arguments> {
+                UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue
+            };
+            parser.Conventions.UseDefaultConventions();
+
+            parser.Parse(args);
+            Arguments result = parser.Model;
+            result.extras = parser.RemainingArguments;
+            return result;
         }
 
-        public class Arguments: BaseCliArguments {
+        public class Arguments {
 
-            public Arguments(): base(VivaldiLauncher.ASSEMBLY_NAME.Name) { }
+            [Option(LongName = "do-not-launch-vivaldi")]
+            public bool noVivaldiLaunch { get; set; }
 
-            public override void OnHelpInvoked(string helpText) {
-                using Process currentProcess      = Process.GetCurrentProcess();
-                string        selfProcessFilename = currentProcess.ProcessName;
-                if (!Path.HasExtension(selfProcessFilename)) {
-                    selfProcessFilename = Path.ChangeExtension(selfProcessFilename, "exe");
-                }
-
-                string usage = $@"Example:
-
-{selfProcessFilename} [--vivaldi-application-directory=""C:\Program Files\Vivaldi\Application""] [--do-not-launch-vivaldi] [""https://vivaldi.com""] [<extra>..]
-            
-Parameters:
-
---vivaldi-application-directory=""dir""
-   The absolute path of the Application directory inside Vivaldi's installation directory.
-   If dir contains a space, make sure to surround it with double quotation marks.
-   If omitted, it will be detected automatically from the registry.
-
---do-not-launch-vivaldi
-   Install tweaks as needed, but do not launch Vivaldi.
-   If omitted, Vivaldi will be launched after installing tweaks.
-
-url
-   The web page that Vivaldi should load.
-   If omitted, Vivaldi will use its configured startup behavior, or open a new tab if it was already running.
-
-<extra>
-   Any unrecognized parameters will be passed on to Vivaldi, such as --debug-packed-apps --enable-logging --v=1.
-
--?, -h, --help
-   Show this usage information dialog box.";
-
-                MessageBox.Show(usage, "VivaldiCustomLauncher usage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            [Option("do-not-launch-vivaldi")]
-            public bool doNotLaunchVivaldi { get; set; }
-
-            [OptionParameter("vivaldi-application-directory")]
+            [Option(LongName = "vivaldi-application-directory")]
             public string? vivaldiApplicationDirectory { get; set; }
 
-            [Option('?')]
-            private bool alternateHelp {
-                get => HelpInvoked;
-                set => HelpInvoked = value;
+            [Option("-h|--help")]
+            public bool help { get; set; }
+
+            [Option(ShortName = "?")]
+            [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Set by CommandLineUtils when user passes -? as a command line argument")]
+            private bool help2 {
+                get => help;
+                set => help = value;
             }
+
+            public IEnumerable<string> extras { get; set; } = Array.Empty<string>();
 
         }
 

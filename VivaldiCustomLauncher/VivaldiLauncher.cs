@@ -50,12 +50,46 @@ public static class VivaldiLauncher {
 
         try {
             CommandLine.Parser.Arguments arguments = CommandLine.Parser.parse();
-            if (arguments.HelpInvoked) {
-                // Help message is shown by CommandLine.Parser.Arguments.OnHelpInvoked
+            if (arguments.help) {
+                using Process currentProcess      = Process.GetCurrentProcess();
+                string        selfProcessFilename = currentProcess.ProcessName;
+                if (!Path.HasExtension(selfProcessFilename)) {
+                    selfProcessFilename = Path.ChangeExtension(selfProcessFilename, "exe");
+                }
+
+                string usage = $@"Example:
+
+{selfProcessFilename} [--vivaldi-application-directory=""C:\Program Files\Vivaldi\Application""] [--do-not-launch-vivaldi] [""https://vivaldi.com""] [<extra>..]
+            
+Parameters:
+
+--vivaldi-application-directory=""dir""
+   The absolute path of the Application directory inside
+   Vivaldi's installation directory. If dir contains a space, make
+   sure to surround it with double quotation marks. If omitted,
+   it will be detected automatically from the registry.
+
+--do-not-launch-vivaldi
+   Install tweaks as needed, but do not launch Vivaldi. If
+   omitted, Vivaldi will be launched after installing tweaks.
+
+url
+   The web page that Vivaldi should load. If omitted, Vivaldi
+   will use its configured startup behavior, or open a new tab
+   if it was already running.
+
+<extra>
+   Any unrecognized parameters will be passed on to Vivaldi,
+   such as --debug-packed-apps --enable-logging --v=1.
+
+-?, -h, --help
+   Show this usage information dialog box.";
+
+                MessageBox.Show(usage, $"{ASSEMBLY_NAME.Name} usage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
 
-            string processToRun = Path.Combine(getVivaldiApplicationDirectory(arguments), "vivaldi.exe");
+            string processToRun = Path.Combine(getVivaldiApplicationDirectory(arguments.vivaldiApplicationDirectory), "vivaldi.exe");
 
             try {
                 using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
@@ -74,10 +108,10 @@ public static class VivaldiLauncher {
                 success = false;
             }
 
-            IEnumerable<string> originalArguments     = arguments.Operands;
+            IEnumerable<string> originalArguments     = arguments.extras;
             string              processArgumentsToRun = CommandLine.Serializer.argvToCommandLine(customizeArguments(originalArguments));
 
-            if (!arguments.doNotLaunchVivaldi) {
+            if (!arguments.noVivaldiLaunch) {
                 createProcess(processToRun, processArgumentsToRun);
             }
 
@@ -149,9 +183,9 @@ public static class VivaldiLauncher {
     }
 
     /// <exception cref="InvalidOperationException"></exception>
-    private static string getVivaldiApplicationDirectory(CommandLine.Parser.Arguments args) {
-        if (args.vivaldiApplicationDirectory != null) {
-            return args.vivaldiApplicationDirectory;
+    private static string getVivaldiApplicationDirectory(string? vivaldiApplicationDirectoryCommandLineArgument = null) {
+        if (vivaldiApplicationDirectoryCommandLineArgument != null) {
+            return vivaldiApplicationDirectoryCommandLineArgument;
         }
 
         if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vivaldi.exe", "Path", null) is string appPath) {
