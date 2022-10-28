@@ -5,7 +5,7 @@ on:
   push:
     branches: [ master ]
   schedule:
-    - cron: '52 2/4 * * *'
+    - cron: '52 2/3 * * *'
 
 env:
   PROJECT_NAME: VivaldiCustomLauncher
