@@ -11,9 +11,14 @@ env:
   PROJECT_NAME: VivaldiCustomLauncher
   BUILD_CONFIG: Release
 
+concurrency:
+  group: "build"
+  cancel-in-progress: true
+  
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 10
     steps:
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v1.1
