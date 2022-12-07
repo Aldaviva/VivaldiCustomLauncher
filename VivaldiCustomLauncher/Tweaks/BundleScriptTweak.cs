@@ -20,7 +20,6 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
-        newBundleContents = fixAllDayCalendarEventOffByOneDay(newBundleContents);
         return newBundleContents;
     }));
 
@@ -203,23 +202,5 @@ public class BundleScriptTweak: AbstractScriptTweak {
             CUSTOMIZED_COMMENT +
             match.Groups["outerSuffix"].Value,
         new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
-
-    /// <summary>
-    /// In time zones with negative UTC offsets, saving all-day calendar events to a CalDAV server sends DTSTART and DTEND values that are one day too early.
-    /// This is caused by Vivaldi internally representing these timeless local dates as a datetime whose time components are midnight UTC.
-    /// Unfortunately, when this is serialized into iCalendar values, it is not serialized in UTC but in the local zone, resulting in the wrong day of the month.
-    /// To fix this, serialize the Moment objects in UTC mode.
-    /// </summary>
-    internal virtual string fixAllDayCalendarEventOffByOneDay(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<prefix>"";VALUE=DATE"".{1,16}?\.start\))\.format\((?<infix>.{1,40}?\.end\))\.format\("),
-        match => match.Groups["prefix"].Value +
-            ".utc()" +
-            CUSTOMIZED_COMMENT +
-            ".format(" +
-            match.Groups["infix"].Value +
-            ".utc()" +
-            CUSTOMIZED_COMMENT +
-            ".format(",
-        new TweakException("Failed to find iCalendar Moment date formatting calls", TWEAK_TYPE));
 
 }
