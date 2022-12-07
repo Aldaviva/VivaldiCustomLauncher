@@ -41,7 +41,6 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - navigate to subdomains of the current URL by Ctrl+clicking on the subdomain ([Vivaldi already offers this for parent paths](https://vivaldi.com/blog/vivaldi-introduces-break-mode/), but not subdomains)
     - allow mail to be moved from any folder to any folder, which can be useful for marking messages as spam or not spam on your IMAP server. Destination folders are alphabetized, limited to subscribed folders only, and shown at the top level of the Move To Folder menu instead of in a submenu.
     - correct the height of images in e-mail messages
-    - fix an issue that moves all-day calendar events to the previous day whenever you edit them
     - classify the "Junk E-mail" folder as a normal folder instead of spam, since I use that as a source of suspected spam on my mail server, not a sink of confirmed spam. This makes the Mark as Spam button work properly, and prevents mail folders from showing the wrong messages.
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapplies all of the above tweaks if needed when the browser is restarted after installing Vivaldi or an update.
