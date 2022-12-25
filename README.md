@@ -1,7 +1,7 @@
 VivaldiCustomLauncher
 ===
 
-[![Build](https://img.shields.io/github/workflow/status/Aldaviva/VivaldiCustomLauncher/Build/master?label=build&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/Aldaviva/VivaldiCustomLauncher/build.yml?branch=master&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml)
 
 Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to add custom arguments and apply tweaks files
 
@@ -15,6 +15,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 1. Update any shortcuts to `vivaldi.exe` to refer to this program instead, for example, shortcuts in the Start Menu.
 1. If you pin Vivaldi to the taskbar, you will see double Vivaldi icons when it's running, because `VivaldiCustomLauncher.exe` is a different executable than `vivaldi.exe`. To fix this, you can set the `VivaldiCustomLauncher.exe` shortcut's AppId to Vivaldi's AppId.
     1. Download [`Win7AppId1.1.exe`](https://code.google.com/archive/p/win7appid/downloads).
+    1. Open an elevated Command Prompt, otherwise this program may crash without administrator privileges.
     1. Run `Win7AppId1.1.exe "%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Vivaldi.lnk" Vivaldi._crx_mpognobbkiajifpdfhcoklimli`, or whatever your shortcut is called.
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
