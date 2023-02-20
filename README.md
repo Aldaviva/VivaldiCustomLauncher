@@ -13,10 +13,10 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 1. Download [SetDefaultBrowser](https://kolbi.cz/blog/2017/11/10/setdefaultbrowser-set-the-default-browser-per-user-on-windows-10-and-server-2016-build-1607/).
 1. Run `SetDefaultBrowser.exe hkcu VivaldiCustomLauncher` to make VivaldiCustomLauncher the default browser.
 1. Update any shortcuts to `vivaldi.exe` to refer to this program instead, for example, shortcuts in the Start Menu.
-1. If you pin Vivaldi to the taskbar, you will see double Vivaldi icons when it's running, because `VivaldiCustomLauncher.exe` is a different executable than `vivaldi.exe`. To fix this, you can set the `VivaldiCustomLauncher.exe` shortcut's AppId to Vivaldi's AppId.
+1. If you pin Vivaldi to the taskbar, and you see double Vivaldi icons when it's running, then it's because `VivaldiCustomLauncher.exe` is a different executable than `vivaldi.exe`. To fix this, you can set the `VivaldiCustomLauncher.exe` shortcut's AppId to Vivaldi's AppId.
     1. Download [`Win7AppId1.1.exe`](https://code.google.com/archive/p/win7appid/downloads).
     1. Open an elevated Command Prompt, otherwise this program may crash without administrator privileges.
-    1. Run `Win7AppId1.1.exe "%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Vivaldi.lnk" Vivaldi._crx_mpognobbkiajifpdfhcoklimli`, or whatever your shortcut is called.
+    1. Run `Win7AppId1.1.exe "%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Vivaldi.lnk" Vivaldi`, or whatever your shortcut is called.
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
 1. Tweaks and arguments will be applied.
