@@ -23,10 +23,6 @@ on:
 
 env:
   BUILD_TYPE: ${{ inputs.buildType }}
-
-concurrency:
-  group: "build"
-  cancel-in-progress: true
   
 jobs:
   build:
