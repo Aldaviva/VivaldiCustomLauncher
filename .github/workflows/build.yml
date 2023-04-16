@@ -95,7 +95,7 @@ jobs:
           Copy-Item -Force -Path @(`
             '.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js',
             '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js'
-          ) -Destination .\Tests\Data\BundleScript\${{ inputs.buildType }}\
+          ) -Destination .\Tests\Data\${{ inputs.buildType }}\BundleScript\
           Write-Output "Updated bundle.js and background-common-bundle.js in ${{ inputs.buildType }} test data"
           
       - name: Update version number in test data
