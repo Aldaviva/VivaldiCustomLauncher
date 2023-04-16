@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -10,17 +9,16 @@ using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
 using Tests.Assertions;
+using Tests.Data;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 using Xunit.Sdk;
 
-namespace Tests; 
+namespace Tests;
 
-[SuppressMessage("Microsoft.Design", "UnhandledExceptions:Unhandled exception(s)", Justification = "They're tests")]
 public class BackgroundCommonBundleScriptTweakTest {
 
-    private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/background-common-bundle.js";
-    private static readonly string ORIGINAL_BUNDLE_TEXT     = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
+    private static readonly string ORIGINAL_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-common-bundle.js");
 
     private readonly BackgroundCommonBundleScriptTweak tweak = new();
 

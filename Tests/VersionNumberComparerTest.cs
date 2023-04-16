@@ -2,7 +2,7 @@
 using VivaldiCustomLauncher;
 using Xunit;
 
-namespace Tests; 
+namespace Tests;
 
 public class VersionNumberComparerTest {
 

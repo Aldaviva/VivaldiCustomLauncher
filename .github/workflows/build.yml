@@ -2,12 +2,30 @@ name: Build
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ master ]
+    inputs:
+      buildType:
+        description: 'Whether to test the latest Vivaldi release or snapshot version'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - snapshot
+  workflow_call:
+    inputs:
+      buildType:
+        description: 'Whether to test the latest Vivaldi release or snapshot version'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - snapshot
+  # push:
+  #   branches: [ master ]
 
 env:
-  PROJECT_NAME: VivaldiCustomLauncher
-  BUILD_CONFIG: Release
+  BUILD_TYPE: ${{ inputs.buildType }}
 
 concurrency:
   group: "build"
@@ -19,44 +37,41 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Set up MSBuild
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.2
 
-      - name: Read Vivaldi version of existing test data
+      - name: Read Vivaldi versions of existing test data
         id: existing-test-data
         run: |
-          $existingVersion = (Get-Content .\Tests\Data\vivaldi-version.txt -TotalCount 1).Trim()
+          $existingVersion = (Get-Content .\Tests\Data\vivaldi-${{ inputs.buildType }}-version.txt -TotalCount 1).Trim()
           Out-File -InputObject "EXISTING_VERSION=$existingVersion" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8 
-          Write-Output "Repository's existing test data is from Vivaldi $existingVersion"
+          Write-Output "Repository's existing test data is from Vivaldi ${{ inputs.buildType }} $existingReleaseVersion"
 
       - name: Check for latest Vivaldi version
         id: latest-version
         run: |
-          Invoke-WebRequest "https://vivaldi.com/wp-content/vivaldi-versions.js?_=$([System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" -OutFile vivaldi-versions.js
+          $sparkleUrl = if ("${{ inputs.buildType }}" -eq "snapshot") {
+            "https://update.vivaldi.com/update/1.0/win/appcast.x64.xml"
+          } else {
+            "https://update.vivaldi.com/update/1.0/public/appcast.x64.xml"
+          }
 
-          Out-File -FilePath .\vivaldi-versions.js -Append -Encoding UTF8 -InputObject ";`
-            const { writeFileSync } = require('node:fs');
-            const { env } = require('node:process');
+          $sparkleXml = $(Invoke-WebRequest $sparkleUrl).Content
+          $sparkleEnclosure = ($sparkleXml | Select-Xml -XPath "/rss/channel/item/enclosure").Node
+          $latestVersion = (Select-Xml -Xml $sparkleEnclosure -XPath "@sparkle:version" -Namespace @{"sparkle" = "http://www.andymatuschak.org/xml-namespaces/sparkle"}).Node.Value
+          $downloadUrl = (Select-Xml -Xml $sparkleEnclosure -XPath "@url").Node.Value
 
-            const latestVersion = vivaldi_versions.vivaldi_version_number;
-            const downloadUrl = 'https://downloads.vivaldi.com/stable/' + vivaldi_versions.vivaldi_version_win64;
+          Out-File -InputObject "LATEST_VERSION=$latestVersion" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8 
+          Out-File -InputObject "DOWNLOAD_URL=$downloadUrl" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8 
 
-            const output =
-              'LATEST_VERSION=' + latestVersion + '\r\n' +
-              'DOWNLOAD_URL=' + downloadUrl + '\r\n';
-
-            writeFileSync(env.GITHUB_ENV, output, { flag: 'a' });
-
-            console.log('Latest Vivaldi version is '+latestVersion);
-            console.log('Latest Vivaldi can be downloaded from '+downloadUrl);"
-
-          node .\vivaldi-versions.js
+          Write-Output "Latest Vivaldi ${{ inputs.buildType }} version is $latestVersion"
+          Write-Output "Latest Vivaldi ${{ inputs.buildType }} can be downloaded from $downloadUrl"
 
       - name: Download Vivaldi
         run: |
-          Write-Output "Downloading Vivaldi $env:LATEST_VERSION from $env:DOWNLOAD_URL"
+          Write-Output "Downloading Vivaldi ${{ inputs.buildType }} $env:LATEST_VERSION from $env:DOWNLOAD_URL"
           Invoke-WebRequest -Uri $env:DOWNLOAD_URL -OutFile vivaldi-installer.exe
       
       - name: Install Vivaldi
@@ -76,10 +91,10 @@ jobs:
           $isUpToDate = $env:EXISTING_VERSION -eq $env:LATEST_VERSION
           Out-File -InputObject "UP_TO_DATE=$isUpToDate" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8
           If ($isUpToDate) {
-            Write-Output "::notice title=No Vivaldi update::Test data was already up-to-date with the latest Vivaldi version ($env:LATEST_VERSION)."
+            Write-Output "::notice title=No Vivaldi ${{ inputs.buildType }} update::Test data was already up-to-date with the latest Vivaldi ${{ inputs.buildType }} version ($env:LATEST_VERSION)."
           } Else {
-            Write-Output "::notice title=Vivaldi update released::Test data version ($env:EXISTING_VERSION) is lower than the latest Vivaldi version ($env:LATEST_VERSION)."
-            Out-File -InputObject "### Updated to Vivaldi **$env:LATEST_VERSION**" -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8 
+            Write-Output "::notice title=Vivaldi ${{ inputs.buildType }} update released::Test data version ($env:EXISTING_VERSION) is lower than the latest Vivaldi ${{ inputs.buildType }} version ($env:LATEST_VERSION)."
+            Out-File -InputObject "### Updated to Vivaldi ${{ inputs.buildType }} **$env:LATEST_VERSION**" -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8 
           }
 
       - name: Copy installation files into test data
@@ -87,21 +102,21 @@ jobs:
           Copy-Item -Force -Path @(`
             '.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js',
             '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js'
-          ) -Destination .\Tests\Data\BundleScript\
-          Write-Output "Updated bundle.js and background-common-bundle.js in test data"
+          ) -Destination .\Tests\Data\BundleScript\${{ inputs.buildType }}\
+          Write-Output "Updated bundle.js and background-common-bundle.js in ${{ inputs.buildType }} test data"
           
       - name: Update version number in test data
         run: |
-          Out-File -InputObject $env:LATEST_VERSION -FilePath .\Tests\Data\vivaldi-version.txt -Encoding UTF8
-          Write-Output "Marked test data as coming from Vivaldi $env:LATEST_VERSION"
+          Out-File -InputObject $env:LATEST_VERSION -FilePath .\Tests\Data\vivaldi-${{ inputs.buildType }}-version.txt -Encoding UTF8
+          Write-Output "Marked ${{ inputs.buildType }} test data as coming from Vivaldi $env:LATEST_VERSION"
         
       - name: Commit and push new test data
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v9.1.1
         env:
           HOME: "~" # get rid of a benign warning
         with:
           add: ./Tests/Data
-          message: Update test data for Vivaldi ${{ env.LATEST_VERSION }}
+          message: Update test data for Vivaldi ${{ inputs.buildType }} ${{ env.LATEST_VERSION }}
           pathspec_error_handling: exitImmediately
           author_name: Ben Hutchison
           author_email: ben@aldaviva.com
@@ -110,19 +125,20 @@ jobs:
           push: true
 
       - name: Restore solution
-        run: msbuild -p:Configuration=$env:BUILD_CONFIG -t:restore -p:RestoreLockedMode=true
+        run: msbuild -p:Configuration=Release -t:restore -p:RestoreLockedMode=true
 
       - name: Build solution
-        run: msbuild -p:Configuration=$env:BUILD_CONFIG -t:build
+        run: msbuild -p:Configuration=Release -t:build -m
 
+        # Tests uses the BUILD_TYPE environment variable to load the correct files, as set at the top of this file. See the DataReader class.
       - name: Smoke test tweaks
-        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration $env:BUILD_CONFIG --no-build --verbosity normal
+        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --no-build --verbosity normal
 
       - name: Smoke test Vivaldi startup
         run: |
           echo "Tweaking standalone installation"
 
-          Start-Process -FilePath ".\$env:PROJECT_NAME\bin\$env:BUILD_CONFIG\$env:PROJECT_NAME.exe" -ArgumentList @(`
+          Start-Process -FilePath ".\VivaldiCustomLauncher\bin\Release\VivaldiCustomLauncher.exe" -ArgumentList @(`
             '--vivaldi-application-directory="${{ github.workspace }}\vivaldi-installation\Application"',
             '--do-not-launch-vivaldi'
           ) -Wait
@@ -157,8 +173,8 @@ jobs:
           exit 1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ env.PROJECT_NAME }}
-          path: ${{ env.PROJECT_NAME }}\bin\${{ env.BUILD_CONFIG }}\*.exe
+          name: VivaldiCustomLauncher
+          path: VivaldiCustomLauncher\bin\Release\*.exe
           if-no-files-found: error

@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Assertions\FastAssert.cs" />
     <Compile Include="Assertions\FastAssertTest.cs" />
+    <Compile Include="Data\DataReader.cs" />
     <Compile Include="ScriptTweakSmokeTests.cs" />
     <Compile Include="BackgroundCommonBundleScriptTweakTest.cs" />
     <Compile Include="TweakBundleScriptTest.cs" />
@@ -80,10 +81,16 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="Data\BundleScript\background-common-bundle.js">
+    <Content Include="Data\release\BundleScript\background-common-bundle.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\BundleScript\bundle.js">
+    <Content Include="Data\release\BundleScript\bundle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\snapshot\BundleScript\background-common-bundle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\snapshot\BundleScript\bundle.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

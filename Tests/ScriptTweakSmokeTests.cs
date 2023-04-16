@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
-using System.IO;
 using System.Threading.Tasks;
 using Tests.Assertions;
+using Tests.Data;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 
@@ -10,11 +10,8 @@ namespace Tests;
 
 public class ScriptTweakSmokeTests {
 
-    private const string ORIGINAL_BUNDLE_FILENAME                   = "Data/BundleScript/bundle.js";
-    private const string ORIGINAL_BACKGROUND_COMMON_BUNDLE_FILENAME = "Data/BundleScript/background-common-bundle.js";
-
-    private static readonly string ORIGINAL_BUNDLE_TEXT                   = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
-    private static readonly string ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT = File.ReadAllText(ORIGINAL_BACKGROUND_COMMON_BUNDLE_FILENAME);
+    private static readonly string ORIGINAL_BUNDLE_TEXT                   = DataReader.readFileTextForCurrentBuildType("BundleScript/bundle.js");
+    private static readonly string ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-common-bundle.js");
 
     private readonly BundleScriptTweak                 bundleTweak                 = new();
     private readonly BackgroundCommonBundleScriptTweak backgroundCommonBundleTweak = new();

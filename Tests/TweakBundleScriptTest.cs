@@ -2,13 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
 using FakeItEasy;
 using Tests.Assertions;
+using Tests.Data;
 using VivaldiCustomLauncher.Tweaks;
 using Xunit;
 using Xunit.Sdk;
@@ -17,8 +17,7 @@ namespace Tests;
 
 public class TweakBundleScriptTest {
 
-    private const           string ORIGINAL_BUNDLE_FILENAME = "Data/BundleScript/bundle.js";
-    private static readonly string ORIGINAL_BUNDLE_TEXT     = File.ReadAllText(ORIGINAL_BUNDLE_FILENAME);
+    private static readonly string ORIGINAL_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/bundle.js");
 
     private readonly BundleScriptTweak tweak = new();
 

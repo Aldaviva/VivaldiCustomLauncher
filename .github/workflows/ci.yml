@@ -1,0 +1,14 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        buildType: [release, snapshot]
+    uses: ./.github/workflows/build.yml
+    with:
+      buildType: ${{ matrix.buildType }}
