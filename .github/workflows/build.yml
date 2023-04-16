@@ -17,10 +17,7 @@ on:
         description: 'Whether to test the latest Vivaldi release or snapshot version'
         required: true
         default: 'release'
-        type: choice
-        options:
-          - release
-          - snapshot
+        type: string
   # push:
   #   branches: [ master ]
 
