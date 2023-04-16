@@ -2,10 +2,11 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
-  build:
+  ci:
     strategy:
       matrix:
         buildType: [release, snapshot]

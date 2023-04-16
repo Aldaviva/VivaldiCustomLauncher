@@ -1,10 +1,11 @@
 name: Build
+run-name: Build and test with latest Vivaldi ${{ inputs.buildType }}
 
 on:
   workflow_dispatch:
     inputs:
       buildType:
-        description: 'Whether to test the latest Vivaldi release or snapshot version'
+        description: 'Vivaldi build type'
         required: true
         default: 'release'
         type: choice
@@ -14,12 +15,10 @@ on:
   workflow_call:
     inputs:
       buildType:
-        description: 'Whether to test the latest Vivaldi release or snapshot version'
+        description: 'Whether to test the latest Vivaldi "release" or "snapshot" version'
         required: true
         default: 'release'
         type: string
-  # push:
-  #   branches: [ master ]
 
 env:
   BUILD_TYPE: ${{ inputs.buildType }}
@@ -115,6 +114,7 @@ jobs:
           author_email: ben@aldaviva.com
           committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
+          pull: '--rebase'
           push: true
 
       - name: Restore solution
