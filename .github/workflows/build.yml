@@ -114,7 +114,6 @@ jobs:
           author_email: ben@aldaviva.com
           committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
-          pull: '--rebase'
           push: true
 
       - name: Restore solution

@@ -1,7 +1,7 @@
 VivaldiCustomLauncher
 ===
 
-[![Build](https://img.shields.io/github/actions/workflow/status/Aldaviva/VivaldiCustomLauncher/build.yml?branch=master&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml)
+[![CI Build](https://img.shields.io/github/actions/workflow/status/Aldaviva/VivaldiCustomLauncher/ci.yml?branch=master&label=latest%20commit%20build&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/ci.yml) [![version poll Build](https://img.shields.io/github/actions/workflow/status/Aldaviva/VivaldiCustomLauncher/build.yml?branch=master&label=latest%20Vivaldi%20version%20build&logo=github)](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml)
 
 Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to add custom arguments and apply tweaks files
 
