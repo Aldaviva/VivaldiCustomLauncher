@@ -27,55 +27,30 @@ public class BundleScriptTweak: AbstractScriptTweak {
      * Secret code sources:
      * - Se.a.back(): from the original action
      * - g.a.getActivePage(): copy invocation of getActivePage() in COMMAND_CLONE_TAB
-     * - a(93).a.getNavigationInfo(): find an invocation of _.a.getNavigationInfo() and find out how _ is declared
      * - p.a.close(): action of COMMAND_CLOSE_TAB
      */
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
         const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
-        Task<(string webpackInjector, int dependencyId, string intermediateVariable)?> navigationInfoMatchTask = Task.Run(
-            (Func<(string webpackInjector, int dependencyId, string intermediateVariable)?>) (() => {
-                Match  getNavigationInfoMatch       = Regex.Match(bundleContents, @"\b(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.getNavigationInfo\(");
-                string dependencyVariable           = getNavigationInfoMatch.Groups["dependencyVariable"].Value;
-                string intermediateVariable         = getNavigationInfoMatch.Groups["intermediateVariable"].Value;
-                int    getNavigationInfoMatchOffset = getNavigationInfoMatch.Index;
-
-                Regex  dependencyDeclarationPattern = new($@"\b{Regex.Escape(dependencyVariable)}=(?<webpackInjector>[\w$]{{1,2}})\((?<dependencyId>\d+)\)", RegexOptions.RightToLeft);
-                Match  dependencyDeclarationMatch   = dependencyDeclarationPattern.Match(bundleContents, getNavigationInfoMatchOffset);
-                string webpackInjector              = dependencyDeclarationMatch.Groups["webpackInjector"].Value;
-                int?   dependencyId                 = int.TryParse(dependencyDeclarationMatch.Groups["dependencyId"].Value, out int id) ? id : null;
-
-                return getNavigationInfoMatch.Success && dependencyDeclarationMatch.Success && dependencyId is not null
-                    ? (webpackInjector, (int) dependencyId, intermediateVariable)
-                    : null;
-            }));
-
-        Task<(string dependencyVariable, string intermediateVariable)?> closeMatchTask = Task.Run((Func<(string dependencyVariable, string intermediateVariable)?>) (() => {
-            Match match = Regex.Match(bundleContents,
-                @"{name:""COMMAND_CLOSE_TAB"",action:(?<eventVariable>[\w$]{1,2})=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\k<eventVariable>\.windowId\),");
-            string dependencyVariable   = match.Groups["dependencyVariable"].Value;
-            string intermediateVariable = match.Groups["intermediateVariable"].Value;
-            return match.Success ? (dependencyVariable, intermediateVariable) : null;
-        }));
-
-        (string webpackInjector, int dependencyId, string intermediateVariable) navigationInfo = await navigationInfoMatchTask ??
-            throw new TweakException("Failed to find dependency ID for navigation info (the webpack ID of the object you call .a.getNavigationInfo() on)", TWEAK_TYPE, METHOD_NAME);
-        (string dependencyVariable, string intermediateVariable) closer = await closeMatchTask ??
+        Match commandCloseMatch = Regex.Match(bundleContents,
+            @"{name:""COMMAND_CLOSE_TAB"",action:(?<eventVariable>[\w$]{1,2})=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\k<eventVariable>\.windowId\),");
+        if (!commandCloseMatch.Success) {
             throw new TweakException("Failed to find dependency name for close method (the variable you call .a.close() on)", TWEAK_TYPE, METHOD_NAME);
+        }
 
         bool bundleWasReplaced = false;
         string replacedBundle = Regex.Replace(bundleContents,
             @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:(?<eventVariable>[\w$]{1,2})=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)",
-            match => {
+            commandBackMatch => {
                 bundleWasReplaced = true;
-                return match.Groups["prefix"].Value +
+                return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    $"const navigationInfo = {match.Groups["activePage"].Value} && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo({match.Groups["activePage"].Value}.id);" +
-                    "if(!navigationInfo || navigationInfo.canGoBack){" +
-                    match.Groups["goBack"].Value +
+                    //$"const navigationInfo = {match.Groups["activePage"].Value} && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo({match.Groups["activePage"].Value}.id);" +
+                    "if(document.querySelector('.webpageview.active:not(:has(#mail_view)) webview')?.canGoBack() ?? true){" +
+                    commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
-                    $"{closer.dependencyVariable}.{closer.intermediateVariable}.close({match.Groups["eventVariable"].Value}.windowId);" +
+                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +
                     "}";
             });
 

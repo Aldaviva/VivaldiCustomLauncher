@@ -82,7 +82,7 @@ public class TweakBundleScriptTest {
         string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=y.Z.getActivePage(e.windowId);/* Customized by Ben */const navigationInfo = t && n(31118).Z.getNavigationInfo(t.id);if(!navigationInfo || navigationInfo.canGoBack){t&&x.Z.back(e.windowId,t.id)} else {f.Z.close(e.windowId);}},";
+            @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=w.Z.getActivePage(e.windowId);/* Customized by Ben */if(document.querySelector('.webpageview.active:not(:has(#mail_view)) webview')?.canGoBack() ?? false){t&&L.Z.back(e.windowId,t.id)} else {y.ZP.close(e.windowId);}},";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
