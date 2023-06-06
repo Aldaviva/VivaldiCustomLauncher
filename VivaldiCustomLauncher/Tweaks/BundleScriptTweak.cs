@@ -46,7 +46,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
                 bundleWasReplaced = true;
                 return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    //$"const navigationInfo = {match.Groups["activePage"].Value} && {navigationInfo.webpackInjector}({navigationInfo.dependencyId}).{navigationInfo.intermediateVariable}.getNavigationInfo({match.Groups["activePage"].Value}.id);" +
+                    // This works, and is probably stable, but an even easier alternative might be to use the browser DOM to check the disabled state of the back button in the active tab's toolbar
                     "if(document.querySelector('.webpageview.active:not(:has(#mail_view)) webview')?.canGoBack() ?? true){" +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
