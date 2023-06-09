@@ -26,7 +26,7 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.DoesNotContain("Customized by Ben", ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT), true, false);
     }
 
-    [Fact]
+    [Fact(Skip = "not needed in Vivaldi 6.1")]
     public void exposeFolderSubscriptionStatusChangesBackgroundCommonBundle() {
         string actual = backgroundCommonBundleTweak.exposeFolderSubscriptionStatus(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT, actual), false, false);

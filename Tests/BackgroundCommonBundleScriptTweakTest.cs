@@ -45,6 +45,8 @@ public class BackgroundCommonBundleScriptTweakTest {
         IEnumerable<MethodInfo> expectedMethods = typeof(BackgroundCommonBundleScriptTweak)
             .GetMethods(BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Instance)
             .Where(method => method.Name != nameof(BackgroundCommonBundleScriptTweak.editFile))
+            .Where(method => method.ReturnType == typeof(string))
+            .Where(method => method.GetCustomAttribute<ObsoleteAttribute>() == null)
             .ToList();
 
         Assert.NotEmpty(expectedMethods);
@@ -53,7 +55,7 @@ public class BackgroundCommonBundleScriptTweakTest {
         }
     }
 
-    [Fact]
+    [Fact(Skip = "not needed in Vivaldi 6.1")]
     public void exposeFolderSubscriptionStatus() {
         string actual = tweak.exposeFolderSubscriptionStatus(ORIGINAL_BUNDLE_TEXT);
 
@@ -78,7 +80,7 @@ public class BackgroundCommonBundleScriptTweakTest {
         string       fakeBundleFile       = Path.GetTempFileName();
         string       fakeLocalAppData     = Path.Combine(Path.GetTempPath(), "VivaldiCustomLauncherTest", "deleteServiceWorkerScriptCacheOnChange");
         string       fakeScriptCache      = Path.Combine(fakeLocalAppData, @"Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\ScriptCache\");
-        string       backedUpCacheFile    = Path.Combine(fakeScriptCache, "..", "ScriptCache-old", "fakeCacheFile");
+        string       backedUpCacheFile    = Path.Combine(fakeScriptCache, "..", "..", "Service Worker-old", "ScriptCache", "fakeCacheFile");
         try {
             Directory.CreateDirectory(fakeScriptCache);
             string fakeCacheFile = Path.Combine(fakeScriptCache, "fakeCacheFile");

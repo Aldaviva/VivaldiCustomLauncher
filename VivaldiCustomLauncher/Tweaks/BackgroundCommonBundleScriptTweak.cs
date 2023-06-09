@@ -13,14 +13,13 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
 
     protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<string?>) (() => {
         string newBundleContents = bundleContents;
-        newBundleContents = exposeFolderSubscriptionStatus(newBundleContents);
         newBundleContents = classifyJunkEmailAsNormalFolder(newBundleContents);
         return newBundleContents;
     }));
 
     /// <summary>
     /// <para>Invalidate service worker script cache so that our changes to <c>background-common-bundle.js</c> take effect on the next launch.</para>
-    /// <para>Possible fix for issue #4</para>
+    /// <para>Fix for issue #4</para>
     /// </summary>
     public override async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
         string? newFileContentsToWrite = await base.readFileAndEditIfNecessary(tweakParams);
@@ -46,8 +45,10 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
     }
 
     /// <summary>
-    /// This tweak is only needed to make <see cref="BundleScriptTweak.allowMovingMailBetweenAnyFolders"/> work, since I would like to only show subscribed folders in the Move To menu.
+    /// <para>This tweak is only needed to make <see cref="BundleScriptTweak.allowMovingMailBetweenAnyFolders"/> work, since I would like to only show subscribed folders in the Move To menu.</para>
+    /// <para>Somehow this is not needed in Vivaldi 6.1, and the Move to Folder menu still only shows subscribed folders (although not sorted exactly the way I was doing it). Maybe Vivaldi added their own subscribed key in the folder object? Stock Vivaldi still shows unsubscribed folders, so <see cref="BundleScriptTweak.allowMovingMailBetweenAnyFolders"/> is still needed, just not this tweak.</para>
     /// </summary>
+    [Obsolete]
     internal virtual string exposeFolderSubscriptionStatus(string bundleContents) => replaceOrThrow(bundleContents,
         // Object.getOwnPropertyNames(t).forEach((a=>{t[a].forEach((t=>{const{path:a,type:n}=t;s[e][a]={type:n}}))}))
         new Regex(@"(?<prefix>const{.{1,32}?}=(?<folderVar>[\w$]{1,2});[\w$]{1,2}[[\w$]{1,2}\]\[[\w$]{1,2}\]={.{1,32}?)(?<suffix>})"),
