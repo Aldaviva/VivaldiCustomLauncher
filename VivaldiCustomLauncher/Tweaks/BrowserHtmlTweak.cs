@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
@@ -18,14 +19,14 @@ public class BrowserHtmlTweak: BaseStringTweak<BrowserHtmlTweakParams> {
         string modifiedFileContents = fileContents;
 
         if (!fileContents.Contains(styleSheetRelativeUri)) {
-            modifiedFileContents = modifiedFileContents.Replace(@"  </head>",
-                $"    <link rel=\"stylesheet\" href=\"{styleSheetRelativeUri}\" />\n  </head>");
+            modifiedFileContents = Regex.Replace(modifiedFileContents, @"(\s*)</head>",
+                $"$1$1<link rel=\"stylesheet\" href=\"{styleSheetRelativeUri}\" />\n$0");
             fileModified = true;
         }
 
         if (!fileContents.Contains(scriptRelativeUri)) {
-            modifiedFileContents = modifiedFileContents.Replace(@"  </body>",
-                $"    <script src=\"{scriptRelativeUri}\"></script>\n  </body>");
+            modifiedFileContents = Regex.Replace(modifiedFileContents, @"(\s*)</body>",
+                $"$1$1<script src=\"{scriptRelativeUri}\"></script>\n$0");
             fileModified = true;
         }
 

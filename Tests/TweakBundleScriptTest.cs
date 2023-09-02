@@ -67,7 +67,7 @@ public class TweakBundleScriptTest {
     public void increaseMaximumTabWidth() {
         string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
-        const string EXPECTED = @"=4000/* Customized by Ben */,";
+        const string EXPECTED = @"=5200/* Customized by Ben */,";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }

@@ -57,33 +57,35 @@ public static class VivaldiLauncher {
                     selfProcessFilename = Path.ChangeExtension(selfProcessFilename, "exe");
                 }
 
-                string usage = $@"Example:
+                string usage = $"""
+                                Example:
 
-{selfProcessFilename} [--vivaldi-application-directory=""C:\Program Files\Vivaldi\Application""] [--do-not-launch-vivaldi] [""https://vivaldi.com""] [<extra>..]
-            
-Parameters:
+                                {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] ["https://vivaldi.com"] [<extra>..]
+                                            
+                                Parameters:
 
---vivaldi-application-directory=""dir""
-   The absolute path of the Application directory inside
-   Vivaldi's installation directory. If dir contains a space, make
-   sure to surround it with double quotation marks. If omitted,
-   it will be detected automatically from the registry.
+                                --vivaldi-application-directory="dir"
+                                   The absolute path of the Application directory inside
+                                   Vivaldi's installation directory. If dir contains a space, make
+                                   sure to surround it with double quotation marks. If omitted,
+                                   it will be detected automatically from the registry.
 
---do-not-launch-vivaldi
-   Install tweaks as needed, but do not launch Vivaldi. If
-   omitted, Vivaldi will be launched after installing tweaks.
+                                --do-not-launch-vivaldi
+                                   Install tweaks as needed, but do not launch Vivaldi. If
+                                   omitted, Vivaldi will be launched after installing tweaks.
 
-url
-   The web page that Vivaldi should load. If omitted, Vivaldi
-   will use its configured startup behavior, or open a new tab
-   if it was already running.
+                                url
+                                   The web page that Vivaldi should load. If omitted, Vivaldi
+                                   will use its configured startup behavior, or open a new tab
+                                   if it was already running.
 
-<extra>
-   Any unrecognized parameters will be passed on to Vivaldi,
-   such as --debug-packed-apps --enable-logging --v=1.
+                                <extra>
+                                   Any unrecognized parameters will be passed on to Vivaldi,
+                                   such as --debug-packed-apps --enable-logging --v=1.
 
--?, -h, --help
-   Show this usage information dialog box.";
+                                -?, -h, --help
+                                   Show this usage information dialog box.
+                                """;
 
                 MessageBox.Show(usage, $"{ASSEMBLY_NAME.Name} usage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
@@ -146,6 +148,7 @@ url
         string bundleScriptAbsolutePath                 = Path.Combine(resourceDirectory, "bundle.js");
         string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-common-bundle.js");
         string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
+        string windowPageAbsolutePath                   = Path.Combine(resourceDirectory, "window.html");
 
         string showFeedPageAbsolutePath     = Path.Combine(resourceDirectory, "rss", "showfeed.html");
         string customFeedScriptRelativePath = Path.Combine("..", "scripts", "custom-feed.js");
@@ -157,6 +160,7 @@ url
         try {
             return Task.WhenAll(
                 applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
+                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(windowPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
                 applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
                 applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),
                 applyTweakIfNecessary(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(backgroundBundleCommonScriptAbsolutePath)),

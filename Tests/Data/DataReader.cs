@@ -3,6 +3,9 @@ using System.IO;
 
 namespace Tests.Data;
 
+/// <summary>
+/// To run tests against different types of builds, set the <c>BUILD_TYPE</c> environment variable to either <c>release</c> (default) or <c>snapshot</c>.
+/// </summary>
 public static class DataReader {
 
     private const string BUILD_TYPE_ENVIRONMENT_VARIABLE_NAME = "BUILD_TYPE";

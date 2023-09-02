@@ -69,8 +69,8 @@ public class BundleScriptTweak: AbstractScriptTweak {
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"=180(?=[;,])"),
-        _ => "=4000" + CUSTOMIZED_COMMENT,
+        new Regex("""=180(?=[;,].{0,300}"dragspace")"""),
+        _ => "=5200" + CUSTOMIZED_COMMENT,
         new TweakException("Failed to find old max tab width to replace", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
