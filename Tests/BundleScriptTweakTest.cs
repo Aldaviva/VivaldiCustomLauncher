@@ -15,7 +15,7 @@ using Xunit.Sdk;
 
 namespace Tests;
 
-public class TweakBundleScriptTest {
+public class BundleScriptTweakTest {
 
     private static readonly string ORIGINAL_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/bundle.js");
 
@@ -78,8 +78,8 @@ public class TweakBundleScriptTest {
      * Maybe the test should use a regular expression match instead of Assert.Contains, which is harder to guarantee perfect results for one Vivaldi version, but is easier to deal with different versions.
      */
     [Fact]
-    public async Task closeTabOnBackGestureIfNoTabHistory() {
-        string actual = await tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
+    public void closeTabOnBackGestureIfNoTabHistory() {
+        string actual = tweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
             @"{name:""COMMAND_PAGE_BACK"",action:e=>{const t=w.Z.getActivePage(e.windowId);/* Customized by Ben */if(document.querySelector('.webpageview.active:not(:has(#mail_view)) webview')?.canGoBack() ?? false){t&&L.Z.back(e.windowId,t.id)} else {y.ZP.close(e.windowId);}},";

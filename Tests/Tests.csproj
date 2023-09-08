@@ -48,7 +48,7 @@
     <Compile Include="Data\DataReader.cs" />
     <Compile Include="ScriptTweakSmokeTests.cs" />
     <Compile Include="BackgroundCommonBundleScriptTweakTest.cs" />
-    <Compile Include="TweakBundleScriptTest.cs" />
+    <Compile Include="BundleScriptTweakTest.cs" />
     <Compile Include="VersionNumberComparerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

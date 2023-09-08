@@ -159,7 +159,7 @@ public static class VivaldiLauncher {
 
         try {
             return Task.WhenAll(
-                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
+                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, null)),
                 applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(windowPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
                 applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
                 applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),

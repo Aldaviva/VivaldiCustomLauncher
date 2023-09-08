@@ -11,43 +11,40 @@ public class BundleScriptTweak: AbstractScriptTweak {
     private const string TWEAK_TYPE = nameof(BundleScriptTweak);
 
     /// <exception cref="TweakException"></exception>
-    protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<Task<string?>>) (async () => {
+    protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<string?>) (() => {
         string newBundleContents = bundleContents;
         newBundleContents = increaseMaximumTabWidth(newBundleContents);
         newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
         newBundleContents = formatDownloadProgress(newBundleContents);
-        newBundleContents = await closeTabOnBackGestureIfNoTabHistory(newBundleContents);
+        newBundleContents = closeTabOnBackGestureIfNoTabHistory(newBundleContents);
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
         return newBundleContents;
     }));
 
-    /* Make Back also close the tab if the page can't go back
-     * Secret code sources:
-     * - Se.a.back(): from the original action
-     * - g.a.getActivePage(): copy invocation of getActivePage() in COMMAND_CLONE_TAB
-     * - p.a.close(): action of COMMAND_CLOSE_TAB
+    /*
+     * You could also look at the value of eventVariable.origin if you want to only allow this behavior for mouse gestures and not keyboard shortcuts, for example. By default it will run for all origins.
      */
+    /// <summary>Make Back also close the tab if the page can't go back</summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
-    internal virtual async Task<string> closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
+    internal virtual string closeTabOnBackGestureIfNoTabHistory(string bundleContents) {
         const string METHOD_NAME = nameof(closeTabOnBackGestureIfNoTabHistory);
 
         Match commandCloseMatch = Regex.Match(bundleContents,
-            @"{name:""COMMAND_CLOSE_TAB"",action:(?<eventVariable>[\w$]{1,2})=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\k<eventVariable>\.windowId\),");
+            """{name:"COMMAND_CLOSE_TAB",action:(?<eventVariable>[\w$]{1,2})=>(?<dependencyVariable>[\w$]{1,2})\.(?<intermediateVariable>[\w$]{1,2})\.close\(\k<eventVariable>\.windowId\),""");
         if (!commandCloseMatch.Success) {
             throw new TweakException("Failed to find dependency name for close method (the variable you call .a.close() on)", TWEAK_TYPE, METHOD_NAME);
         }
 
         bool bundleWasReplaced = false;
         string replacedBundle = Regex.Replace(bundleContents,
-            @"(?<prefix>{name:""COMMAND_PAGE_BACK"",action:(?<eventVariable>[\w$]{1,2})=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)",
+            """(?<prefix>{name:"COMMAND_PAGE_BACK",action:(?<eventVariable>[\w$]{1,2})=>{const (?<activePage>[\w$]{1,2})=(?:[\w$]{1,2}\.)+getActivePage\(.*?\);)(?<goBack>.{1,100})(?=\},)""",
             commandBackMatch => {
                 bundleWasReplaced = true;
                 return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    // This works, and is probably stable, but an even easier alternative might be to use the browser DOM to check the disabled state of the back button in the active tab's toolbar
-                    "if(document.querySelector('.webpageview.active:not(:has(#mail_view)) webview')?.canGoBack() ?? true){" +
+                    $"if(vivaldiExports.get('NavigationStore').getNavigationInfo({commandBackMatch.Groups["activePage"].Value}.id).canGoBack){{" +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
                     $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +

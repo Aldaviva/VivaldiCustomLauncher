@@ -55,15 +55,6 @@ public class BackgroundCommonBundleScriptTweakTest {
         }
     }
 
-    [Fact(Skip = "not needed in Vivaldi 6.1")]
-    public void exposeFolderSubscriptionStatus() {
-        string actual = tweak.exposeFolderSubscriptionStatus(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED = @"]={type:n,subscribed:t.subscribed/* Customized by Ben */}}";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-    }
-
     [Fact]
     public void classifyJunkEmailAsNormalFolder() {
         string actual = tweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BUNDLE_TEXT);
