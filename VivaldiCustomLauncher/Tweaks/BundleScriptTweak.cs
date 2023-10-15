@@ -20,6 +20,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
+        newBundleContents = expandDomainsWithHttps(newBundleContents);
         return newBundleContents;
     }));
 
@@ -174,5 +175,14 @@ public class BundleScriptTweak: AbstractScriptTweak {
             CUSTOMIZED_COMMENT +
             match.Groups["outerSuffix"].Value,
         new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
+
+    /// <summary>
+    /// By default, typing something like "google" in the address bar and pressing Ctrl+Enter will navigate to "google.com". Unfortunately, even when HTTPS-Only Mode is enabled, this expansion will initially navigate to "http://google.com" before HTTPS-Only Mode, HSTS, or server-side redirections kick in.
+    /// Modify the function so that it would initially navigate to "https://google.com" instead.
+    /// </summary>
+    internal virtual string expandDomainsWithHttps(string bundleContents) => replaceOrThrow(bundleContents,
+        new Regex(@"(?<=\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
+        _ => "\"https://\" " + CUSTOMIZED_COMMENT + " + ",
+        new TweakException("Failed to find handleSubmit function that reads kAddressBarAutocompleteSuffixExpansionEnabled and calls _urlFieldGo()", TWEAK_TYPE));
 
 }
