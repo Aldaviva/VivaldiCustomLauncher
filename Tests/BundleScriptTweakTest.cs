@@ -129,16 +129,6 @@ public class BundleScriptTweakTest {
     }
 
     [Fact]
-    public void disableAutoHeightForImagesInMailWithHeight() {
-        string actual = tweak.disableAutoHeightForImagesInMailWithHeightAttribute(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED =
-            @".createStyleRoot(this.props.style)}\n    html {\n      overflow-y: auto;\n    }\n    body {\n      ${e?"""":""white-space: pre-wrap;""}\n      ${e?"""":""overflow-wrap: break-word;""}\n      color: ${e?""black"":""var(--colorFgIntense)""};\n      background-color: ${e?""white"":""var(--colorBgIntense)""};\n      font-family: ${e?""sans-serif"":""monospace""};\n      margin: 24px;\n      line-height: 1.3;\n      height: auto !important;\n      min-height: calc(100% - 48px);\n    }\n    ${e?"""":""a { color: var(--colorHighlightBg); }""}\n    img {\n      display: inline-block;\n      vertical-align: top;\n      max-width: 100%;\n      \n    }\n    img:not([height]) { height: auto; } /* Customized by Ben */</style>`";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-    }
-
-    [Fact]
     public void expandDomainsWithHttps() {
         string actual = tweak.expandDomainsWithHttps(ORIGINAL_BUNDLE_TEXT);
 

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +12,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Win32;
 using VivaldiCustomLauncher.Tweaks;
 
 namespace VivaldiCustomLauncher;
@@ -147,7 +147,6 @@ public static class VivaldiLauncher {
 
         string bundleScriptAbsolutePath                 = Path.Combine(resourceDirectory, "bundle.js");
         string backgroundBundleCommonScriptAbsolutePath = Path.Combine(resourceDirectory, "background-common-bundle.js");
-        string browserPageAbsolutePath                  = Path.Combine(resourceDirectory, "browser.html");
         string windowPageAbsolutePath                   = Path.Combine(resourceDirectory, "window.html");
 
         string showFeedPageAbsolutePath     = Path.Combine(resourceDirectory, "rss", "showfeed.html");
@@ -159,7 +158,6 @@ public static class VivaldiLauncher {
 
         try {
             return Task.WhenAll(
-                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(browserPageAbsolutePath, customStyleSheetRelativePath, null)),
                 applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(windowPageAbsolutePath, customStyleSheetRelativePath, customScriptRelativePath)),
                 applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(customStyleSheetAbsolutePath)),
                 applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(bundleScriptAbsolutePath)),

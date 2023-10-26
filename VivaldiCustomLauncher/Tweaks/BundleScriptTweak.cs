@@ -19,7 +19,6 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = closeTabOnBackGestureIfNoTabHistory(newBundleContents);
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
-        newBundleContents = disableAutoHeightForImagesInMailWithHeightAttribute(newBundleContents);
         newBundleContents = expandDomainsWithHttps(newBundleContents);
         return newBundleContents;
     }));
@@ -161,20 +160,6 @@ public class BundleScriptTweak: AbstractScriptTweak {
 
         return bundleContents;
     }
-
-    /// <summary>
-    /// By default, images in mail messages have their height set to auto using Vivaldi's built-in stylesheet. This overrides the height set in the img element's height attribute, making
-    /// transparent spacer GIFs appear way too tall. This is caused by the actual GIF being small (10×10px) but the width attribute is set to a large value, like 200px. The height attribute is set
-    /// to a small value like 1px, but Vivaldi's height: auto rule makes the image as tall as its width, so it becomes 200px tall instead of 1px tall.
-    /// </summary>
-    internal virtual string disableAutoHeightForImagesInMailWithHeightAttribute(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<prefix>getDefaultStyle=.{1,2000}?\simg {.{1,180}?)height: auto;(?<innerSuffix>.{1,26}?)(?<outerSuffix></style>)"),
-        match => match.Groups["prefix"].Value +
-            match.Groups["innerSuffix"].Value +
-            "img:not([height]) { height: auto; } " +
-            CUSTOMIZED_COMMENT +
-            match.Groups["outerSuffix"].Value,
-        new TweakException("Failed to find default style for email messages", TWEAK_TYPE));
 
     /// <summary>
     /// By default, typing something like "google" in the address bar and pressing Ctrl+Enter will navigate to "google.com". Unfortunately, even when HTTPS-Only Mode is enabled, this expansion will initially navigate to "http://google.com" before HTTPS-Only Mode, HSTS, or server-side redirections kick in.

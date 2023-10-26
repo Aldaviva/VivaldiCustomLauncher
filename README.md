@@ -42,7 +42,6 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - reformat the status shown in the Downloads panel list items to look like `11 seconds, 11.87 MB/s, 17.85/124.71 MB` and `17.85/124 MB - stopped` to put more important information farther to the left so it doesn't get truncated by a narrow panel width
     - navigate to subdomains of the current URL by Ctrl+clicking on the subdomain ([Vivaldi already offers this for parent paths](https://vivaldi.com/blog/vivaldi-introduces-break-mode/), but not subdomains)
     - allow mail to be moved from any folder to any folder, which can be useful for marking messages as spam or not spam on your IMAP server. Destination folders are alphabetized, limited to subscribed folders only, and shown at the top level of the Move To Folder menu instead of in a submenu.
-    - correct the height of images in e-mail messages
     - classify the "Junk E-mail" folder as a normal folder instead of spam, since I use that as a source of suspected spam on my mail server, not a sink of confirmed spam. This makes the Mark as Spam button work properly, and prevents mail folders from showing the wrong messages.
     - prepend `https://` when you press `Ctrl`+`Enter` in the address bar, in addition to the default behavior of appending `.com`
 
