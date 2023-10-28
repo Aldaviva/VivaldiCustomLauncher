@@ -44,7 +44,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
                 bundleWasReplaced = true;
                 return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    $"if(vivaldiExports.get('NavigationStore').getNavigationInfo({commandBackMatch.Groups["activePage"].Value}.id).canGoBack){{" +
+                    "if(Object.entries(document.getElementById(\"portals\")).find(prop => prop[0].startsWith(\"__reactContainer$\"))[1].child.child.child.stateNode.state.appElm.querySelector(\".webpageview.active webview\").canGoBack()){" +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
                     $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +
