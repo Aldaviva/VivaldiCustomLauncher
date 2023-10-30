@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -11,7 +10,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
     private const string TWEAK_TYPE = nameof(BundleScriptTweak);
 
     /// <exception cref="TweakException"></exception>
-    protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<string?>) (() => {
+    protected internal override Task<string> editFile(string bundleContents) => Task.Run(() => {
         string newBundleContents = bundleContents;
         newBundleContents = increaseMaximumTabWidth(newBundleContents);
         newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
@@ -21,7 +20,7 @@ public class BundleScriptTweak: AbstractScriptTweak {
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = expandDomainsWithHttps(newBundleContents);
         return newBundleContents;
-    }));
+    });
 
     /*
      * You could also look at the value of eventVariable.origin if you want to only allow this behavior for mouse gestures and not keyboard shortcuts, for example. By default it will run for all origins.

@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿#nullable enable
 
-#nullable enable
+using System.Threading.Tasks;
 
-namespace VivaldiCustomLauncher.Tweaks; 
+namespace VivaldiCustomLauncher.Tweaks;
 
 public interface Tweak<OutputType, in Params> where Params: TweakParams where OutputType: class {
 
     /// <exception cref="TweakException"></exception>
-    Task<OutputType?> readFileAndEditIfNecessary(Params tweakParams);
+    Task<OutputType> readAndEditFile(Params tweakParams);
 
     Task saveFile(OutputType fileContents, Params tweakParams);
 

@@ -11,34 +11,33 @@ public class BackgroundCommonBundleScriptTweak: AbstractScriptTweak {
 
     private const string TWEAK_TYPE = nameof(BackgroundCommonBundleScriptTweak);
 
-    protected internal override Task<string?> editFile(string bundleContents) => Task.Run((Func<string?>) (() => {
+    protected internal override Task<string> editFile(string bundleContents) => Task.Run(() => {
         string newBundleContents = bundleContents;
         newBundleContents = classifyJunkEmailAsNormalFolder(newBundleContents);
         return newBundleContents;
-    }));
+    });
 
     /// <summary>
     /// <para>Invalidate service worker script cache so that our changes to <c>background-common-bundle.js</c> take effect on the next launch.</para>
     /// <para>Fix for issue #4</para>
     /// </summary>
-    public override async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
-        string? newFileContentsToWrite = await base.readFileAndEditIfNecessary(tweakParams);
-        if (newFileContentsToWrite is not null) {
-            DirectoryInfo serviceWorkerDirectory = new(Environment.ExpandEnvironmentVariables(
-                @"%LOCALAPPDATA%\Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\"));
-            string backupServiceWorkerDirectory = Path.Combine(serviceWorkerDirectory.Parent!.FullName, serviceWorkerDirectory.Name + "-old");
+    public override async Task<string> readAndEditFile(BaseTweakParams tweakParams) {
+        string newFileContentsToWrite = await base.readAndEditFile(tweakParams);
 
-            try {
-                Directory.Delete(backupServiceWorkerDirectory, true);
-            } catch (DirectoryNotFoundException) {
-                // An old backup already didn't exist, so we can continue with renaming the current directory to its backup name.
-            }
+        DirectoryInfo serviceWorkerDirectory = new(Environment.ExpandEnvironmentVariables(
+            @"%LOCALAPPDATA%\Vivaldi\User Data\Default\Storage\ext\mpognobbkildjkofajifpdfhcoklimli\def\Service Worker\"));
+        string backupServiceWorkerDirectory = Path.Combine(serviceWorkerDirectory.Parent!.FullName, serviceWorkerDirectory.Name + "-old");
 
-            try {
-                Directory.Move(serviceWorkerDirectory.FullName, backupServiceWorkerDirectory);
-            } catch (DirectoryNotFoundException) {
-                // The Service Worker directory didn't even exist in the first place, so we're already done. This can happen on a new Vivaldi installation.
-            }
+        try {
+            Directory.Delete(backupServiceWorkerDirectory, true);
+        } catch (DirectoryNotFoundException) {
+            // An old backup already didn't exist, so we can continue with renaming the current directory to its backup name.
+        }
+
+        try {
+            Directory.Move(serviceWorkerDirectory.FullName, backupServiceWorkerDirectory);
+        } catch (DirectoryNotFoundException) {
+            // The Service Worker directory didn't even exist in the first place, so we're already done. This can happen on a new Vivaldi installation.
         }
 
         return newFileContentsToWrite;

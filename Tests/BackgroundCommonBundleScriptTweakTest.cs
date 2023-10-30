@@ -1,13 +1,13 @@
 ﻿#nullable enable
 
+using FakeItEasy;
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using FakeItEasy;
-using FluentAssertions;
 using Tests.Assertions;
 using Tests.Data;
 using VivaldiCustomLauncher.Tweaks;
@@ -79,10 +79,10 @@ public class BackgroundCommonBundleScriptTweakTest {
             Environment.SetEnvironmentVariable(LOCAL_APP_DATA, fakeLocalAppData);
 
             BackgroundCommonBundleScriptTweak fakeTweak = A.Fake<BackgroundCommonBundleScriptTweak>();
-            A.CallTo(() => fakeTweak.readFileAndEditIfNecessary(A<BaseTweakParams>._)).CallsBaseMethod();
+            A.CallTo(() => fakeTweak.readAndEditFile(A<BaseTweakParams>._)).CallsBaseMethod();
             A.CallTo(() => fakeTweak.editFile(A<string>._)).Returns("fake non-null new file contents");
 
-            await fakeTweak.readFileAndEditIfNecessary(new BaseTweakParams(fakeBundleFile));
+            await fakeTweak.readAndEditFile(new BaseTweakParams(fakeBundleFile));
 
             Directory.Exists(fakeScriptCache).Should().BeFalse();
             File.ReadAllText(backedUpCacheFile).Should().Be("cached service worker file");

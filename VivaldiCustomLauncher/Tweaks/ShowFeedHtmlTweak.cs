@@ -9,20 +9,12 @@ namespace VivaldiCustomLauncher.Tweaks;
 
 public class ShowFeedHtmlTweak: BaseStringTweak<ShowFeedHtmlTweakParams> {
 
-    public override Task<string?> readFileAndEditIfNecessary(ShowFeedHtmlTweakParams tweakParams) {
-        string fileContents      = File.ReadAllText(tweakParams.filename, new UTF8Encoding(true, true));
-        string scriptRelativeUri = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
+    public override Task<string> readAndEditFile(ShowFeedHtmlTweakParams tweakParams) {
+        string fileContents         = File.ReadAllText(tweakParams.filename, new UTF8Encoding(true, true));
+        string scriptRelativeUri    = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
+        string modifiedFileContents = fileContents.Replace("\t</head>", $"\t\t<script src=\"{scriptRelativeUri}\"></script>\n\t</head>");
 
-        bool   fileModified         = false;
-        string modifiedFileContents = fileContents;
-
-        if (!fileContents.Contains(scriptRelativeUri)) {
-            modifiedFileContents = modifiedFileContents.Replace("\t</head>",
-                $"\t\t<script src=\"{scriptRelativeUri}\"></script>\n\t</head>");
-            fileModified = true;
-        }
-
-        return Task.FromResult(fileModified ? modifiedFileContents : null);
+        return Task.FromResult(modifiedFileContents);
     }
 
 }

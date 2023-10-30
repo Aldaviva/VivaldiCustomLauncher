@@ -8,7 +8,7 @@ namespace VivaldiCustomLauncher.Tweaks;
 
 public abstract class BaseStringTweak<T>: Tweak<string, T> where T: BaseTweakParams {
 
-    public abstract Task<string?> readFileAndEditIfNecessary(T tweakParams);
+    public abstract Task<string> readAndEditFile(T tweakParams);
 
     public virtual async Task saveFile(string fileContents, T tweakParams) {
         Directory.CreateDirectory(Path.GetDirectoryName(tweakParams.filename)!);

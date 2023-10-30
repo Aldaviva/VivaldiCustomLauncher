@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,45 +10,35 @@ namespace VivaldiCustomLauncher.Tweaks;
 
 public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
 
-    private static readonly char[]       EXPECTED_HEADER = CUSTOMIZED_COMMENT.ToCharArray();
-    private static readonly UTF8Encoding UTF8_ENCODER    = new(false, true);
-    private static readonly UTF8Encoding UTF8_DECODER    = new(true, true);
+    private static readonly UTF8Encoding UTF8_ENCODER = new(false, true);
+    private static readonly UTF8Encoding UTF8_DECODER = new(true, true);
 
-    protected const string CUSTOMIZED_COMMENT = @"/* Customized by Ben */";
+    protected const string CUSTOMIZED_COMMENT = "/* Customized by Ben */";
 
-    /// <exception cref="TweakException"></exception>
-    public virtual async Task<string?> readFileAndEditIfNecessary(BaseTweakParams tweakParams) {
-        string           bundleContents;
+    /// <exception cref="TweakException" />
+    public virtual async Task<string> readAndEditFile(BaseTweakParams tweakParams) {
         using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
         /*
          * Handle optional Unicode BOM, which older versions of VivaldiCustomLauncher emitted.
          * Confusingly, and contrary to the documentation, the UTF8Encoding constructor parameter "encoderShouldEmitUTF8Identifier" also controls whether the decoder consumes or ignores a BOM during parsing.
          * This means we must use a BOM-enabled decoder and a BOM-disabled encoder to fulfill our goals of reading but not writing BOMs.
+         *
+         * Buffer size: use same size as FileStream for ideal performance, per https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor?view=netframework-4.8#system-io-streamreader-ctor(system-io-stream-system-text-encoding-system-boolean-system-int32-system-boolean)
          */
-        using (StreamReader reader = new(file, UTF8_DECODER, false, 4 * 1024, true)) {
-            char[] buffer = new char[EXPECTED_HEADER.Length];
-            await reader.ReadAsync(buffer, 0, buffer.Length);
+        using StreamReader reader = new(file, UTF8_DECODER, false, 4096, false);
 
-            if (EXPECTED_HEADER.SequenceEqual(buffer)) {
-                return null;
-            }
-
-            file.Seek(0, SeekOrigin.Begin);
-            reader.DiscardBufferedData();
-            bundleContents = await reader.ReadToEndAsync();
-        }
+        string bundleContents = await reader.ReadToEndAsync();
 
         return await editFile(bundleContents);
     }
 
-    /// <exception cref="TweakException"></exception>
-    protected internal abstract Task<string?> editFile(string bundleContents);
+    /// <exception cref="TweakException" />
+    protected internal abstract Task<string> editFile(string bundleContents);
 
     public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
         using FileStream   file   = File.Open(tweakParams.filename, FileMode.Truncate, FileAccess.ReadWrite);
         using StreamWriter writer = new(file, UTF8_ENCODER);
-        await writer.WriteAsync(EXPECTED_HEADER);
         await writer.WriteAsync(fileContents);
         await writer.FlushAsync();
     }

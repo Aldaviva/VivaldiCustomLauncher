@@ -1,27 +1,20 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Utf8Json;
-
-#nullable enable
 
 namespace VivaldiCustomLauncher;
 
 internal class ProgramUpgrader {
 
-    private static readonly Uri RELEASE_URI = new("https://api.github.com/repos/Aldaviva/VivaldiCustomLauncher/releases/latest");
+    private readonly GitHubClient gitHubClient;
 
-    private readonly HttpClient            httpClient;
-    private readonly VersionNumberComparer versionNumberComparer;
-
-    public ProgramUpgrader(HttpClient httpClient, VersionNumberComparer versionNumberComparer) {
-        this.httpClient            = httpClient;
-        this.versionNumberComparer = versionNumberComparer;
+    public ProgramUpgrader(GitHubClient gitHubClient) {
+        this.gitHubClient = gitHubClient;
     }
 
     /// <summary>
@@ -33,37 +26,15 @@ internal class ProgramUpgrader {
     }
 
     private async Task<Uri?> getUpgradeUri() {
-        using HttpResponseMessage metadataResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, RELEASE_URI) {
-            Headers = { Accept = { new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json") } }
-        }, HttpCompletionOption.ResponseHeadersRead);
-
-        if (!metadataResponse.IsSuccessStatusCode) {
+        if (await gitHubClient.fetchLatestRelease("Aldaviva", "VivaldiCustomLauncher") is not { } latestRelease) {
             return null;
         }
 
-        using Stream metadataStream = await metadataResponse.Content.ReadAsStreamAsync();
-        dynamic      metadata       = await JsonSerializer.DeserializeAsync<dynamic>(metadataStream);
-
-        string? latestVersion = metadata["tag_name"];
-        if (latestVersion is null) {
-            return null;
-        }
-
-        string currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
-
-        if (versionNumberComparer.Compare(latestVersion, currentVersion) > 0) {
-            return new Uri(metadata["assets"][0]["url"]);
-        } else {
-            return null;
-        }
+        return latestRelease.version.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0 ? latestRelease.assetUrl : null;
     }
 
     private async Task<bool> installUpgrade(Uri upgradeUri) {
-        using HttpResponseMessage executableResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, upgradeUri) {
-            Headers = { Accept = { new MediaTypeWithQualityHeaderValue("application/octet-stream") } }
-        }, HttpCompletionOption.ResponseHeadersRead);
-
-        if (!executableResponse.IsSuccessStatusCode) {
+        if (await gitHubClient.downloadRelease(upgradeUri) is not { } downloadStream) {
             return false;
         }
 
@@ -79,7 +50,7 @@ internal class ProgramUpgrader {
         }
 
         using (fileStream) {
-            await executableResponse.Content.CopyToAsync(fileStream);
+            await downloadStream.CopyToAsync(fileStream);
             await fileStream.FlushAsync();
         }
 
