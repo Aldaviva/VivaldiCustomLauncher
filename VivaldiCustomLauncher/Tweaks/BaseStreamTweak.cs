@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public abstract class BaseStreamTweak<T>: Tweak<Stream, T> where T: BaseTweakParams {
+public abstract class BaseStreamTweak<T>: BaseTweak, Tweak<Stream, T> where T: BaseTweakParams {
 
     public abstract Task<Stream> readAndEditFile(T tweakParams);
 

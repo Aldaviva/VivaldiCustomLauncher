@@ -2,16 +2,12 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
-
-    private static readonly UTF8Encoding UTF8_ENCODER = new(false, true);
-    private static readonly UTF8Encoding UTF8_DECODER = new(true, true);
+public abstract class BaseScriptTweak: BaseTweak, Tweak<string, BaseTweakParams> {
 
     protected const string CUSTOMIZED_COMMENT = "/* Customized by Ben */";
 
@@ -26,7 +22,7 @@ public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
          *
          * Buffer size: use same size as FileStream for ideal performance, per https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor?view=netframework-4.8#system-io-streamreader-ctor(system-io-stream-system-text-encoding-system-boolean-system-int32-system-boolean)
          */
-        using StreamReader reader = new(file, UTF8_DECODER, false, 4096, false);
+        using StreamReader reader = new(file, UTF8_READING, false, 4096, false);
 
         string bundleContents = await reader.ReadToEndAsync();
 
@@ -38,7 +34,7 @@ public abstract class AbstractScriptTweak: Tweak<string, BaseTweakParams> {
 
     public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
         using FileStream   file   = File.Open(tweakParams.filename, FileMode.Truncate, FileAccess.ReadWrite);
-        using StreamWriter writer = new(file, UTF8_ENCODER);
+        using StreamWriter writer = new(file, UTF8_WRITING);
         await writer.WriteAsync(fileContents);
         await writer.FlushAsync();
     }

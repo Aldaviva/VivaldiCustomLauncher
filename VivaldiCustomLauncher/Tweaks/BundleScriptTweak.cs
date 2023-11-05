@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public class BundleScriptTweak: AbstractScriptTweak {
+public class BundleScriptTweak: BaseScriptTweak {
 
     private const string TWEAK_TYPE = nameof(BundleScriptTweak);
 

@@ -20,7 +20,7 @@ internal class GitHubClient {
     }
 
     public async Task<(Version version, Uri assetUrl)?> fetchLatestRelease(string ownerName, string repositoryName) {
-        string releaseUri = $"{BASE_URI}repos/{ownerName}/{repositoryName}/releases/latest";
+        string releaseUri = $"{BASE_URI}repos/{Uri.EscapeUriString(ownerName)}/{Uri.EscapeUriString(repositoryName)}/releases/latest";
 
         try {
             using HttpResponseMessage response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, releaseUri) {
@@ -56,7 +56,7 @@ internal class GitHubClient {
     }
 
     public async Task<string?> fetchLatestCommitHash(string ownerName, string repositoryName) {
-        string commitsUri = $"{BASE_URI}repos/{ownerName}/{repositoryName}/commits/HEAD";
+        string commitsUri = $"{BASE_URI}repos/{Uri.EscapeUriString(ownerName)}/{Uri.EscapeUriString(repositoryName)}/commits/HEAD";
 
         try {
             using HttpResponseMessage response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, commitsUri) {

@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
@@ -10,7 +9,7 @@ namespace VivaldiCustomLauncher.Tweaks;
 public class ShowFeedHtmlTweak: BaseStringTweak<ShowFeedHtmlTweakParams> {
 
     public override Task<string> readAndEditFile(ShowFeedHtmlTweakParams tweakParams) {
-        string fileContents         = File.ReadAllText(tweakParams.filename, new UTF8Encoding(true, true));
+        string fileContents         = File.ReadAllText(tweakParams.filename, UTF8_READING);
         string scriptRelativeUri    = new UriBuilder { Path = tweakParams.customScriptRelativePath }.Path;
         string modifiedFileContents = fileContents.Replace("\t</head>", $"\t\t<script src=\"{scriptRelativeUri}\"></script>\n\t</head>");
 

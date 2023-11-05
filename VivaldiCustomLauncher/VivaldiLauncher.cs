@@ -98,16 +98,16 @@ public static class VivaldiLauncher {
                 return true;
             }
 
-            string           vivaldiApplicationDirectory = getVivaldiApplicationDirectory(arguments.vivaldiApplicationDirectory);
-            string           processToRun                = Path.Combine(vivaldiApplicationDirectory, "vivaldi.exe");
-            string           tweakManifestAbsolutePath   = Path.Combine(vivaldiApplicationDirectory, "VivaldiCustomLauncher.manifest.json");
-            VersionManifest? versionManifest             = await readVersionManifest(tweakManifestAbsolutePath);
+            string vivaldiApplicationDirectory = getVivaldiApplicationDirectory(arguments.vivaldiApplicationDirectory);
+            string processToRun                = Path.Combine(vivaldiApplicationDirectory, "vivaldi.exe");
 
             using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
             if (existingVivaldiProcess == null) {
-                GitHubClient  gitHub                      = new(httpClient);
-                Task<bool>    isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
-                Task<string?> resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
+                GitHubClient           gitHub                      = new(httpClient);
+                Task<bool>             isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
+                Task<string?>          resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
+                string                 tweakManifestAbsolutePath   = Path.Combine(vivaldiApplicationDirectory, "VivaldiCustomLauncher.manifest.json");
+                Task<VersionManifest?> versionManifestTask         = readVersionManifest(tweakManifestAbsolutePath);
 
                 bool isInstallationPending = await isInstallationPendingTask;
                 if (isInstallationPending) {
@@ -116,34 +116,40 @@ public static class VivaldiLauncher {
                 }
 
                 string? resourcesRepoCommitHash = await resourcesRepoCommitHashTask;
-                Console.WriteLine($"Latest resources repo commit hash is {resourcesRepoCommitHash}");
-                if (resourcesRepoCommitHash == null) {
-                    return false;
-                }
+                if (resourcesRepoCommitHash != null) {
+                    Console.WriteLine($"Latest resources repo commit hash is {resourcesRepoCommitHash}");
+                    string       resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
+                    TweakedFiles tweakedFiles      = new(resourceDirectory);
 
-                string       resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
-                TweakedFiles tweakedFiles      = new(resourceDirectory);
+                    VersionManifest? versionManifest = await versionManifestTask;
+                    bool shouldUnapplyTweaks = versionManifest == null
+                        ? File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)) // just upgraded to first launcher version that uses manifest files
+                        : resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
+                        CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion; // tweaks are from different launcher or resources
 
-                bool shouldUnapplyTweaks = versionManifest == null
-                    ? File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)) // just upgraded to first launcher version that uses VersionStamps
-                    : resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
-                    CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion; // tweaks were last applied with an older launcher or resources
-                if (shouldUnapplyTweaks) {
-                    Console.WriteLine("Unapplying tweaks");
-                    string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
-                    unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
-                }
+                    if (shouldUnapplyTweaks) {
+                        Console.WriteLine("Unapplying tweaks");
+                        string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
+                        unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
+                    }
 
-                using FileStream manifestWriteStream = new(tweakManifestAbsolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
-                VersionManifest  newManifest         = new() { launcherVersion = CURRENT_ASSEMBLY.Version, resourcesCommitHash = resourcesRepoCommitHash };
+                    bool shouldApplyTweaks = versionManifest == null || shouldUnapplyTweaks;
+                    if (shouldApplyTweaks) {
+                        using FileStream manifestWriteStream = new(tweakManifestAbsolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        VersionManifest  newManifest         = new() { launcherVersion = CURRENT_ASSEMBLY.Version, resourcesCommitHash = resourcesRepoCommitHash };
 
-                try {
-                    Console.WriteLine("Applying tweaks");
-                    await applyTweaks(tweakedFiles);
-                    Console.WriteLine($"Writing manifest file to {tweakManifestAbsolutePath}");
-                    await JsonSerializer.SerializeAsync(manifestWriteStream, newManifest);
-                } catch (TweakException e) {
-                    MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.bareMessage}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        try {
+                            Console.WriteLine("Applying tweaks");
+                            await applyTweaks(tweakedFiles);
+                            Console.WriteLine($"Writing manifest file to {tweakManifestAbsolutePath}");
+                            await JsonSerializer.SerializeAsync(manifestWriteStream, newManifest);
+                            await manifestWriteStream.FlushAsync();
+                        } catch (TweakException e) {
+                            MessageBox.Show($"Failed to apply tweak {e.tweakTypeName}.{e.tweakMethodName}: {e.bareMessage}", "Failed to tweak Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            success = false;
+                        }
+                    }
+                } else {
                     success = false;
                 }
             } else {
@@ -181,14 +187,14 @@ public static class VivaldiLauncher {
     private static Task applyTweaks(TweakedFiles files) {
         try {
             return Task.WhenAll(
-                applyTweakIfNecessary(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(files.browserPage, files.relative.customStyleSheet, files.relative.customScript)),
-                applyTweakIfNecessary(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(files.customStyleSheet)),
-                applyTweakIfNecessary(new BundleScriptTweak(), new BaseTweakParams(files.bundleScript)),
-                applyTweakIfNecessary(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(files.backgroundCommonBundleScript)),
-                applyTweakIfNecessary(new CustomScriptTweak(httpClient), new BaseTweakParams(files.customScript)),
-                applyTweakIfNecessary(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(files.visualElementsSource, files.visualElementsDestination)),
-                applyTweakIfNecessary(new ShowFeedHtmlTweak(), new ShowFeedHtmlTweakParams(files.showFeedPage, files.relative.customFeedScript)),
-                applyTweakIfNecessary(new CustomFeedScriptTweak(httpClient), new BaseTweakParams(files.customFeedScript))
+                applyTweak(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(files.browserPage, files.relative.customStyleSheet, files.relative.customScript)),
+                applyTweak(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(files.customStyleSheet)),
+                applyTweak(new BundleScriptTweak(), new BaseTweakParams(files.bundleScript)),
+                applyTweak(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(files.backgroundCommonBundleScript)),
+                applyTweak(new CustomScriptTweak(httpClient), new BaseTweakParams(files.customScript)),
+                applyTweak(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(files.visualElementsSource, files.visualElementsDestination)),
+                applyTweak(new ShowFeedHtmlTweak(), new ShowFeedHtmlTweakParams(files.showFeedPage, files.relative.customFeedScript)),
+                applyTweak(new CustomFeedScriptTweak(httpClient), new BaseTweakParams(files.customFeedScript))
             );
         } catch (AggregateException e) {
             if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
@@ -200,7 +206,7 @@ public static class VivaldiLauncher {
     }
 
     /// <exception cref="TweakException"></exception>
-    private static async Task applyTweakIfNecessary<OutputType, Params>(Tweak<OutputType, Params> tweak, Params tweakParams) where Params: TweakParams where OutputType: class {
+    private static async Task applyTweak<OutputType, Params>(Tweak<OutputType, Params> tweak, Params tweakParams) where Params: TweakParams where OutputType: class {
         OutputType editedFile = await tweak.readAndEditFile(tweakParams);
         await tweak.saveFile(editedFile, tweakParams);
         Console.WriteLine($"Tweaked {editedFile}");
@@ -286,6 +292,8 @@ public static class VivaldiLauncher {
             using FileStream file = File.Open(manifestFile, FileMode.Open, FileAccess.Read, FileShare.Read);
             return await JsonSerializer.DeserializeAsync<VersionManifest>(file);
         } catch (FileNotFoundException) {
+            return null;
+        } catch (JsonParsingException) {
             return null;
         }
     }

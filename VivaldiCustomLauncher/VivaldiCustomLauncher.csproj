@@ -59,10 +59,11 @@
     <Compile Include="GitHubClient.cs" />
     <Compile Include="ProgramUpgrader.cs" />
     <Compile Include="TweakedFiles.cs" />
-    <Compile Include="Tweaks\AbstractScriptTweak.cs" />
+    <Compile Include="Tweaks\BaseScriptTweak.cs" />
     <Compile Include="Tweaks\BackgroundCommonBundleScriptTweak.cs" />
     <Compile Include="Tweaks\BaseStreamTweak.cs" />
     <Compile Include="Tweaks\BaseStringTweak.cs" />
+    <Compile Include="Tweaks\BaseTweak.cs" />
     <Compile Include="Tweaks\BrowserHtmlTweak.cs" />
     <Compile Include="CommandLine.cs" />
     <Compile Include="Tweaks\BundleScriptTweak.cs" />
