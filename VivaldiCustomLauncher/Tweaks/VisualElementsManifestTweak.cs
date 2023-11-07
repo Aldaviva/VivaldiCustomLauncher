@@ -6,7 +6,7 @@ using VisualElementsManifest.Data;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public class VisualElementsManifestTweak: BaseTweak, Tweak<Application, VisualElementsManifestTweakParams> {
+public class VisualElementsManifestTweak: Tweak<Application, VisualElementsManifestTweakParams> {
 
     private readonly VisualElementsManifestEditor visualElementsManifestEditor = new VisualElementsManifestEditorImpl();
 

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Bom.Squad;
 using Microsoft.Win32;
 using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
@@ -24,7 +25,6 @@ namespace VivaldiCustomLauncher;
 
 public static class VivaldiLauncher {
 
-    // private static readonly VersionNumberComparer VERSION_NUMBER_COMPARER = new();
     private static         HttpClient?  cachedHttpClient;
     public static readonly AssemblyName CURRENT_ASSEMBLY = Assembly.GetExecutingAssembly().GetName();
 
@@ -43,6 +43,8 @@ public static class VivaldiLauncher {
 
         Application.ThreadException                += (_, args) => onUncaughtException(args.Exception);
         AppDomain.CurrentDomain.UnhandledException += (_, args) => onUncaughtException((Exception) args.ExceptionObject);
+
+        BomSquad.DefuseUtf8Bom();
 
         try {
             return await tweakAndLaunch() ? 0 : 1;

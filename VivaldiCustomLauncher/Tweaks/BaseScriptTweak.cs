@@ -2,12 +2,13 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public abstract class BaseScriptTweak: BaseTweak, Tweak<string, BaseTweakParams> {
+public abstract class BaseScriptTweak: Tweak<string, BaseTweakParams> {
 
     protected const string CUSTOMIZED_COMMENT = "/* Customized by Ben */";
 
@@ -16,13 +17,9 @@ public abstract class BaseScriptTweak: BaseTweak, Tweak<string, BaseTweakParams>
         using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
         /*
-         * Handle optional Unicode BOM, which older versions of VivaldiCustomLauncher emitted.
-         * Confusingly, and contrary to the documentation, the UTF8Encoding constructor parameter "encoderShouldEmitUTF8Identifier" also controls whether the decoder consumes or ignores a BOM during parsing.
-         * This means we must use a BOM-enabled decoder and a BOM-disabled encoder to fulfill our goals of reading but not writing BOMs.
-         *
          * Buffer size: use same size as FileStream for ideal performance, per https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor?view=netframework-4.8#system-io-streamreader-ctor(system-io-stream-system-text-encoding-system-boolean-system-int32-system-boolean)
          */
-        using StreamReader reader = new(file, UTF8_READING, false, 4096, false);
+        using StreamReader reader = new(file, Encoding.UTF8, false, 4096, false);
 
         string bundleContents = await reader.ReadToEndAsync();
 
@@ -34,7 +31,7 @@ public abstract class BaseScriptTweak: BaseTweak, Tweak<string, BaseTweakParams>
 
     public async Task saveFile(string fileContents, BaseTweakParams tweakParams) {
         using FileStream   file   = File.Open(tweakParams.filename, FileMode.Truncate, FileAccess.ReadWrite);
-        using StreamWriter writer = new(file, UTF8_WRITING);
+        using StreamWriter writer = new(file, Encoding.UTF8);
         await writer.WriteAsync(fileContents);
         await writer.FlushAsync();
     }
