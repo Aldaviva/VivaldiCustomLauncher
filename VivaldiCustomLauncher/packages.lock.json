@@ -4,9 +4,9 @@
     ".NETFramework,Version=v4.8": {
       "Bom.Squad": {
         "type": "Direct",
-        "requested": "[0.1.0, )",
-        "resolved": "0.1.0",
-        "contentHash": "Yqds6XUaUBkDLK4aiddl0IjfwkPQD1+570NfuLPgkin5u0p3lfJMr2HRfebvONQKptOJYrr79j99T+bLwa1Ttg=="
+        "requested": "[0.2.1, )",
+        "resolved": "0.2.1",
+        "contentHash": "ImW3bGOADpx+rMMgsW1+TS3+QyGwJRZUKTNpkSJKfdOCUjfF6R50BHlusu8MvuWl2ME4P49CgV7cCs86n6JooQ=="
       },
       "ILRepack.Lib.MSBuild.Task": {
         "type": "Direct",

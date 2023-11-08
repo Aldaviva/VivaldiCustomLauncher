@@ -44,8 +44,6 @@ public static class VivaldiLauncher {
         Application.ThreadException                += (_, args) => onUncaughtException(args.Exception);
         AppDomain.CurrentDomain.UnhandledException += (_, args) => onUncaughtException((Exception) args.ExceptionObject);
 
-        // ReSharper disable once ObjectCreationAsStatement - cache UTF-8 BOM before we remove it
-        new JsonReader(Array.Empty<byte>());
         BomSquad.DefuseUtf8Bom();
 
         try {
