@@ -105,14 +105,14 @@ public static class VivaldiLauncher {
 
             using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
             if (existingVivaldiProcess == null) {
-                GitHubClient           gitHub                      = new(httpClient);
-                Task<bool>             isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
-                Task<string?>          resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
-                string                 tweakManifestAbsolutePath   = Path.Combine(vivaldiApplicationDirectory, "VivaldiCustomLauncher.manifest.json");
-                Task<VersionManifest?> versionManifestTask         = readVersionManifest(tweakManifestAbsolutePath);
+                GitHubClient  gitHub                      = new(httpClient);
+                Task<bool>    isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
+                Task<string?> resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
+                (string resourceDirectory, Version browserVersion) = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
+                string                 tweakManifestAbsolutePath = Path.Combine(resourceDirectory, "../../../..", CURRENT_ASSEMBLY.Name + "-manifest.json");
+                Task<VersionManifest?> versionManifestTask       = readVersionManifest(tweakManifestAbsolutePath);
 
-                bool isInstallationPending = await isInstallationPendingTask;
-                if (isInstallationPending) {
+                if (await isInstallationPendingTask) {
                     Console.WriteLine("Upgrading VivaldiCustomLauncher to a new version");
                     return true;
                 }
@@ -120,30 +120,30 @@ public static class VivaldiLauncher {
                 string? resourcesRepoCommitHash = await resourcesRepoCommitHashTask;
                 if (resourcesRepoCommitHash != null) {
                     Console.WriteLine($"Latest resources repo commit hash is {resourcesRepoCommitHash}");
-                    string       resourceDirectory = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
-                    TweakedFiles tweakedFiles      = new(resourceDirectory);
+                    TweakedFiles tweakedFiles = new(resourceDirectory);
 
                     VersionManifest? versionManifest = await versionManifestTask;
-                    bool shouldUnapplyTweaks = versionManifest == null
-                        ? File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)) // just upgraded to first launcher version that uses manifest files
-                        : resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
-                        CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion; // tweaks are from different launcher or resources
+                    bool shouldApplyTweaks = versionManifest == null ||
+                        resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
+                        CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion ||
+                        browserVersion != versionManifest.browserVersion; // tweaks are from different launcher or resources, or the browser was updated
 
-                    if (shouldUnapplyTweaks) {
-                        Console.WriteLine("Unapplying tweaks");
-                        string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
-                        unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
-                    }
-
-                    bool shouldApplyTweaks = versionManifest == null || shouldUnapplyTweaks;
                     if (shouldApplyTweaks) {
-                        using FileStream manifestWriteStream = new(tweakManifestAbsolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
-                        VersionManifest  newManifest         = new() { launcherVersion = CURRENT_ASSEMBLY.Version, resourcesCommitHash = resourcesRepoCommitHash };
+                        bool wasAlreadyTweaked = versionManifest != null || File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript));
+                        if (wasAlreadyTweaked) {
+                            // Revert existing tweaks because they are outdated, or just upgraded to first launcher version that uses manifest files
+                            Console.WriteLine("Unapplying tweaks");
+                            string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
+                            unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
+                        }
 
                         try {
                             Console.WriteLine("Applying tweaks");
                             await applyTweaks(tweakedFiles);
+
                             Console.WriteLine($"Writing manifest file to {tweakManifestAbsolutePath}");
+                            using FileStream manifestWriteStream = new(tweakManifestAbsolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                            VersionManifest  newManifest         = new(CURRENT_ASSEMBLY.Version, resourcesRepoCommitHash, browserVersion);
                             await JsonSerializer.SerializeAsync(manifestWriteStream, newManifest);
                             await manifestWriteStream.FlushAsync();
                         } catch (TweakException e) {
@@ -164,6 +164,8 @@ public static class VivaldiLauncher {
             if (!arguments.noVivaldiLaunch) {
                 createProcess(processToRun, processArgumentsToRun);
             }
+
+            File.Delete(Path.Combine(vivaldiApplicationDirectory, "VivaldiCustomLauncher.manifest.json")); // old 1.3.0 file location, not used any more
 
             stopwatch.Stop();
             // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -220,14 +222,14 @@ public static class VivaldiLauncher {
         foreach (string fileToRestore in files.overwrittenFiles) {
             string                filenameInArchive = "Vivaldi-bin/" + fileToRestore.Remove(0, vivaldiApplicationDirectory.Length).Replace('\\', '/').TrimStart('/');
             SevenZipArchiveEntry? fileInArchive     = installerArchive.Entries.FirstOrDefault(entry => string.Equals(entry.Key, filenameInArchive, StringComparison.OrdinalIgnoreCase));
+
             if (fileInArchive != null) {
                 Console.WriteLine($"Extracting {filenameInArchive} to {fileToRestore}");
+                Directory.CreateDirectory(Path.GetDirectoryName(fileToRestore));
+                fileInArchive.WriteToFile(fileToRestore, new ExtractionOptions { Overwrite = true, PreserveAttributes = true });
             } else {
                 Console.WriteLine($"Could not find {filenameInArchive} in {installerArchiveAbsolutePath}");
             }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(fileToRestore));
-            fileInArchive?.WriteToFile(fileToRestore, new ExtractionOptions { Overwrite = true, PreserveAttributes = true });
         }
     }
 
@@ -265,16 +267,15 @@ public static class VivaldiLauncher {
         }
     }
 
-    private static string getResourceDirectory(string applicationDirectory) {
-        string versionDirectory = Directory.EnumerateDirectories(applicationDirectory)
+    private static (string directory, Version browserVersion) getResourceDirectory(string applicationDirectory) {
+        return Directory.EnumerateDirectories(applicationDirectory)
             .Where(absoluteSubdirectory => {
                 string relativeSubdirectory = Path.GetFileName(absoluteSubdirectory)!;
                 return Regex.IsMatch(relativeSubdirectory, @"\A(?:\d+\.){3}\d+\z");
             })
-            .OrderByDescending(s => Version.Parse(Path.GetFileName(s)))
+            .Select(absoluteSubdirectory => (directory: Path.Combine(absoluteSubdirectory, "resources", "vivaldi"), version: Version.Parse(Path.GetFileName(absoluteSubdirectory))))
+            .OrderByDescending(versionedDirectory => versionedDirectory.version)
             .First();
-
-        return Path.Combine(versionDirectory, "resources", "vivaldi");
     }
 
     private static IEnumerable<string> customizeArguments(IEnumerable<string> originalArguments) {
@@ -298,13 +299,6 @@ public static class VivaldiLauncher {
         } catch (JsonParsingException) {
             return null;
         }
-    }
-
-    public class VersionManifest {
-
-        public Version launcherVersion { get; set; }
-        public string resourcesCommitHash { get; set; }
-
     }
 
 }
