@@ -19,12 +19,8 @@ public interface TweakParams {
 
 }
 
-public class BaseTweakParams: TweakParams {
+public class BaseTweakParams(string filename): TweakParams {
 
-    public string filename { get; }
-
-    public BaseTweakParams(string filename) {
-        this.filename = filename;
-    }
+    public string filename { get; } = filename;
 
 }

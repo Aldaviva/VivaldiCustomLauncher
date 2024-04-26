@@ -9,11 +9,11 @@ namespace Tests;
 
 public class ScriptTweakSmokeTests {
 
-    private static readonly string ORIGINAL_BUNDLE_TEXT                   = DataReader.readFileTextForCurrentBuildType("BundleScript/bundle.js");
-    private static readonly string ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-common-bundle.js");
+    private static readonly string ORIGINAL_BUNDLE_TEXT            = DataReader.readFileTextForCurrentBuildType("BundleScript/bundle.js");
+    private static readonly string ORIGINAL_BACKGROUND_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-bundle.js");
 
-    private readonly BundleScriptTweak                 bundleTweak                 = new();
-    private readonly BackgroundCommonBundleScriptTweak backgroundCommonBundleTweak = new();
+    private readonly BundleScriptTweak           bundleTweak           = new();
+    private readonly BackgroundBundleScriptTweak backgroundBundleTweak = new();
 
     [Fact]
     public void originalBundleWasNotCustomized() {
@@ -22,7 +22,7 @@ public class ScriptTweakSmokeTests {
 
     [Fact]
     public void originalBackgroundBundleWasNotCustomized() {
-        FastAssert.fastAssert(() => Assert.DoesNotContain("Customized by Ben", ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT), true, false);
+        FastAssert.fastAssert(() => Assert.DoesNotContain("Customized by Ben", ORIGINAL_BACKGROUND_BUNDLE_TEXT), true, false);
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public class ScriptTweakSmokeTests {
 
     [Fact]
     public void classifyJunkEmailAsNormalFolder() {
-        string actual = backgroundCommonBundleTweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT);
-        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BACKGROUND_COMMON_BUNDLE_TEXT, actual), false, false);
+        string actual = backgroundBundleTweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BACKGROUND_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BACKGROUND_BUNDLE_TEXT, actual), false, false);
     }
 
     [Fact]

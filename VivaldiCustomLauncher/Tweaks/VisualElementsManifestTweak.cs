@@ -23,12 +23,8 @@ public class VisualElementsManifestTweak: Tweak<Application, VisualElementsManif
 
 }
 
-public class VisualElementsManifestTweakParams: BaseTweakParams {
+public class VisualElementsManifestTweakParams(string sourceFilename, string destinationFilename): BaseTweakParams(destinationFilename) {
 
-    public string sourceFilename { get; }
-
-    public VisualElementsManifestTweakParams(string sourceFilename, string destinationFilename): base(destinationFilename) {
-        this.sourceFilename = sourceFilename;
-    }
+    public string sourceFilename { get; } = sourceFilename;
 
 }

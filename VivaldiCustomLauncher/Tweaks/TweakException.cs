@@ -1,19 +1,14 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Runtime.CompilerServices;
 
-#nullable enable
+namespace VivaldiCustomLauncher.Tweaks;
 
-namespace VivaldiCustomLauncher.Tweaks; 
+public class TweakException(string message, string tweakTypeName, [CallerMemberName] string tweakMethodName = ""): Exception(message) {
 
-public class TweakException: Exception {
-
-    public string tweakTypeName { get; }
-    public string tweakMethodName { get; }
-
-    public TweakException(string message, string tweakTypeName, [CallerMemberName] string tweakMethodName = ""): base(message) {
-        this.tweakTypeName   = tweakTypeName;
-        this.tweakMethodName = tweakMethodName;
-    }
+    public string tweakTypeName { get; } = tweakTypeName;
+    public string tweakMethodName { get; } = tweakMethodName;
 
     public override string Message => $"{bareMessage} in {tweakTypeName}.{tweakMethodName}()";
 

@@ -16,11 +16,11 @@ using Xunit.Sdk;
 
 namespace Tests;
 
-public class BackgroundCommonBundleScriptTweakTest {
+public class BackgroundBundleScriptTweakTest {
 
-    private static readonly string ORIGINAL_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-common-bundle.js");
+    private static readonly string ORIGINAL_BUNDLE_TEXT = DataReader.readFileTextForCurrentBuildType("BundleScript/background-bundle.js");
 
-    private readonly BackgroundCommonBundleScriptTweak tweak = new();
+    private readonly BackgroundBundleScriptTweak tweak = new();
 
     [Fact]
     public void originalBundleWasNotCustomized() {
@@ -33,8 +33,8 @@ public class BackgroundCommonBundleScriptTweakTest {
 
     [Fact]
     public async Task allTweaksAreCalled() {
-        IList<string>                     fakedCalls = new List<string>();
-        BackgroundCommonBundleScriptTweak tweakSpy   = A.Fake<BackgroundCommonBundleScriptTweak>();
+        IList<string>               fakedCalls = new List<string>();
+        BackgroundBundleScriptTweak tweakSpy   = A.Fake<BackgroundBundleScriptTweak>();
 
         // for this to work, the methods being called by editFile() must be virtual, and the assembly under test must have InternalsVisibleTo DynamicProxyGenAssembly2 (since the methods are internal, not public)
         A.CallTo(tweakSpy).Invokes(call => fakedCalls.Add(call.Method.Name));
@@ -42,9 +42,9 @@ public class BackgroundCommonBundleScriptTweakTest {
 
         await tweakSpy.editFile(ORIGINAL_BUNDLE_TEXT);
 
-        IEnumerable<MethodInfo> expectedMethods = typeof(BackgroundCommonBundleScriptTweak)
+        IEnumerable<MethodInfo> expectedMethods = typeof(BackgroundBundleScriptTweak)
             .GetMethods(BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Instance)
-            .Where(method => method.Name != nameof(BackgroundCommonBundleScriptTweak.editFile))
+            .Where(method => method.Name != nameof(BackgroundBundleScriptTweak.editFile))
             .Where(method => method.ReturnType == typeof(string))
             .Where(method => method.GetCustomAttribute<ObsoleteAttribute>() == null)
             .ToList();
@@ -59,7 +59,7 @@ public class BackgroundCommonBundleScriptTweakTest {
     public void classifyJunkEmailAsNormalFolder() {
         string actual = tweak.classifyJunkEmailAsNormalFolder(ORIGINAL_BUNDLE_TEXT);
 
-        const string EXPECTED = @"function xt(e){if(e.path === ""Junk E-mail""){ return false; }/* Customized by Ben */if(e.flags)for(let ";
+        const string EXPECTED = """function xt(e){if(e.path === "Junk E-mail"){ return false; }/* Customized by Ben */if(e.flags)for(let """;
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
@@ -78,7 +78,7 @@ public class BackgroundCommonBundleScriptTweakTest {
             File.WriteAllText(fakeCacheFile, "cached service worker file");
             Environment.SetEnvironmentVariable(LOCAL_APP_DATA, fakeLocalAppData);
 
-            BackgroundCommonBundleScriptTweak fakeTweak = A.Fake<BackgroundCommonBundleScriptTweak>();
+            BackgroundBundleScriptTweak fakeTweak = A.Fake<BackgroundBundleScriptTweak>();
             A.CallTo(() => fakeTweak.readAndEditFile(A<BaseTweakParams>._)).CallsBaseMethod();
             A.CallTo(() => fakeTweak.editFile(A<string>._)).Returns("fake non-null new file contents");
 

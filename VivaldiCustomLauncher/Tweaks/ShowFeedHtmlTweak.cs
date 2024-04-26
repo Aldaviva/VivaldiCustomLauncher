@@ -19,12 +19,8 @@ public class ShowFeedHtmlTweak: BaseStringTweak<ShowFeedHtmlTweakParams> {
 
 }
 
-public class ShowFeedHtmlTweakParams: BaseTweakParams {
+public class ShowFeedHtmlTweakParams(string filename, string customScriptRelativePath): BaseTweakParams(filename) {
 
-    public string customScriptRelativePath { get; }
-
-    public ShowFeedHtmlTweakParams(string filename, string customScriptRelativePath): base(filename) {
-        this.customScriptRelativePath = customScriptRelativePath;
-    }
+    public string customScriptRelativePath { get; } = customScriptRelativePath;
 
 }

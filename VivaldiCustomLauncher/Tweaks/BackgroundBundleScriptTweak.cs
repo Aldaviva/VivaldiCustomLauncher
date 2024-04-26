@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public class BackgroundCommonBundleScriptTweak: BaseScriptTweak {
+public class BackgroundBundleScriptTweak: BaseScriptTweak {
 
-    private const string TWEAK_TYPE = nameof(BackgroundCommonBundleScriptTweak);
+    private const string TWEAK_TYPE = nameof(BackgroundBundleScriptTweak);
 
     protected internal override Task<string> editFile(string bundleContents) => Task.Run(() => {
         string newBundleContents = bundleContents;
@@ -18,7 +18,7 @@ public class BackgroundCommonBundleScriptTweak: BaseScriptTweak {
     });
 
     /// <summary>
-    /// <para>Invalidate service worker script cache so that our changes to <c>background-common-bundle.js</c> take effect on the next launch.</para>
+    /// <para>Invalidate service worker script cache so that our changes to <c>background-bundle.js</c> take effect on the next launch.</para>
     /// <para>Fix for issue #4</para>
     /// </summary>
     public override async Task<string> readAndEditFile(BaseTweakParams tweakParams) {

@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
+using McMaster.Extensions.CommandLineUtils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using McMaster.Extensions.CommandLineUtils;
 
 namespace VivaldiCustomLauncher;
 
@@ -68,7 +68,7 @@ internal static class CommandLine {
             return parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
         }
 
-        public static Arguments parse(string[] args) {
+        private static Arguments parse(string[] args) {
             var parser = new CommandLineApplication<Arguments> {
                 UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue
             };

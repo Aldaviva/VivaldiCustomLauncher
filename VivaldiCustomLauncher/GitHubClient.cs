@@ -9,15 +9,9 @@ using Utf8Json;
 
 namespace VivaldiCustomLauncher;
 
-internal class GitHubClient {
+internal class GitHubClient(HttpClient httpClient) {
 
     private const string BASE_URI = "https://api.github.com/";
-
-    private readonly HttpClient httpClient;
-
-    public GitHubClient(HttpClient httpClient) {
-        this.httpClient = httpClient;
-    }
 
     public async Task<(Version version, Uri assetUrl)?> fetchLatestRelease(string ownerName, string repositoryName) {
         string releaseUri = $"{BASE_URI}repos/{Uri.EscapeUriString(ownerName)}/{Uri.EscapeUriString(repositoryName)}/releases/latest";

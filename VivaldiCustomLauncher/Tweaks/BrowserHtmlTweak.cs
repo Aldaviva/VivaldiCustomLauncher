@@ -24,14 +24,9 @@ public class BrowserHtmlTweak: BaseStringTweak<BrowserHtmlTweakParams> {
 
 }
 
-public class BrowserHtmlTweakParams: BaseTweakParams {
+public class BrowserHtmlTweakParams(string filename, string customStyleSheetRelativeFilePath, string customScriptRelativePath): BaseTweakParams(filename) {
 
-    public string customStyleSheetRelativeFilePath { get; }
-    public string customScriptRelativePath { get; }
-
-    public BrowserHtmlTweakParams(string filename, string customStyleSheetRelativeFilePath, string customScriptRelativePath): base(filename) {
-        this.customStyleSheetRelativeFilePath = customStyleSheetRelativeFilePath;
-        this.customScriptRelativePath         = customScriptRelativePath;
-    }
+    public string customStyleSheetRelativeFilePath { get; } = customStyleSheetRelativeFilePath;
+    public string customScriptRelativePath { get; } = customScriptRelativePath;
 
 }

@@ -70,7 +70,7 @@ public static class VivaldiLauncher {
                                 Example:
 
                                 {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] ["https://vivaldi.com"] [<extra>..]
-                                            
+
                                 Parameters:
 
                                 --vivaldi-application-directory="dir"
@@ -109,7 +109,7 @@ public static class VivaldiLauncher {
                 Task<bool>    isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
                 Task<string?> resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
                 (string resourceDirectory, Version browserVersion) = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
-                string                 tweakManifestAbsolutePath = Path.Combine(resourceDirectory, "../../../..", CURRENT_ASSEMBLY.Name + "-manifest.json");
+                string                 tweakManifestAbsolutePath = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\..\..", CURRENT_ASSEMBLY.Name + "-manifest.json"));
                 Task<VersionManifest?> versionManifestTask       = readVersionManifest(tweakManifestAbsolutePath);
 
                 if (await isInstallationPendingTask) {
@@ -194,7 +194,7 @@ public static class VivaldiLauncher {
                 applyTweak(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(files.browserPage, files.relative.customStyleSheet, files.relative.customScript)),
                 applyTweak(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(files.customStyleSheet)),
                 applyTweak(new BundleScriptTweak(), new BaseTweakParams(files.bundleScript)),
-                applyTweak(new BackgroundCommonBundleScriptTweak(), new BaseTweakParams(files.backgroundCommonBundleScript)),
+                applyTweak(new BackgroundBundleScriptTweak(), new BaseTweakParams(files.backgroundBundleScript)),
                 applyTweak(new CustomScriptTweak(httpClient), new BaseTweakParams(files.customScript)),
                 applyTweak(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(files.visualElementsSource, files.visualElementsDestination)),
                 applyTweak(new ShowFeedHtmlTweak(), new ShowFeedHtmlTweakParams(files.showFeedPage, files.relative.customFeedScript)),
@@ -210,10 +210,10 @@ public static class VivaldiLauncher {
     }
 
     /// <exception cref="TweakException"></exception>
-    private static async Task applyTweak<OutputType, Params>(Tweak<OutputType, Params> tweak, Params tweakParams) where Params: TweakParams where OutputType: class {
-        OutputType editedFile = await tweak.readAndEditFile(tweakParams);
+    private static async Task applyTweak<OUTPUTTYPE, PARAMS>(Tweak<OUTPUTTYPE, PARAMS> tweak, PARAMS tweakParams) where PARAMS: TweakParams where OUTPUTTYPE: class {
+        OUTPUTTYPE editedFile = await tweak.readAndEditFile(tweakParams);
         await tweak.saveFile(editedFile, tweakParams);
-        Console.WriteLine($"Tweaked {editedFile}");
+        Console.WriteLine($"Tweaked {tweakParams.filename}");
     }
 
     private static void unapplyTweaks(string vivaldiApplicationDirectory, string installerArchiveAbsolutePath, TweakedFiles files) {
@@ -225,7 +225,7 @@ public static class VivaldiLauncher {
 
             if (fileInArchive != null) {
                 Console.WriteLine($"Extracting {filenameInArchive} to {fileToRestore}");
-                Directory.CreateDirectory(Path.GetDirectoryName(fileToRestore));
+                Directory.CreateDirectory(Path.GetDirectoryName(fileToRestore)!);
                 fileInArchive.WriteToFile(fileToRestore, new ExtractionOptions { Overwrite = true, PreserveAttributes = true });
             } else {
                 Console.WriteLine($"Could not find {filenameInArchive} in {installerArchiveAbsolutePath}");

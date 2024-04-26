@@ -1,0 +1,1 @@
+// dummy file, CI will replace this with the real snapshot background-bundle.js the next time it runs

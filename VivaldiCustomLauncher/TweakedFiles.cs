@@ -11,7 +11,7 @@ internal class TweakedFiles {
     public string resourceDirectory { get; }
     public RelativePaths relative { get; } = new();
 
-    private readonly IList<string> _overwrittenFiles = new List<string>();
+    private readonly IList<string> _overwrittenFiles = [];
     public IEnumerable<string> overwrittenFiles => _overwrittenFiles;
 
     public string customStyleSheet { get; }
@@ -19,7 +19,7 @@ internal class TweakedFiles {
     public string customFeedScript { get; }
     public string showFeedPage { get; }
     public string bundleScript { get; }
-    public string backgroundCommonBundleScript { get; }
+    public string backgroundBundleScript { get; }
     public string browserPage { get; }
     public string visualElementsSource { get; }
     public string visualElementsDestination { get; }
@@ -27,15 +27,15 @@ internal class TweakedFiles {
     public TweakedFiles(string resourceDirectory) {
         this.resourceDirectory = resourceDirectory;
 
-        customStyleSheet             = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customStyleSheet));
-        customScript                 = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customScript));
-        customFeedScript             = Path.GetFullPath(Path.Combine(resourceDirectory, "rss", relative.customFeedScript));
-        showFeedPage                 = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "rss", "showfeed.html")));
-        bundleScript                 = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "bundle.js")));
-        backgroundCommonBundleScript = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "background-common-bundle.js")));
-        browserPage                  = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "window.html")));
-        visualElementsSource         = Path.GetFullPath(Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml"));
-        visualElementsDestination    = Path.GetFullPath(Path.Combine(resourceDirectory, "../../../..", Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml"));
+        customStyleSheet          = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customStyleSheet));
+        customScript              = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customScript));
+        customFeedScript          = Path.GetFullPath(Path.Combine(resourceDirectory, "rss", relative.customFeedScript));
+        showFeedPage              = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "rss", "showfeed.html")));
+        bundleScript              = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "bundle.js")));
+        backgroundBundleScript    = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "background-bundle.js")));
+        browserPage               = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "window.html")));
+        visualElementsSource      = Path.GetFullPath(Path.Combine(resourceDirectory, "../../..", "vivaldi.VisualElementsManifest.xml"));
+        visualElementsDestination = Path.GetFullPath(Path.Combine(resourceDirectory, "../../../..", Assembly.GetExecutingAssembly().GetName().Name + ".VisualElementsManifest.xml"));
     }
 
     private string overwritten(string file) {

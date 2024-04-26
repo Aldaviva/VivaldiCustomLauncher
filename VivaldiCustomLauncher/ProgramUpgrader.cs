@@ -9,13 +9,7 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher;
 
-internal class ProgramUpgrader {
-
-    private readonly GitHubClient gitHubClient;
-
-    public ProgramUpgrader(GitHubClient gitHubClient) {
-        this.gitHubClient = gitHubClient;
-    }
+internal class ProgramUpgrader(GitHubClient gitHubClient) {
 
     /// <summary>
     /// Install the latest version of this program from GitHub.

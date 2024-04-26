@@ -43,10 +43,12 @@ public class BundleScriptTweak: BaseScriptTweak {
                 bundleWasReplaced = true;
                 return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    "if(Object.entries(document.getElementById(\"portals\")).find(prop => prop[0].startsWith(\"__reactContainer$\"))[1].child.child.child.stateNode.state.appElm.querySelector(\".webpageview.active webview\").canGoBack()){" +
+                    "if(Object.entries(document.getElementById(\"portals\")).find(prop => prop[0].startsWith(\"__reactContainer$\"))[1].child.child.child.stateNode.state.appElm.querySelector(\".webpageview.active webview\").canGoBack()){"
+                    +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
-                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +
+                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);"
+                    +
                     "}";
             });
 
@@ -92,7 +94,8 @@ public class BundleScriptTweak: BaseScriptTweak {
                 "className: \"UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain\", " +
                 "onClick: e => { " +
                 "e.stopPropagation(); " +
-                "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); " +
+                "this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); "
+                +
                 "}}, undefined, part, \".\")) " + CUSTOMIZED_COMMENT + ","
             , 1, searchStart, new TweakException("Failed to find subdomain", TWEAK_TYPE));
 
@@ -119,7 +122,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// In the Move menu, put folders in the top-level menu, not a submenu, because the extra inputs are annoying.
     /// In the Move menu, only show subscribed folders to avoid cluttering the menu with worthless destinations.
     /// In the Move menu, alphabetize the folders, but group them by special use (Inbox first, then Drafts, then Sent, etc) to make visual scanning easier.
-    /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundCommonBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
+    /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string allowMovingMailBetweenAnyFolders(string bundleContents) {

@@ -28,18 +28,18 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
-      - name: Set up MSBuild
-        uses: microsoft/setup-msbuild@v1.3.1
+      - name: Find MSBuild
+        uses: microsoft/setup-msbuild@v2
 
       - name: Clone
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v4
 
       - name: Read Vivaldi versions of existing test data
         id: existing-test-data
         run: |
           $existingVersion = (Get-Content .\Tests\Data\vivaldi-${{ inputs.buildType }}-version.txt -TotalCount 1).Trim()
           Out-File -InputObject "EXISTING_VERSION=$existingVersion" -FilePath $env:GITHUB_ENV -Append -Encoding UTF8 
-          Write-Output "Repository's existing test data is from Vivaldi ${{ inputs.buildType }} $existingReleaseVersion"
+          Write-Output "Repository's existing test data is from Vivaldi ${{ inputs.buildType }} $existingVersion"
 
       - name: Check for latest Vivaldi version
         id: latest-version
@@ -75,8 +75,8 @@ jobs:
             '--vivaldi-install-dir="${{ github.workspace }}\vivaldi-installation"',
             '--do-not-launch-chrome'
           ) -Wait
-          Write-Output "Vivaldi installation finished"
           cat $env:TEMP\vivaldi_installer.log
+          Write-Output "Vivaldi installation finished"
 
       - name: Compare existing and latest version numbers
         run: |
@@ -85,17 +85,17 @@ jobs:
           If ($isUpToDate) {
             Write-Output "::notice title=No Vivaldi ${{ inputs.buildType }} update::Test data was already up-to-date with the latest Vivaldi ${{ inputs.buildType }} version ($env:LATEST_VERSION)."
           } Else {
-            Write-Output "::notice title=Vivaldi ${{ inputs.buildType }} update released::Test data version ($env:EXISTING_VERSION) is lower than the latest Vivaldi ${{ inputs.buildType }} version ($env:LATEST_VERSION)."
-            Out-File -InputObject "### Updated to Vivaldi ${{ inputs.buildType }} **$env:LATEST_VERSION**" -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8 
+            Write-Output "::notice title=Vivaldi ${{ inputs.buildType }} update released::The latest Vivaldi ${{ inputs.buildType }} version ($env:LATEST_VERSION) is higher than the existing test data version ($env:EXISTING_VERSION)."
+            Out-File -InputObject "### Updated to Vivaldi ${{ inputs.buildType }} $env:LATEST_VERSION" -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding UTF8 
           }
 
       - name: Copy installation files into test data
         run: |
           Copy-Item -Force -Path @(`
             '.\vivaldi-installation\Application\*\resources\vivaldi\bundle.js',
-            '.\vivaldi-installation\Application\*\resources\vivaldi\background-common-bundle.js'
+            '.\vivaldi-installation\Application\*\resources\vivaldi\background-bundle.js'
           ) -Destination .\Tests\Data\${{ inputs.buildType }}\BundleScript\
-          Write-Output "Updated bundle.js and background-common-bundle.js in ${{ inputs.buildType }} test data"
+          Write-Output "Updated bundle.js and background-bundle.js in ${{ inputs.buildType }} test data"
           
       - name: Update version number in test data
         run: |
@@ -165,7 +165,7 @@ jobs:
           exit 1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: VivaldiCustomLauncher
           path: VivaldiCustomLauncher\bin\Release\*.exe

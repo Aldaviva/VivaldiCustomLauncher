@@ -7,15 +7,9 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
-public abstract class BaseDownloadableTweak: BaseStreamTweak<BaseTweakParams> {
-
-    private readonly HttpClient httpClient;
+public abstract class BaseDownloadableTweak(HttpClient httpClient): BaseStreamTweak<BaseTweakParams> {
 
     protected abstract Uri downloadUri { get; }
-
-    protected BaseDownloadableTweak(HttpClient httpClient) {
-        this.httpClient = httpClient;
-    }
 
     public override async Task<Stream> readAndEditFile(BaseTweakParams tweakParams) {
         try {
