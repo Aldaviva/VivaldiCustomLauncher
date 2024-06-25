@@ -103,7 +103,7 @@ jobs:
           Write-Output "Marked ${{ inputs.buildType }} test data as coming from Vivaldi $env:LATEST_VERSION"
         
       - name: Commit and push new test data
-        uses: EndBug/add-and-commit@v9.1.1
+        uses: EndBug/add-and-commit@v9
         env:
           HOME: "~" # get rid of a benign warning
         with:
