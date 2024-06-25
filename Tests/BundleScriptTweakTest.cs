@@ -58,7 +58,7 @@ public class BundleScriptTweakTest {
         string actual = tweak.removeExtraSpacingFromTabBarRightSide(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @"this.createFlexBoxLayout(this.props.tabs,this.props.direction,this.props.maxWidth+62/* Customized by Ben */,this.props.maxHeight,{";
+            @"getTabStripWidth=()=>{const e=this.props.prefValues[$.kTabsShowSyncedTabsButton];if(""row""===this.props.direction){const t=Number(e)+Number(this.props.showTrashCan);return t>0?this.props.maxWidth+38/* Customized by Ben */-32*t:this.props.maxWidth+38/* Customized by Ben */-8}return this.props.maxWidth};";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }

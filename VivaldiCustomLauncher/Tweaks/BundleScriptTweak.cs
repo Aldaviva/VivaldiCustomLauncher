@@ -61,9 +61,10 @@ public class BundleScriptTweak: BaseScriptTweak {
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string removeExtraSpacingFromTabBarRightSide(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<prefix>\bgetStyles.{1,20}=>.{1,200}this\.props\.maxWidth)(?<suffix>,)"),
-        match => match.Groups["prefix"].Value + "+62" + CUSTOMIZED_COMMENT + match.Groups["suffix"].Value,
-        new TweakException("Failed to find maxWidth to add to", TWEAK_TYPE));
+        new Regex(@"(?<=\bgetTabStripWidth=.{73,294}?this\.props\.maxWidth)(?=-)"),
+        _ => "+38" + CUSTOMIZED_COMMENT,
+        2, 0,
+        new TweakException("Failed to find getTabStripWidth function to modify", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
