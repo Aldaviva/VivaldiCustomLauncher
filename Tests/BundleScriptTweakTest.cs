@@ -137,4 +137,14 @@ public class BundleScriptTweakTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
+    [Fact]
+    public void hideNoisyStatusMessages() {
+        string actual = tweak.hideNoisyStatusMessages(ORIGINAL_BUNDLE_TEXT);
+
+        const string EXPECTED =
+            @";case""STATUS_SET_STATUS"":return(0,Fd.c)(e,t.windowId,(e=>{if(![""Finished indexing - "",""Finished prefetching - "",""Checking calendar ""].some(prefix=>t.status.startsWith(prefix)))/* Customized by Ben */e.status=t.status})";
+
+        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
 }

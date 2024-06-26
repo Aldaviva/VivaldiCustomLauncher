@@ -2,6 +2,7 @@
 
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Utf8Json;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
@@ -19,6 +20,7 @@ public class BundleScriptTweak: BaseScriptTweak {
         newBundleContents = navigateToSubdomainParts(newBundleContents);
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = expandDomainsWithHttps(newBundleContents);
+        newBundleContents = hideNoisyStatusMessages(newBundleContents);
         return newBundleContents;
     });
 
@@ -172,5 +174,19 @@ public class BundleScriptTweak: BaseScriptTweak {
         new Regex(@"(?<=\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
         _ => "\"https://\" " + CUSTOMIZED_COMMENT + " + ",
         new TweakException("Failed to find handleSubmit function that reads kAddressBarAutocompleteSuffixExpansionEnabled and calls _urlFieldGo()", TWEAK_TYPE));
+
+    /// <exception cref="TweakException">if the tweak can't be applied</exception>
+    internal virtual string hideNoisyStatusMessages(string bundleContents) {
+        string[] prefixesToBlock = [
+            "Finished indexing - ",
+            "Finished prefetching - ",
+            "Checking calendar "
+        ];
+        string prefixesJsonList = JsonSerializer.ToJsonString(prefixesToBlock);
+        return replaceOrThrow(bundleContents,
+            new Regex(@"(?<=case""STATUS_SET_STATUS"":.{16,64}?\{)[\w$]{1,3}\.status=(?<actionVar>[\w$]{1,3})\.status(?=\})"),
+            match => $"if(!{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))){CUSTOMIZED_COMMENT}{match.Value}",
+            new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
+    }
 
 }

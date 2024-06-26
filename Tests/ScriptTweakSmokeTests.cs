@@ -73,4 +73,10 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
+    [Fact]
+    public void hideNoisyStatusMessages() {
+        string actual = bundleTweak.hideNoisyStatusMessages(ORIGINAL_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
 }
