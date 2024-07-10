@@ -184,8 +184,8 @@ public class BundleScriptTweak: BaseScriptTweak {
         ];
         string prefixesJsonList = JsonSerializer.ToJsonString(prefixesToBlock);
         return replaceOrThrow(bundleContents,
-            new Regex(@"(?<=case""STATUS_SET_STATUS"":.{16,64}?\{)[\w$]{1,3}\.status=(?<actionVar>[\w$]{1,3})\.status(?=\})"),
-            match => $"if(!{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))){CUSTOMIZED_COMMENT}{match.Value}",
+            new Regex(@"(?<=case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"),
+            match => $"{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
             new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
     }
 
