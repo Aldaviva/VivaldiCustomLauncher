@@ -75,7 +75,7 @@ jobs:
             '--vivaldi-install-dir="${{ github.workspace }}\vivaldi-installation"',
             '--do-not-launch-chrome'
           ) -Wait
-          cat $env:TEMP\vivaldi_installer.log
+          cat $env:TMP\vivaldi_installer.log
           Write-Output "Vivaldi installation finished"
 
       - name: Compare existing and latest version numbers
