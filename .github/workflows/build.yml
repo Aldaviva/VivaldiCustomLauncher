@@ -75,6 +75,14 @@ jobs:
             '--vivaldi-install-dir="${{ github.workspace }}\vivaldi-installation"',
             '--do-not-launch-chrome'
           ) -Wait
+
+          Write-Output "Environment variables:"
+          dir env: | Write-Output
+
+          Write-Output "Found log files:"
+          Get-ChildItem -Path "C:\" -Recurse -Filter "vivaldi_installer.log" -ErrorAction Ignore | % { Write-Output $_.FullName }
+          Get-ChildItem -Path "D:\" -Recurse -Filter "vivaldi_installer.log" -ErrorAction Ignore | % { Write-Output $_.FullName }
+
           cat $env:TMP\vivaldi_installer.log
           Write-Output "Vivaldi installation finished"
 
