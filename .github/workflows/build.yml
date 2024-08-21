@@ -80,10 +80,9 @@ jobs:
           dir env: | Write-Output
 
           Write-Output "Found log files:"
-          Get-ChildItem -Path "C:\" -Recurse -Filter "vivaldi_installer.log" -ErrorAction Ignore | % { Write-Output $_.FullName }
           Get-ChildItem -Path "D:\" -Recurse -Filter "vivaldi_installer.log" -ErrorAction Ignore | % { Write-Output $_.FullName }
 
-          cat $env:TMP\vivaldi_installer.log
+          cat $env:RUNNER_TEMP\vivaldi_installer.log
           Write-Output "Vivaldi installation finished"
 
       - name: Compare existing and latest version numbers
