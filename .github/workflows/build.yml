@@ -76,15 +76,6 @@ jobs:
             '--do-not-launch-chrome'
           ) -Wait
 
-          Write-Output "Environment variables:"
-          dir env: | Write-Output
-
-          Write-Output "Found log files:"
-          Get-ChildItem -Path "D:\" -Recurse -Filter "vivaldi_installer.log" -ErrorAction Ignore | % { Write-Output $_.FullName }
-
-          cat $env:RUNNER_TEMP\vivaldi_installer.log
-          Write-Output "Vivaldi installation finished"
-
       - name: Compare existing and latest version numbers
         run: |
           $isUpToDate = $env:EXISTING_VERSION -eq $env:LATEST_VERSION
