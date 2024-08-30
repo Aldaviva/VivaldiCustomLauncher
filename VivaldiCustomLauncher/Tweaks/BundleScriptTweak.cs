@@ -180,7 +180,8 @@ public class BundleScriptTweak: BaseScriptTweak {
         string[] prefixesToBlock = [
             "Finished indexing - ",
             "Finished prefetching - ",
-            "Checking calendar "
+            "Checking calendar ",
+            "All downloaded messages are available for a full text search"
         ];
         string prefixesJsonList = JsonSerializer.ToJsonString(prefixesToBlock);
         return replaceOrThrow(bundleContents,
