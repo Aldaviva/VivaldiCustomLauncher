@@ -64,7 +64,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string removeExtraSpacingFromTabBarRightSide(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<=\bgetTabStripWidth=.{73,294}?this\.props\.maxWidth)(?=-)"),
-        _ => "+38" + CUSTOMIZED_COMMENT,
+        _ => "+71" + CUSTOMIZED_COMMENT,
         2, 0,
         new TweakException("Failed to find getTabStripWidth function to modify", TWEAK_TYPE));
 
