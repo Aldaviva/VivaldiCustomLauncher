@@ -21,6 +21,7 @@ public class BundleScriptTweak: BaseScriptTweak {
         newBundleContents = allowMovingMailBetweenAnyFolders(newBundleContents);
         newBundleContents = expandDomainsWithHttps(newBundleContents);
         newBundleContents = hideNoisyStatusMessages(newBundleContents);
+        newBundleContents = calculateDataSizesInBase1024(newBundleContents);
         return newBundleContents;
     });
 
@@ -170,6 +171,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// By default, typing something like "google" in the address bar and pressing Ctrl+Enter will navigate to "google.com". Unfortunately, even when HTTPS-Only Mode is enabled, this expansion will initially navigate to "http://google.com" before HTTPS-Only Mode, HSTS, or server-side redirections kick in.
     /// Modify the function so that it would initially navigate to "https://google.com" instead.
     /// </summary>
+    /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string expandDomainsWithHttps(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<=\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
         _ => "\"https://\" " + CUSTOMIZED_COMMENT + " + ",
@@ -189,5 +191,16 @@ public class BundleScriptTweak: BaseScriptTweak {
             match => $"{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
             new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
     }
+
+    /// <summary>
+    /// Starting in version 6.2, Vivaldi formats data sizes in base-1000 (1000 B = 1 kB, 1000 kB = 1 MB).
+    /// This is a feature, not a bug: https://forum.vivaldi.net/topic/92075/option-to-select-binary-or-decimal-units-for-file-sizes
+    /// Revert this to the correct base of 1024 (1024 B = 1 kB, 1024 kB = 1 MB).
+    /// </summary>
+    /// <exception cref="TweakException">if the tweak can't be applied</exception>
+    internal virtual string calculateDataSizesInBase1024(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
+            """(?<=["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\).{1,156}\1\?1024:1e3\b)"""),
+        match => $"{match.Groups["useBase1024Variable"].Value}=true{CUSTOMIZED_COMMENT}",
+        new TweakException("Failed to find data size formatting function after B, kB, MB, GB, etc", TWEAK_TYPE));
 
 }

@@ -79,4 +79,10 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
+    [Fact]
+    public void calculateDataSizesInBase1024() {
+        string actual = bundleTweak.calculateDataSizesInBase1024(ORIGINAL_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
 }

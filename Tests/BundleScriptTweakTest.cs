@@ -147,4 +147,14 @@ public class BundleScriptTweakTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
+    [Fact]
+    public void calculateDataSizesInBase1024() {
+        string actual = tweak.calculateDataSizesInBase1024(ORIGINAL_BUNDLE_TEXT);
+
+        const string EXPECTED =
+            @";const mh=[(0,nt.Z)(""B""),(0,nt.Z)(""kB""),(0,nt.Z)(""MB""),(0,nt.Z)(""GB""),(0,nt.Z)(""TB""),(0,nt.Z)(""PB""),(0,nt.Z)(""EB""),(0,nt.Z)(""ZB""),(0,nt.Z)(""YB"")],vh=(0,nt.Z)(""bytes"");function fh(e,t,n=!0,i=true/* Customized by Ben */){if(isNaN(e))return e?e.toString():"""";if(e<=0)return""0 ""+(n?vh:mh[0]);const s=i?1024:1e3,";
+
+        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
 }
