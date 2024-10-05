@@ -45,6 +45,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - classify the "Junk E-mail" folder as a normal folder instead of spam, since I use that as a source of suspected spam on my mail server, not a sink of confirmed spam. This makes the Mark as Spam button work properly, and prevents mail folders from showing the wrong messages.
     - prepend `https://` when you press `Ctrl`+`Enter` in the address bar, in addition to the default behavior of appending `.com`
     - hide incessant, useless status bar messages about checking mail and calendars, which are more annoying than beneficial
+    - format data sizes using the widespread conventional base of 1024 instead of 1000 (1 kB = 1024 bytes, 1 MB = 1024 kB, 1 GB = 1024 MB, etc)
 
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapplies all of the above tweaks if needed when the browser is restarted after installing Vivaldi or an update.
