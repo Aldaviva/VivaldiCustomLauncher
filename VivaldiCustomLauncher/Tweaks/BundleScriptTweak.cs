@@ -126,11 +126,10 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// In the Move menu, put folders in the top-level menu, not a submenu, because the extra inputs are annoying.
     /// In the Move menu, only show subscribed folders to avoid cluttering the menu with worthless destinations.
     /// In the Move menu, alphabetize the folders, but group them by special use (Inbox first, then Drafts, then Sent, etc) to make visual scanning easier.
-    /// This tweak relies on folder subscription statuses being exposed to the UI by the <see cref="BackgroundBundleScriptTweak.exposeFolderSubscriptionStatus"/> tweak.
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string allowMovingMailBetweenAnyFolders(string bundleContents) {
-        Match functionStartMatch = Regex.Match(bundleContents, @"getMoveToFolderMenu=");
+        Match functionStartMatch = Regex.Match(bundleContents, "getMoveToFolderMenu=");
         if (!functionStartMatch.Success) {
             throw new TweakException("Failed to find getMoveToFolderMenu() function", TWEAK_TYPE);
         }

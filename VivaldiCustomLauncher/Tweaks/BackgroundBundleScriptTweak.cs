@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
+/*
+ * Remember when debugging this file to delete the service worker cache for your changes to take effect.
+ */
 public class BackgroundBundleScriptTweak: BaseScriptTweak {
 
     private const string TWEAK_TYPE = nameof(BackgroundBundleScriptTweak);
@@ -54,7 +57,8 @@ public class BackgroundBundleScriptTweak: BaseScriptTweak {
     /// </summary>
     internal virtual string classifyJunkEmailAsNormalFolder(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"if\((?<folderVar>[\w$]{1,3})\.flags\)"),
-        match => $"if({match.Groups["folderVar"].Value}.path === \"Junk E-mail\"){{ return false; }}{CUSTOMIZED_COMMENT}{match.Value}",
+        match =>
+            $"if({match.Groups["folderVar"].Value}.path === \"Junk E-mail\"){{ delete {match.Groups["folderVar"].Value}.specialUse; delete {match.Groups["folderVar"].Value}.specialUseFlag; return false; }}{CUSTOMIZED_COMMENT}{match.Value}",
         new TweakException("Failed to find IMAP folder special use function", TWEAK_TYPE));
 
 }
