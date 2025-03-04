@@ -43,6 +43,7 @@ internal class ProgramUpgrader(GitHubClient gitHubClient) {
             return false;
         }
 
+        using (downloadStream)
         using (fileStream) {
             await downloadStream.CopyToAsync(fileStream);
             await fileStream.FlushAsync();

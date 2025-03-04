@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Utf8Json;
 
 namespace VivaldiCustomLauncher.Tweaks;
 
@@ -185,7 +185,7 @@ public class BundleScriptTweak: BaseScriptTweak {
             "All downloaded messages are available for a full text search",
             "Running mail filters..."
         ];
-        string prefixesJsonList = JsonSerializer.ToJsonString(prefixesToBlock);
+        string prefixesJsonList = JsonSerializer.Serialize(prefixesToBlock);
         return replaceOrThrow(bundleContents,
             new Regex(@"(?<=case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"),
             match => $"{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
