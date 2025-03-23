@@ -15,6 +15,7 @@ internal class TweakedFiles {
     public IEnumerable<string> overwrittenFiles => _overwrittenFiles;
 
     public string customStyleSheet { get; }
+    public string modStyleSheet { get; }
     public string customScript { get; }
     public string customFeedScript { get; }
     public string showFeedPage { get; }
@@ -28,6 +29,7 @@ internal class TweakedFiles {
         this.resourceDirectory = resourceDirectory;
 
         customStyleSheet          = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customStyleSheet));
+        modStyleSheet             = Path.GetFullPath(Path.Combine(resourceDirectory, "../../../..", "css-mods", "mods.css"));
         customScript              = Path.GetFullPath(Path.Combine(resourceDirectory, relative.customScript));
         customFeedScript          = Path.GetFullPath(Path.Combine(resourceDirectory, "rss", relative.customFeedScript));
         showFeedPage              = overwritten(Path.GetFullPath(Path.Combine(resourceDirectory, "rss", "showfeed.html")));

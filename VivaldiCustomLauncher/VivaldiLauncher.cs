@@ -196,6 +196,7 @@ public static class VivaldiLauncher {
             return Task.WhenAll(
                 applyTweak(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(files.browserPage, files.relative.customStyleSheet, files.relative.customScript)),
                 applyTweak(new CustomStyleSheetTweak(httpClient.Value), new BaseTweakParams(files.customStyleSheet)),
+                applyTweak(new ModStyleSheetTweak(httpClient.Value), new BaseTweakParams(files.modStyleSheet)),
                 applyTweak(new BundleScriptTweak(), new BaseTweakParams(files.bundleScript)),
                 applyTweak(new BackgroundBundleScriptTweak(), new BaseTweakParams(files.backgroundBundleScript)),
                 applyTweak(new CustomScriptTweak(httpClient.Value), new BaseTweakParams(files.customScript)),
