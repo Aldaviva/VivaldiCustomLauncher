@@ -122,7 +122,9 @@ jobs:
 
         # Tests uses the BUILD_TYPE environment variable to load the correct files, as set at the top of this file. See the DataReader class.
       - name: Smoke test tweaks
-        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Debug --verbosity normal
+        run: |
+          msbuild -p:Configuration=Debug -t:build -m
+          dotnet test Tests --filter DisplayName~SmokeTests --configuration Debug --no-build --verbosity normal
 
       - name: Smoke test Vivaldi startup
         run: |
