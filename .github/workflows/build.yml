@@ -117,12 +117,12 @@ jobs:
       - name: Restore solution
         run: msbuild -p:Configuration=Release -t:restore -p:RestoreLockedMode=true
 
-      - name: Build solution
-        run: msbuild -p:Configuration=Release -t:build -m
+      - name: Build program
+        run: msbuild VivaldiCustomLauncher -p:Configuration=Release -t:build -m
 
         # Tests uses the BUILD_TYPE environment variable to load the correct files, as set at the top of this file. See the DataReader class.
       - name: Smoke test tweaks
-        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Release --no-build --verbosity normal
+        run: dotnet test Tests --filter DisplayName~SmokeTests --configuration Debug --verbosity normal
 
       - name: Smoke test Vivaldi startup
         run: |
