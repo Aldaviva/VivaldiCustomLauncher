@@ -15,27 +15,28 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Utf8Json;
+using Unfucked.HTTP;
 using VivaldiCustomLauncher.Tweaks;
 
 namespace VivaldiCustomLauncher;
 
 public static class VivaldiLauncher {
 
-    private static         HttpClient?  cachedHttpClient;
     public static readonly AssemblyName CURRENT_ASSEMBLY = Assembly.GetExecutingAssembly().GetName();
 
-    private static HttpClient httpClient => cachedHttpClient ??= new HttpClient(new HttpClientHandler {
+    private static Lazy<HttpClient> httpClient => new(() => new UnfuckedHttpClient(new HttpClientHandler {
         MaxConnectionsPerServer = 24,
         AllowAutoRedirect       = true,
         AutomaticDecompression  = DecompressionMethods.GZip
     }) {
         Timeout               = TimeSpan.FromSeconds(10),
         DefaultRequestHeaders = { UserAgent = { new ProductInfoHeaderValue(CURRENT_ASSEMBLY.Name, CURRENT_ASSEMBLY.Version.ToString()) } }
-    };
+    }, LazyThreadSafetyMode.PublicationOnly);
 
     [STAThread]
     public static async Task<int> Main() {
@@ -49,7 +50,9 @@ public static class VivaldiLauncher {
         try {
             return await tweakAndLaunch() ? 0 : 1;
         } finally {
-            cachedHttpClient?.Dispose();
+            if (httpClient.IsValueCreated) {
+                httpClient.Value.Dispose();
+            }
         }
     }
 
@@ -105,7 +108,7 @@ public static class VivaldiLauncher {
 
             using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
             if (existingVivaldiProcess == null) {
-                GitHubClient  gitHub                      = new(httpClient);
+                GitHubClient  gitHub                      = new(httpClient.Value);
                 Task<bool>    isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
                 Task<string?> resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
                 (string resourceDirectory, Version browserVersion) = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
@@ -192,13 +195,13 @@ public static class VivaldiLauncher {
         try {
             return Task.WhenAll(
                 applyTweak(new BrowserHtmlTweak(), new BrowserHtmlTweakParams(files.browserPage, files.relative.customStyleSheet, files.relative.customScript)),
-                applyTweak(new CustomStyleSheetTweak(httpClient), new BaseTweakParams(files.customStyleSheet)),
+                applyTweak(new CustomStyleSheetTweak(httpClient.Value), new BaseTweakParams(files.customStyleSheet)),
                 applyTweak(new BundleScriptTweak(), new BaseTweakParams(files.bundleScript)),
                 applyTweak(new BackgroundBundleScriptTweak(), new BaseTweakParams(files.backgroundBundleScript)),
-                applyTweak(new CustomScriptTweak(httpClient), new BaseTweakParams(files.customScript)),
+                applyTweak(new CustomScriptTweak(httpClient.Value), new BaseTweakParams(files.customScript)),
                 applyTweak(new VisualElementsManifestTweak(), new VisualElementsManifestTweakParams(files.visualElementsSource, files.visualElementsDestination)),
                 applyTweak(new ShowFeedHtmlTweak(), new ShowFeedHtmlTweakParams(files.showFeedPage, files.relative.customFeedScript)),
-                applyTweak(new CustomFeedScriptTweak(httpClient), new BaseTweakParams(files.customFeedScript))
+                applyTweak(new CustomFeedScriptTweak(httpClient.Value), new BaseTweakParams(files.customFeedScript))
             );
         } catch (AggregateException e) {
             if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
@@ -296,7 +299,7 @@ public static class VivaldiLauncher {
             return await JsonSerializer.DeserializeAsync<VersionManifest>(file);
         } catch (FileNotFoundException) {
             return null;
-        } catch (JsonParsingException) {
+        } catch (JsonException) {
             return null;
         }
     }
