@@ -88,6 +88,9 @@ internal static class CommandLine {
             [Option(LongName = "vivaldi-application-directory")]
             public string? vivaldiApplicationDirectory { get; set; }
 
+            [Option(LongName = "untweak")]
+            public bool untweak { get; set; }
+
             [Option("-h|--help")]
             public bool help { get; set; }
 

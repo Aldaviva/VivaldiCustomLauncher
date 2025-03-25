@@ -72,7 +72,7 @@ public static class VivaldiLauncher {
                 string usage = $"""
                                 Example:
 
-                                {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] ["https://vivaldi.com"] [<extra>..]
+                                {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] [--untweak] ["https://vivaldi.com"] [<extra>..]
 
                                 Parameters:
 
@@ -85,6 +85,10 @@ public static class VivaldiLauncher {
                                 --do-not-launch-vivaldi
                                    Install tweaks as needed, but do not launch Vivaldi. If
                                    omitted, Vivaldi will be launched after installing tweaks.
+                                   
+                                --untweak
+                                   Remove all installed tweaks. Easier than reinstalling Vivaldi 
+                                   if the tweaks are causing problems.
 
                                 url
                                    The web page that Vivaldi should load. If omitted, Vivaldi
@@ -130,16 +134,18 @@ public static class VivaldiLauncher {
                         resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
                         CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion ||
                         browserVersion != versionManifest.browserVersion; // tweaks are from different launcher or resources, or the browser was updated
+                    bool wasAlreadyTweaked = shouldApplyTweaks && (versionManifest != null || File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)));
+                    bool shouldUntweak     = wasAlreadyTweaked || arguments.untweak;
+
+                    if (shouldUntweak) {
+                        // Revert existing tweaks because they are outdated, or just upgraded to first launcher version that uses manifest files
+                        Console.WriteLine("Unapplying tweaks");
+                        string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
+                        unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
+                        File.Delete(tweakManifestAbsolutePath);
+                    }
 
                     if (shouldApplyTweaks) {
-                        bool wasAlreadyTweaked = versionManifest != null || File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript));
-                        if (wasAlreadyTweaked) {
-                            // Revert existing tweaks because they are outdated, or just upgraded to first launcher version that uses manifest files
-                            Console.WriteLine("Unapplying tweaks");
-                            string installerFile = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\Installer\vivaldi.7z"));
-                            unapplyTweaks(vivaldiApplicationDirectory, installerFile, tweakedFiles);
-                        }
-
                         try {
                             Console.WriteLine("Applying tweaks");
                             await applyTweaks(tweakedFiles);
@@ -248,12 +254,12 @@ public static class VivaldiLauncher {
         } else {
             const string UNINSTALL_REGISTRY_PATH       = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
             const string UNINSTALL_REGISTRY_PATH_WOW64 = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi";
-            IEnumerable<(RegistryKey hive, string path)> uninstallKeys = new[] {
+            IEnumerable<(RegistryKey hive, string path)> uninstallKeys = [
                 (Registry.CurrentUser, UNINSTALL_REGISTRY_PATH),
                 (Registry.CurrentUser, UNINSTALL_REGISTRY_PATH_WOW64),
                 (Registry.LocalMachine, UNINSTALL_REGISTRY_PATH),
                 (Registry.LocalMachine, UNINSTALL_REGISTRY_PATH_WOW64)
-            };
+            ];
 
             foreach ((RegistryKey hive, string path) in uninstallKeys) {
                 using RegistryKey? key = hive.OpenSubKey(path, false);

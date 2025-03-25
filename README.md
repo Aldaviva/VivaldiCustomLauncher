@@ -5,6 +5,16 @@ VivaldiCustomLauncher
 
 Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to add custom arguments and apply tweaks files
 
+
+<!-- MarkdownTOC autolink="true" bracket="round" autoanchor="false" levels="1,2,3" bullets="1.,-" -->
+
+1. [Usage](#usage)
+1. [What does it do?](#what-does-it-do)
+1. [How does it work?](#how-does-it-work)
+1. [Options](#options)
+
+<!-- /MarkdownTOC -->
+
 ## Usage
 1. Download `VivaldiCustomLauncher.exe` from the [latest release](https://github.com/Aldaviva/VivaldiCustomLauncher/releases/latest) and save it somewhere, such as `C:\Program Files\Vivaldi\VivaldiCustomLauncher.exe`.
 1. Download [`VivaldiCustomLauncher.reg`](https://raw.githubusercontent.com/Aldaviva/VivaldiCustomLauncher/master/VivaldiCustomLauncher.reg).
@@ -24,6 +34,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 
 ## What does it do?
 - Includes a [custom style sheet](https://github.com/Aldaviva/VivaldiCustomResources/blob/master/style/custom.css) in the browser chrome to clean up the UI and make it more minimal.
+- Includes [CSS mods](https://github.com/Aldaviva/VivaldiCustomResources/blob/master/style/mods.css) in the browser chrome to hide the pointless, annoying, ugly Link Copied and Press Esc To Exit Fullscreen toasts. This is a separate stylesheet so that it can also be used in Vivaldi installations that don't use VivaldiCustomLauncher.
 - Includes a [custom script](https://github.com/Aldaviva/VivaldiCustomResources/blob/master/scripts/custom.js) to
     - add more keyboard shortcuts to the browser
         |Keyboard shortcut|Action|
@@ -46,7 +57,6 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - prepend `https://` when you press `Ctrl`+`Enter` in the address bar, in addition to the default behavior of appending `.com`
     - hide incessant, useless status bar messages about checking mail and calendars, which are more annoying than beneficial
     - format data sizes using the widespread conventional base of 1024 instead of 1000 (1 kB = 1024 bytes, 1 MB = 1024 kB, 1 GB = 1024 MB, etc)
-
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapplies all of the above tweaks if needed when the browser is restarted after installing Vivaldi or an update.
 
@@ -54,3 +64,19 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 1. When you open an HTML page, web URL, or a shortcut to Vivaldi, this headless launcher program is started instead, because you updated all the associations and shortcuts for Vivaldi.
 1. This program checks to see if the tweaks need to be applied, including after an update. If any of the tweaked files are out-of-date, they are automatically updated.
 1. This program launches Vivaldi, passing in your original arguments.
+
+## Options
+<dl>
+    <dt><code>--vivaldi-application-directory="&lt;dir&gt;"</code></dt>
+    <dd>By default, this program finds the Vivaldi installation directory using the registry, but you can customize this (for example, if you have portable or multiple installations) by passing the path to the <code>Applications</code> subdirectory of the Vivaldi installation directory you want to tweak.</dd>
+    <dt><code>--do-not-launch-vivaldi</code></dt>
+    <dd>By default, this program will install tweaks in the Vivaldi installation directory and then launch Vivaldi. Pass this argument to only install tweaks but not launch Vivaldi.</dd>
+    <dt><code>--untweak</code></dt>
+    <dd>Uninstall tweaks from the Vivaldi installation directory instead of installing them. Useful if you're trying to determine if a bug was caused by the tweaks or a Vivaldi update.</dd>
+    <dt><code>&lt;url&gt;</code></dt>
+    <dd>Pass a URL for Vivaldi to launch, or omit it to just start Vivaldi.</dd>
+    <dt><code>--help</code>, <code>-h</code>, <code>-?</code></dt>
+    <dd>Show usage dialog box.</dd>
+    <dt>other arguments</dt>
+    <dd>Any arguments not recognized by VivaldiCustomLauncher will be passed through unchanged to Vivaldi, which is useful if you want to run Vivaldi with more logging by passing <code>--enable-logging --v=1</code>.</dd>
+</dl>
