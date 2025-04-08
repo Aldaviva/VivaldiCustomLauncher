@@ -85,4 +85,10 @@ public class ScriptTweakSmokeTests {
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
+    [Fact]
+    public void autoShowImagesInNonSpamEmails() {
+        string actual = bundleTweak.autoShowImagesInNonSpamEmails(ORIGINAL_BUNDLE_TEXT);
+        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
 }

@@ -22,6 +22,7 @@ public class BundleScriptTweak: BaseScriptTweak {
         newBundleContents = expandDomainsWithHttps(newBundleContents);
         newBundleContents = hideNoisyStatusMessages(newBundleContents);
         newBundleContents = calculateDataSizesInBase1024(newBundleContents);
+        newBundleContents = autoShowImagesInNonSpamEmails(newBundleContents);
         return newBundleContents;
     });
 
@@ -202,5 +203,15 @@ public class BundleScriptTweak: BaseScriptTweak {
             """(?<=["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\).{1,156}\1\?1024:1e3\b)"""),
         match => $"{match.Groups["useBase1024Variable"].Value}=true{CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find data size formatting function after B, kB, MB, GB, etc", TWEAK_TYPE));
+
+    /// <summary>
+    /// Unlike Gmail and Outlook, Vivaldi always hides images and other content in emails from senders not in your address book, so you always have to click the Load External Content button for each message (although it does remember per message). This is good for blocking tracking pixels, but my spam filter is good enough to keep malicious mails out of my Inbox, so this is just a waste of time for me with no added security or privacy.
+    /// With this tweak, all emails will always show images, even if the sender is not in your address book, unless the message was marked as spam with the "Spam: " subject prefix (and it will be in your Junk E-mail folder in that case).
+    /// </summary>
+    /// <exception cref="TweakException">if the tweak can't be applied</exception>
+    internal virtual string autoShowImagesInNonSpamEmails(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
+            """(?<={style:[\w$]{1,3},blockHTTPLeaks:[\w$]{1,3})(?=,.{0,236}?messageHeader:(?<emailObj>[\w$]{1,3})\.messageHeader,)"""),
+        match => $"&&{match.Groups["emailObj"].Value}.listEntry.subject.startsWith('Spam: '){CUSTOMIZED_COMMENT}",
+        new TweakException("Failed to find email rendering method that determines the style, bodyParts, fromAddress, shouldWarnUserReplyTo, and other properties", TWEAK_TYPE));
 
 }

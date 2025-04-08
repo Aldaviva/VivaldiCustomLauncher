@@ -57,6 +57,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - prepend `https://` when you press `Ctrl`+`Enter` in the address bar, in addition to the default behavior of appending `.com`
     - hide incessant, useless status bar messages about checking mail and calendars, which are more annoying than beneficial
     - format data sizes using the widespread conventional base of 1024 instead of 1000 (1 kB = 1024 bytes, 1 MB = 1024 kB, 1 GB = 1024 MB, etc)
+    - automatically show images in email messages, even if the sender is not in your address book, except for spam messages where the subject starts with "Spam: ", so you don't have to click the Load External Content button all the time
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapplies all of the above tweaks if needed when the browser is restarted after installing Vivaldi or an update.
 

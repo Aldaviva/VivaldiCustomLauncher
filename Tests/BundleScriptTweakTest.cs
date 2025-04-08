@@ -157,4 +157,14 @@ public class BundleScriptTweakTest {
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
 
+    [Fact]
+    public void autoShowImagesInNonSpamEmails() {
+        string actual = tweak.autoShowImagesInNonSpamEmails(ORIGINAL_BUNDLE_TEXT);
+
+        const string EXPECTED =
+            @",blockHTTPLeaks:n&&e.listEntry.subject.startsWith('Spam: ')/* Customized by Ben */,bodyParts:""html""===";
+
+        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
+    }
+
 }
