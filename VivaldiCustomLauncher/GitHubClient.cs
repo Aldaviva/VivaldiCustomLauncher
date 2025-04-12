@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Unfucked;
 using Unfucked.HTTP;
+using Unfucked.HTTP.Exceptions;
 
 namespace VivaldiCustomLauncher;
 
@@ -29,7 +30,7 @@ internal class GitHubClient(HttpClient httpClient) {
                 version: Version.Parse(metadata.RootElement.GetProperty("tag_name").GetString()!),
                 assetUrl: new Uri(metadata.RootElement.GetProperty("assets")[0].GetProperty("url").GetString()!)
             );
-        } catch (HttpRequestException) {
+        } catch (HttpException) {
             return null;
         }
     }
@@ -39,7 +40,7 @@ internal class GitHubClient(HttpClient httpClient) {
             return await httpClient.Target(assetUri)
                 .Accept(MediaTypeNames.Application.Octet)
                 .Get<Stream>();
-        } catch (HttpRequestException) {
+        } catch (HttpException) {
             return null;
         }
     }
@@ -52,7 +53,7 @@ internal class GitHubClient(HttpClient httpClient) {
                 .ResolveTemplate("repo", repositoryName)
                 .Accept("application/vnd.github.sha")
                 .Get<string>();
-        } catch (HttpRequestException) {
+        } catch (HttpException) {
             return null;
         }
     }

@@ -4,8 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Unfucked;
 
 namespace VivaldiCustomLauncher;
 
@@ -34,11 +34,11 @@ internal class ProgramUpgrader(GitHubClient gitHubClient) {
 
         string executableAbsolutePath = Assembly.GetExecutingAssembly().Location;
         string tempFile = Path.Combine(Path.GetDirectoryName(executableAbsolutePath)!,
-            Path.GetFileNameWithoutExtension(executableAbsolutePath) + "-" + generateRandomString(8) + Path.GetExtension(executableAbsolutePath) + ".tmp");
+            Path.GetFileNameWithoutExtension(executableAbsolutePath) + "-" + Cryptography.GenerateRandomString(8) + Path.GetExtension(executableAbsolutePath) + ".tmp");
 
         Stream fileStream;
         try {
-            fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+            fileStream = new FileStream(tempFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true);
         } catch (Exception e) when (e is not OutOfMemoryException) {
             return false;
         }
@@ -59,24 +59,6 @@ internal class ProgramUpgrader(GitHubClient gitHubClient) {
         });
 
         return replacerProcess is not null;
-    }
-
-    /// https://stackoverflow.com/a/1344255/979493
-    private static string generateRandomString(int length) {
-        using RNGCryptoServiceProvider random = new();
-
-        char[] possibleChars       = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
-        int    possibleCharsLength = possibleChars.Length;
-
-        char[] result       = new char[length];
-        byte[] randomBuffer = new byte[length * 4];
-        random.GetBytes(randomBuffer);
-
-        while (length-- > 0) {
-            result[length] = possibleChars[BitConverter.ToUInt32(randomBuffer, length * 4) % possibleCharsLength];
-        }
-
-        return new string(result);
     }
 
 }

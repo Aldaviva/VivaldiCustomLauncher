@@ -36,12 +36,12 @@
       },
       "Unfucked.HTTP": {
         "type": "Direct",
-        "requested": "[0.0.0-beta9, )",
-        "resolved": "0.0.0-beta9",
-        "contentHash": "Vcmm1TC8o99Szxl5qsXDC8xq+wQDxe1UcIZchX8s7uVeANsxOFuXAULiGvkiDZfxlUlyzicw7cpCYmenNGmB+Q==",
+        "requested": "[0.0.1-beta.1, )",
+        "resolved": "0.0.1-beta.1",
+        "contentHash": "mO8/en52Qh9mobgTncd1ksxNZzHrjT+gaT5tBGr+nuSOogvIVwrYCLiutzmZLyRQDj+CZB/EKBmn5Gz/2UijKA==",
         "dependencies": {
-          "System.Net.Http.Json": "8.0.1",
-          "Unfucked": "0.0.0-beta8"
+          "System.Text.Json": "8.0.5",
+          "Unfucked": "0.0.1-beta.1"
         }
       },
       "VisualElementsManifest.xml": {
@@ -52,8 +52,8 @@
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
-        "resolved": "9.0.2",
-        "contentHash": "1CED0BGD7dCKsbe7tDhzpPB2Qdi9x35QChu6zkBEI4s0T5bDkkttGReqQnOeOfRNSxtP2WvpX6Ik/0O93XDuMw==",
+        "resolved": "9.0.3",
+        "contentHash": "oFFX9Ls8dnNUBCD9yzRzHTY8tqvv+CiX43B8L8DjrM8BqYTAlORYaJf6+KXNtSC2bD1135yV8OxzcZFaluow5w==",
         "dependencies": {
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
@@ -65,8 +65,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "9.0.2",
-        "contentHash": "QKh9+kczG7TQbQZ6tF2S6bK9B8ewHXEkYmMP2iqefzwJEfEkiflheAX6VEaPLJ6Tq9RoKuQ5R3qPYla6wJ6Opg==",
+        "resolved": "9.0.3",
+        "contentHash": "CfYi30Pbpw9aGpXVLcoGt+yM0egrE8M1DUOOwdAWOAQ2QZkXkSgjonqZYvtKdxUF1XJaLCp0OdTXueeAeUHSlQ==",
         "dependencies": {
           "System.Memory": "4.5.5",
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
@@ -80,17 +80,6 @@
           "System.Buffers": "4.5.1",
           "System.Numerics.Vectors": "4.5.0",
           "System.Runtime.CompilerServices.Unsafe": "4.5.3"
-        }
-      },
-      "System.Net.Http.Json": {
-        "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "F423ZLoJFYg1s6iA+Y7BLflVKjEK5XEA2+Z9CHbxJEUtS3+R5pgnFN499QzriRjYpOu6kS2Crd2YBkOFDHrblg==",
-        "dependencies": {
-          "System.Buffers": "4.5.1",
-          "System.Memory": "4.5.5",
-          "System.Text.Json": "8.0.5",
-          "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
       "System.Numerics.Vectors": {
@@ -147,11 +136,11 @@
       },
       "Unfucked": {
         "type": "Transitive",
-        "resolved": "0.0.0-beta8",
-        "contentHash": "QOf9t3vStYNKmOVXa51SYyOwoYPHk89Q/RMDVxpyDPlu9TAcnYlabHjbMbqifLqhoVzisKyUMrFQumJbGBQ1hQ==",
+        "resolved": "0.0.1-beta.1",
+        "contentHash": "K20GUaGtfJ0uPLaWzQSFkM8zjWdNl6jTWicSwxb0EV7w0vJ433TUVgWB6zO9gYXwNLrlbWK4GJHZMo+NLA4nOw==",
         "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "9.0.2",
-          "System.Collections.Immutable": "9.0.2"
+          "Microsoft.Bcl.AsyncInterfaces": "9.0.3",
+          "System.Collections.Immutable": "9.0.3"
         }
       },
       "ZstdSharp.Port": {
