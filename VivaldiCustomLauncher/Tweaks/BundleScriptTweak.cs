@@ -175,7 +175,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     internal virtual string expandDomainsWithHttps(string bundleContents) => replaceOrThrow(bundleContents,
         new Regex(@"(?<=\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
         _ => "\"https://\" " + CUSTOMIZED_COMMENT + " + ",
-        new TweakException("Failed to find handleSubmit function that reads kAddressBarAutocompleteSuffixExpansionEnabled and calls _urlFieldGo()", TWEAK_TYPE));
+        2, 0, new TweakException("Failed to find handleSubmit function that reads kAddressBarAutocompleteSuffixExpansionEnabled and calls _urlFieldGo()", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string hideNoisyStatusMessages(string bundleContents) {
