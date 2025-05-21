@@ -43,14 +43,14 @@ public abstract class BaseScriptTweak: Tweak<string, BaseTweakParams> {
     /// <param name="count">maximum number of matches to replace, or <c>-1</c> to replace all matches</param>
     /// <exception cref="TweakException"></exception>
     protected static string replaceOrThrow(string input, Regex pattern, Func<Match, string> evaluator, int count, int startat, TweakException toThrowIfNoReplacement) {
-        bool wasReplaced = false;
+        int actualCount = 0;
 
         string result = pattern.Replace(input, match => {
-            wasReplaced = true;
+            actualCount++;
             return evaluator(match);
         }, count, startat);
 
-        if (!wasReplaced) {
+        if (actualCount != count) {
             throw toThrowIfNoReplacement;
         } else {
             return result;
