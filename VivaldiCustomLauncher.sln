@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30104.148
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VivaldiCustomLauncher", "VivaldiCustomLauncher\VivaldiCustomLauncher.csproj", "{AF74BCDA-D58B-452E-9723-F0538B57FE38}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{E04777A6-BE35-4595-8AE2-6FE95DDB3BDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildTrigger", "BuildTrigger\BuildTrigger.csproj", "{92ED40E9-EB26-C839-B663-A8B0BEEEB22C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{E04777A6-BE35-4595-8AE2-6FE95DDB3BDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E04777A6-BE35-4595-8AE2-6FE95DDB3BDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E04777A6-BE35-4595-8AE2-6FE95DDB3BDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92ED40E9-EB26-C839-B663-A8B0BEEEB22C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92ED40E9-EB26-C839-B663-A8B0BEEEB22C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92ED40E9-EB26-C839-B663-A8B0BEEEB22C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92ED40E9-EB26-C839-B663-A8B0BEEEB22C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

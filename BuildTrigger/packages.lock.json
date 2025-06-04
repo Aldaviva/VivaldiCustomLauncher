@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "McMaster.Extensions.CommandLineUtils": {
+        "type": "Direct",
+        "requested": "[4.1.1, )",
+        "resolved": "4.1.1",
+        "contentHash": "zxgDY+G5yVq2q8sVB3Z275Qkxed1jC95nwAfnlSyoG4l5Nicvd4+ke1jXusEZEfyuErlAgXCKS937c13FmZWBg==",
+        "dependencies": {
+          "System.ComponentModel.Annotations": "5.0.0"
+        }
+      },
+      "Unfucked.HTTP": {
+        "type": "Direct",
+        "requested": "[0.0.1-beta.4, )",
+        "resolved": "0.0.1-beta.4",
+        "contentHash": "Vj38uvOzTR+r/tmfDegKuVVjJldCNNpMH/tYI6roFtPuPND5VoIjASLZgwd/f5fXa8uhtQYkTefS01uKACg52w==",
+        "dependencies": {
+          "System.Text.Json": "8.0.5",
+          "Unfucked": "0.0.1-beta.3"
+        }
+      },
+      "System.ComponentModel.Annotations": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
+      },
+      "System.Text.Json": {
+        "type": "Transitive",
+        "resolved": "8.0.5",
+        "contentHash": "0f1B50Ss7rqxXiaBJyzUu9bWFOO2/zSlifZ/UNMdiIpDYe4cY4LQQicP4nirK1OS31I43rn062UIJ1Q9bpmHpg=="
+      },
+      "Unfucked": {
+        "type": "Transitive",
+        "resolved": "0.0.1-beta.3",
+        "contentHash": "O7X4gnvXOfc7qbBksrGVJ/BAah7fNH5A/YWBOzikIaxr3jGQunOYmfkPDRWpB7+WAAmX+M4Rhgi3vd0bRU/Cxg=="
+      }
+    }
+  }
+}

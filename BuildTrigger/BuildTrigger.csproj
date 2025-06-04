@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RollForward>latestMajor</RollForward>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <LangVersion>latest</LangVersion>
+        <Copyright>© 2025 Ben Hutchison</Copyright>
+        <Authors>Ben Hutchison</Authors>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+        <Version>1.2.1</Version>
+        <RootNamespace>VivaldiCustomLauncher.BuildTrigger</RootNamespace>
+        <AssemblyTitle>VivaldiCustomLauncher Build Trigger</AssemblyTitle>
+        <AssemblyName>VivaldiCustomLauncherBuildTrigger</AssemblyName>
+        <Product>$(AssemblyTitle)</Product>
+        <DebugType>embedded</DebugType>
+        <SelfContained>false</SelfContained>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="icon.ico" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+        <PackageReference Include="Unfucked.HTTP" Version="0.0.1-beta.4" />
+    </ItemGroup>
+
+</Project>
