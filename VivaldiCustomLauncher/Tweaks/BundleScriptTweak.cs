@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -14,7 +13,6 @@ public class BundleScriptTweak: BaseScriptTweak {
     protected internal override Task<string> editFile(string bundleContents) => Task.Run(() => {
         string newBundleContents = bundleContents;
         newBundleContents = increaseMaximumTabWidth(newBundleContents);
-        newBundleContents = removeExtraSpacingFromTabBarRightSide(newBundleContents);
         newBundleContents = formatDownloadProgress(newBundleContents);
         newBundleContents = closeTabOnBackGestureIfNoTabHistory(newBundleContents);
         newBundleContents = navigateToSubdomainParts(newBundleContents);
@@ -64,15 +62,8 @@ public class BundleScriptTweak: BaseScriptTweak {
     }
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
-    internal virtual string removeExtraSpacingFromTabBarRightSide(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<=\bgetTabStripWidth=.{73,294}?this\.props\.maxWidth)(?=-)"),
-        _ => "+71" + CUSTOMIZED_COMMENT,
-        2, 0,
-        new TweakException("Failed to find getTabStripWidth function to modify", TWEAK_TYPE));
-
-    /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string increaseMaximumTabWidth(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex("""=180(?=[;,].{0,300}"dragspace")"""),
+        new Regex("(?<![-+!<>=*/%&^|?])=180(?=[;,].{0,1000}isDraggingPinnedTab)"),
         _ => "=5200" + CUSTOMIZED_COMMENT,
         new TweakException("Failed to find old max tab width to replace", TWEAK_TYPE));
 
@@ -168,23 +159,27 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string expandDomainsWithHttps(string bundleContents) => replaceOrThrow(bundleContents,
-        new Regex(@"(?<=\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
-        _ => $"\"https://\"{CUSTOMIZED_COMMENT}+",
+        new Regex(@"(?<prefix>\.kAddressBarAutocompleteSuffixExpansionValue.{1,100}_urlFieldGo\()"),
+        match => $"{match.Groups["prefix"].Value}\"https://\"{CUSTOMIZED_COMMENT}+",
         new TweakException("Failed to find handleSubmit function that reads kAddressBarAutocompleteSuffixExpansionEnabled and calls _urlFieldGo()", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string hideNoisyStatusMessages(string bundleContents) {
-        string[] prefixesToBlock = [
-            "Finished indexing - ",
-            "Finished prefetching - ",
-            "Checking calendar ",
-            "All downloaded messages are available for a full text search",
-            "Running mail filters..."
-        ];
-        string prefixesJsonList = JsonSerializer.Serialize(prefixesToBlock);
+        // language=json
+        const string PREFIXES_TO_BLOCK_JSON =
+            """
+            [
+                "Finished indexing - ",
+                "Finished prefetching - ",
+                "Checking calendar ",
+                "All downloaded messages are available for a full text search",
+                "Running mail filters..."
+            ]
+            """;
         return replaceOrThrow(bundleContents,
-            new Regex(@"(?<=case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"),
-            match => $"{prefixesJsonList}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
+            new Regex(@"(?<prefix>case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"),
+            match =>
+                $"{match.Groups["prefix"].Value}{PREFIXES_TO_BLOCK_JSON}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
             new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
     }
 
@@ -195,8 +190,8 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string calculateDataSizesInBase1024(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
-            """(?<=["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\).{1,156}\1\?1024:1e3\b)"""),
-        match => $"{match.Groups["useBase1024Variable"].Value}=true{CUSTOMIZED_COMMENT}",
+            """(?<prefix>["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\).{1,156}\2\?1024:1e3\b)"""),
+        match => $"{match.Groups["prefix"].Value}{match.Groups["useBase1024Variable"].Value}=true{CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find data size formatting function after B, kB, MB, GB, etc", TWEAK_TYPE));
 
     /// <summary>
@@ -205,8 +200,8 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string autoShowImagesInNonSpamEmails(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
-            """(?<={style:[\w$]{1,3},blockHTTPLeaks:[\w$]{1,3})(?=,.{0,236}?messageHeader:(?<emailObj>[\w$]{1,3})\.messageHeader,)"""),
-        match => $"&&{match.Groups["emailObj"].Value}.listEntry.subject.startsWith('Spam: '){CUSTOMIZED_COMMENT}",
+            """(?<prefix>{style:[\w$]{1,3},blockHTTPLeaks:[\w$]{1,3})(?=,.{0,236}?messageHeader:(?<emailObj>[\w$]{1,3})\.messageHeader,)"""),
+        match => $"{match.Groups["prefix"].Value}&&{match.Groups["emailObj"].Value}.listEntry.subject.startsWith('Spam: '){CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find email rendering method that determines the style, bodyParts, fromAddress, shouldWarnUserReplyTo, and other properties", TWEAK_TYPE));
 
 }

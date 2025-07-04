@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Tests.Assertions;
 using Tests.Data;
@@ -28,12 +28,6 @@ public class ScriptTweakSmokeTests {
     [Fact]
     public void closeTabOnBackGestureIfNoTabHistoryChangesBundle() {
         string actual = bundleTweak.closeTabOnBackGestureIfNoTabHistory(ORIGINAL_BUNDLE_TEXT);
-        FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
-    }
-
-    [Fact]
-    public void removeExtraSpacingFromTabBarRightSideChangesBundle() {
-        string actual = bundleTweak.removeExtraSpacingFromTabBarRightSide(ORIGINAL_BUNDLE_TEXT);
         FastAssert.fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 

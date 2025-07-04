@@ -13,12 +13,12 @@
       },
       "Unfucked.HTTP": {
         "type": "Direct",
-        "requested": "[0.0.1-beta.4, )",
-        "resolved": "0.0.1-beta.4",
-        "contentHash": "Vj38uvOzTR+r/tmfDegKuVVjJldCNNpMH/tYI6roFtPuPND5VoIjASLZgwd/f5fXa8uhtQYkTefS01uKACg52w==",
+        "requested": "[0.0.1-beta.7, )",
+        "resolved": "0.0.1-beta.7",
+        "contentHash": "s8AoAB+oaCKgmUeCrKiuLq3mO1vCIUsZ4FQ/Fg/HVFwKAT/MIgf9WRvg/ZncvZKICpZbv1ABqqerfETAkMin0A==",
         "dependencies": {
           "System.Text.Json": "8.0.5",
-          "Unfucked": "0.0.1-beta.3"
+          "Unfucked": "0.0.1-beta.9"
         }
       },
       "System.ComponentModel.Annotations": {
@@ -33,8 +33,8 @@
       },
       "Unfucked": {
         "type": "Transitive",
-        "resolved": "0.0.1-beta.3",
-        "contentHash": "O7X4gnvXOfc7qbBksrGVJ/BAah7fNH5A/YWBOzikIaxr3jGQunOYmfkPDRWpB7+WAAmX+M4Rhgi3vd0bRU/Cxg=="
+        "resolved": "0.0.1-beta.9",
+        "contentHash": "rwjRGKTGiwK5ZASsGFi3iKcJNMvALBlJ0HZzt7We0d8mfL0TgXpfXE+Icg97jvtJdHmH1pc446tb27LULFJKTQ=="
       }
     }
   }

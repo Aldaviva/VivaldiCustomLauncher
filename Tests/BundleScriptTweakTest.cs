@@ -54,16 +54,6 @@ public class BundleScriptTweakTest {
     }
 
     [Fact]
-    public void removeExtraSpacingFromTabBarRightSide() {
-        string actual = tweak.removeExtraSpacingFromTabBarRightSide(ORIGINAL_BUNDLE_TEXT);
-
-        const string EXPECTED =
-            @"getTabStripWidth=()=>{const e=this.props.prefValues[G.kTabsShowSyncedTabsButton];if(""row""===this.props.direction){const t=Number(e)+Number(this.props.showTrashCan);return t>0?this.props.maxWidth+71/* Customized by Ben */-bpe*t:this.props.maxWidth+71/* Customized by Ben */-8}return this.props.maxWidth";
-
-        FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
-    }
-
-    [Fact]
     public void increaseMaximumTabWidth() {
         string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 

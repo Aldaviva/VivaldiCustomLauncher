@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="MyILRepack" AfterTargets="Build" Condition="$(Configuration.Contains('Release'))">
         <ItemGroup>
@@ -11,7 +11,7 @@
             <DoNotInternalizeAssemblies Include="VisualElementsManifest" />
         </ItemGroup>
         
-        <!-- Need to internalize, which allows ILRepack to rename duplicate types like System.Runtime.CompilerServices.IsExternalInit (from both Unfucked and System.Text.Json) -->
+        <!-- Need to internalize, which allows ILRepack to rename duplicate types like System.Numerics.BitOperations (from both ZstdSharp.Port and System.Text.Encodings.Web) -->
         <ILRepack
             Parallel="true"
             Internalize="true"
