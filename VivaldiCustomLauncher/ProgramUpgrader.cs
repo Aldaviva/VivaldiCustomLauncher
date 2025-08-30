@@ -1,8 +1,10 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Unfucked;
@@ -49,16 +51,24 @@ internal class ProgramUpgrader(GitHubClient gitHubClient) {
             await fileStream.FlushAsync();
         }
 
+        using Process selfProcess = Process.GetCurrentProcess();
+        (string? selfProcessFilename, IEnumerable<string> selfProcessArgs) = Environment.GetCommandLineArgs().HeadAndTail();
         using Process? replacerProcess = Process.Start(new ProcessStartInfo {
-            FileName = "cmd.exe",
-            Arguments = "/q /c timeout /t 2 && " +
-                $"move /y \"{tempFile}\" \"{executableAbsolutePath}\" && " +
-                $"start \"\" {Environment.CommandLine}",
+            FileName = "powershell.exe",
+            Arguments = $$"""
+                          -NoProfile -NonInteractive -Command "& {
+                              (Get-Process -Id {{selfProcess.Id}}).WaitForExit();
+                              Move-Item -Force -Path '{{tempFile}}' -Destination '{{executableAbsolutePath}}';
+                              Start-Process -WorkingDirectory '{{psEscape(Environment.CurrentDirectory)}}' -FilePath '{{psEscape(selfProcessFilename!)}}' -ArgumentList {{selfProcessArgs.Select(a => $"'{psEscape(a)}'").Join(", ")}};
+                          }"
+                          """.Replace("\n", string.Empty),
             CreateNoWindow  = true,
             UseShellExecute = false
         });
 
         return replacerProcess is not null;
     }
+
+    private static string psEscape(string unescaped) => unescaped.Replace("\"", "`\"");
 
 }
