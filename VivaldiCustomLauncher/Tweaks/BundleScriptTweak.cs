@@ -166,21 +166,22 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string hideNoisyStatusMessages(string bundleContents) {
         // language=json
-        const string PREFIXES_TO_BLOCK_JSON =
-            """
-            [
-                "Finished indexing - ",
-                "Finished prefetching - ",
-                "Checking calendar ",
-                "All downloaded messages are available for a full text search",
-                "Running mail filters..."
-            ]
-            """;
+        const string BLOCKED_STATUS_PREFIXES =
+            """["Finished indexing - ", "Finished prefetching - ", "Checking calendar ", "All downloaded messages are available for a full text search", "Running mail filters..."]""";
+
+        int persistentSearchStart = 0;
+        bundleContents = replaceOrThrow(bundleContents, new Regex(@"(?<prefix>case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"), match => {
+            persistentSearchStart = match.Index;
+            return
+                $"{match.Groups["prefix"].Value}{BLOCKED_STATUS_PREFIXES}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}";
+        }, new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
+
         return replaceOrThrow(bundleContents,
-            new Regex(@"(?<prefix>case""STATUS_SET_STATUS"":.{16,64}?\{[\w$]{1,3}\.status=)(?<actionVar>[\w$]{1,3})\.status(?=\})"),
+            new Regex(@"(?<prefix>case""STATUS_SET_PERSISTENT_STATUS"":.{16,64}?\{)(?<suffix>[\w$]{1,3}\.persistentStatuses\.set\((?<actionVar>[\w$]{1,3})\.key,\k<actionVar>\.status\))(?=\})"),
             match =>
-                $"{match.Groups["prefix"].Value}{PREFIXES_TO_BLOCK_JSON}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix))?\"\":{match.Groups["actionVar"].Value}.status{CUSTOMIZED_COMMENT}",
-            new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_STATUS", TWEAK_TYPE));
+                $"{match.Groups["prefix"].Value}{BLOCKED_STATUS_PREFIXES}.some(prefix=>{match.Groups["actionVar"].Value}.status.startsWith(prefix)){CUSTOMIZED_COMMENT}||{match.Groups["suffix"].Value}",
+            1, persistentSearchStart,
+            new TweakException("Could not find reduce function with a switch statement on actionType with a case for STATUS_SET_PERSISTENT_STATUS", TWEAK_TYPE));
     }
 
     /// <summary>

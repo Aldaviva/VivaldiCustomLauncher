@@ -147,11 +147,11 @@ jobs:
 
             $consoleError = $logContents | where { $_ -like "*:ERROR:CONSOLE(*" } | select -First 1
 
-            if($consoleError.Length -gt 0){
+            if ($consoleError.Length -gt 0) {
               Stop-Process $vivaldiProcess
               Write-Output "::error title=Failed to start Vivaldi::Error in Vivaldi console: $consoleError"
               exit 1
-            } elseif(($logContents | where { $_ -like "*JS init startup:*" } | select -first 1).Length -gt 0){
+            } elseif (($logContents | where { $_ -like "*JS init startup:*" } | select -first 1).Length -gt 0) {
               Stop-Process $vivaldiProcess
               Write-Output "Vivaldi started successfully with no console errors"
               exit 0
