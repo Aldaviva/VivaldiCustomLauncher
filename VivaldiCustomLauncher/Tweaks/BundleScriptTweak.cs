@@ -45,12 +45,12 @@ public class BundleScriptTweak: BaseScriptTweak {
                 bundleWasReplaced = true;
                 return commandBackMatch.Groups["prefix"].Value +
                     CUSTOMIZED_COMMENT +
-                    "if(Object.entries(document.getElementById(\"portals\")).find(prop => prop[0].startsWith(\"__reactContainer$\"))[1].child.child.child.stateNode.state.appElm.querySelector(\".webpageview.active webview\").canGoBack()){"
-                    +
+                    "let windowEl = Object.entries(document.getElementById(\"portals\")).find(prop => prop[0].startsWith(\"__reactContainer$\"))[1].child.child.child;" +
+                    $"while (windowEl && (windowEl.pendingProps.windowId !== {commandBackMatch.Groups["eventVariable"].Value}.windowId)) {{ windowEl = windowEl.sibling; }}" +
+                    $"if (windowEl && windowEl.stateNode.state.appElm.ownerDocument.getElementById({commandBackMatch.Groups["activePage"].Value}.id).canGoBack()){{" +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
-                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);"
-                    +
+                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +
                     "}";
             });
 
