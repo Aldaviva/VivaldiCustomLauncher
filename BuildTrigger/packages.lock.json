@@ -4,7 +4,7 @@
     "net8.0": {
       "McMaster.Extensions.CommandLineUtils": {
         "type": "Direct",
-        "requested": "[4.1.1, )",
+        "requested": "[4.1.1, 5.0.0)",
         "resolved": "4.1.1",
         "contentHash": "zxgDY+G5yVq2q8sVB3Z275Qkxed1jC95nwAfnlSyoG4l5Nicvd4+ke1jXusEZEfyuErlAgXCKS937c13FmZWBg==",
         "dependencies": {
@@ -13,12 +13,12 @@
       },
       "Unfucked.HTTP": {
         "type": "Direct",
-        "requested": "[0.0.1-beta.13, )",
-        "resolved": "0.0.1-beta.13",
-        "contentHash": "aawEw3KqYyjRNYzSHXmypX1fEwsuYKDYFxzrrvTXZXrCBnKijGYu2z5JV3N42R5Abe91ktSWAnS53r06lwSXMg==",
+        "requested": "[0.0.1-beta.22, )",
+        "resolved": "0.0.1-beta.22",
+        "contentHash": "q6/22H0aX1M+plHpMqHd69TMg/p8Ekft+uW5QsPAK+jamiflNQqLLcQrQwZIH34j0CEk16/4jEDhILlCvEPpYA==",
         "dependencies": {
           "System.Text.Json": "8.0.6",
-          "Unfucked": "0.0.1-beta.13"
+          "Unfucked": "0.0.1-beta.29"
         }
       },
       "System.ComponentModel.Annotations": {
@@ -33,8 +33,8 @@
       },
       "Unfucked": {
         "type": "Transitive",
-        "resolved": "0.0.1-beta.13",
-        "contentHash": "6SfIaOvxSJQ8ulgP6yb5gAtPHewjL4Jk+O0kayx+uAjrmm9z9QxGt5YeOFeG6dKqrDi0gK0jikRoYjEdYVJT4g=="
+        "resolved": "0.0.1-beta.29",
+        "contentHash": "BwvicbiYbdSx5FJOorXfng+uidzpoCa49uLNPP6/X8bJHJA8gqbo6FvQruDYrXVX9395jPWPmcha2RjfYI2sGQ=="
       }
     }
   }

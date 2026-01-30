@@ -14,13 +14,13 @@ public class GitHubApiFilter(string accessToken): ClientRequestFilter {
 
     private readonly AuthenticationHeaderValue authentication = new("Bearer", accessToken);
 
-    public Task<HttpRequestMessage> Filter(HttpRequestMessage request, FilterContext _, CancellationToken cancellationToken) {
+    public ValueTask<HttpRequestMessage> Filter(HttpRequestMessage request, FilterContext _, CancellationToken cancellationToken) {
         if (request.RequestUri?.BelongsToDomain(DOMAIN_LOCK) ?? false) {
             request.Headers.Authorization = authentication;
             request.Headers.Accept.Add(ACCEPT);
             request.Headers.Add(VERSION_KEY, VERSION_VALUE);
         }
-        return Task.FromResult(request);
+        return new ValueTask<HttpRequestMessage>(request);
     }
 
 }
