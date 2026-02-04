@@ -57,7 +57,7 @@ public class BundleScriptTweakTest {
     public void increaseMaximumTabWidth() {
         string actual = tweak.increaseMaximumTabWidth(ORIGINAL_BUNDLE_TEXT);
 
-        const string EXPECTED = @"=5200/* Customized by Ben */,";
+        const string EXPECTED = "=5200/* Customized by Ben */,";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
@@ -82,7 +82,7 @@ public class BundleScriptTweakTest {
         string actual = tweak.formatDownloadProgress(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @"b=function(e,t,n){return e&&t>n?r()(t).fromNow(true)/* Customized by Ben */:e&&t<=n?(0,s.Z)(""1 second""):""""}(i,e,h);const M=(0,s.Z)(""$1/s"",[(0,o.Z)(n.currentSpeed)]),A=n.paused||n.state===p;let O;t[12]!==n.error?(O=n.error?u(n.error):"""",t[12]=n.error,t[13]=O):O=t[13],g=O,f=A?(0,s.Z)(""$1/$2 - stopped"",[l,m]):(0,s.Z)(""$3, $1/$2"",[l,m,M]),t[1]=n.bytesReceived,t[2]=n.currentSpeed,t[3]=n.error,t[4]=n.estimatedEndTime,t[5]=n.paused,t[6]=n.state,t[7]=n.totalBytes,t[8]=m,t[9]=g,t[10]=b,t[11]=f}else m=t[8],g=t[9],b=t[10],f=t[11];const M=f,A=n.state===d?m:n.error?g:M,O=b&&`${b} ,`;let v;return t[14]!==A||t[15]!==O?(v=(0,l.jsxs)(""div"",{className:""DownloadItem-FileSize"",children:[O,A]/* Customized by Ben */}),t[14]=A,t[15]=O,t[16]=v):v=t[16],v}},";
+            @"b=function(e,t,n){return e&&t>n?r()(t).fromNow(true)/* Customized by Ben */:e&&t<=n?(0,s.Z)(""1 second""):""""}(i,e,h);const M=(0,s.Z)(""$1/s"",[(0,o.Z)(n.currentSpeed)]),A=n.paused||n.state===p;let O;t[12]!==n.error?(O=n.error?u(n.error):"""",t[12]=n.error,t[13]=O):O=t[13],g=O,f=A?(0,s.Z)(""$1/$2 - stopped"",[l,m]):(0,s.Z)(""$3, $1/$2"",[l,m,M]),t[1]=n.bytesReceived,t[2]=n.currentSpeed,t[3]=n.error,t[4]=n.estimatedEndTime,t[5]=n.paused,t[6]=n.state,t[7]=n.totalBytes,t[8]=m,t[9]=g,t[10]=b,t[11]=f}else m=t[8],g=t[9],b=t[10],f=t[11];const M=f,A=n.state===d?m:n.error?g:M,O=b&&`${b}, `;let v;return t[14]!==A||t[15]!==O?(v=(0,l.jsxs)(""div"",{className:""DownloadItem-FileSize"",children:[O,A]/* Customized by Ben */}),t[14]=A,t[15]=O,t[16]=v):v=t[16],v}},";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED, true);
     }

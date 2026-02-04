@@ -72,7 +72,7 @@ public class BundleScriptTweak: BaseScriptTweak {
         new Regex(
             @"\.fromNow\(\)(?<unmodified1>.{1,52}?)about a second(?<unmodified2>.{1,7000}?)\$1 of \$2 - stopped(?<unmodified3>.{1,48}?)\$1 of \$2 at \$3(?<unmodified4>.{1,1000}?)(?<timeLabel>[\w$]{1,3})=(?<timeVar>[\w$]{1,3})&&` \(\$\{\k<timeVar>\}\)`(?<unmodified5>.{1,200})\[(?<sizeVar>[\w$]{1,3}),\k<timeLabel>\]"),
         match =>
-            $".fromNow(true){CUSTOMIZED_COMMENT}{match.Groups["unmodified1"].Value}1 second{match.Groups["unmodified2"].Value}$1/$2 - stopped{match.Groups["unmodified3"].Value}$3, $1/$2{match.Groups["unmodified4"].Value}{match.Groups["timeLabel"].Value}={match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}} ,`{match.Groups["unmodified5"].Value}[{match.Groups["timeLabel"].Value},{match.Groups["sizeVar"].Value}]{CUSTOMIZED_COMMENT}",
+            $".fromNow(true){CUSTOMIZED_COMMENT}{match.Groups["unmodified1"].Value}1 second{match.Groups["unmodified2"].Value}$1/$2 - stopped{match.Groups["unmodified3"].Value}$3, $1/$2{match.Groups["unmodified4"].Value}{match.Groups["timeLabel"].Value}={match.Groups["timeVar"].Value}&&`${{{match.Groups["timeVar"].Value}}}, `{match.Groups["unmodified5"].Value}[{match.Groups["timeLabel"].Value},{match.Groups["sizeVar"].Value}]{CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find old date manipulation to replace", TWEAK_TYPE));
 
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
