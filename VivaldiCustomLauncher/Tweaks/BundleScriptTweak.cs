@@ -50,7 +50,8 @@ public class BundleScriptTweak: BaseScriptTweak {
                     $"if (windowEl && windowEl.stateNode.state.appElm.ownerDocument.getElementById({commandBackMatch.Groups["activePage"].Value}.id).canGoBack()){{" +
                     commandBackMatch.Groups["goBack"].Value +
                     "} else {" +
-                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);" +
+                    $"{commandCloseMatch.Groups["dependencyVariable"].Value}.{commandCloseMatch.Groups["intermediateVariable"].Value}.close({commandBackMatch.Groups["eventVariable"].Value}.windowId);"
+                    +
                     "}";
             });
 
@@ -88,7 +89,8 @@ public class BundleScriptTweak: BaseScriptTweak {
         bundleContents = replaceOrThrow(bundleContents, subdomainPattern, match => "&&this.props.subdomain.split(\".\").map((part, index, whole) => " +
                 $"{match.Groups["domCreator"].Value}(\"span\", {{ " +
                 "className: \"UrlFragment--Lowlight UrlFragment-HostFragment-Subdomain\", " +
-                "onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); }," +
+                "onClick: e => { e.stopPropagation(); this.props.onGoToPath((this.props.scheme ? `${this.props.scheme}://` : \"\") + whole.slice(index).join(\".\") + \".\" + this.props.basedomain + \".\" + this.props.tld + (this.props.port ? `:${this.props.port}` : \"\")); },"
+                +
                 "children: [part, \".\"] })) " + CUSTOMIZED_COMMENT + ","
             , 1, searchStart, new TweakException("Failed to find subdomain", TWEAK_TYPE));
 
@@ -202,7 +204,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string autoShowImagesInNonSpamEmails(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
             """(?<prefix>{style:[\w$]{1,3},blockHTTPLeaks:[\w$]{1,3})(?=,.{0,236}?messageHeader:(?<emailObj>[\w$]{1,3})\.messageHeader,)"""),
-        match => $"{match.Groups["prefix"].Value}&&{match.Groups["emailObj"].Value}.listEntry.subject.startsWith('Spam: '){CUSTOMIZED_COMMENT}",
+        match => $"{match.Groups["prefix"].Value}&&({match.Groups["emailObj"].Value}.message?.subject?.startsWith('Spam: ')??false){CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find email rendering method that determines the style, bodyParts, fromAddress, shouldWarnUserReplyTo, and other properties", TWEAK_TYPE));
 
 }

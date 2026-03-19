@@ -152,7 +152,7 @@ public class BundleScriptTweakTest {
         string actual = tweak.autoShowImagesInNonSpamEmails(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @",blockHTTPLeaks:n&&e.listEntry.subject.startsWith('Spam: ')/* Customized by Ben */,bodyParts:""html""===";
+            @",blockHTTPLeaks:i&&(e.message?.subject?.startsWith('Spam: ')??false)/* Customized by Ben */,bodyParts:";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }
