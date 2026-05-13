@@ -10,19 +10,15 @@
       },
       "ILRepack.Lib.MSBuild.Task": {
         "type": "Direct",
-        "requested": "[2.0.44.1, )",
-        "resolved": "2.0.44.1",
-        "contentHash": "3XeHBO90AI5ggjmSeaSCVWuMuVWvNj+67ghtjTlOjhFSwhsFOJ3YU0GB/Zk19DG1grgHcJY195SIxCFVRiWf9Q=="
+        "requested": "[2.0.44.2, )",
+        "resolved": "2.0.44.2",
+        "contentHash": "53H6rOrVGPDBUU0GqEHefptus3ER34szVsVv1WfKr3Dh666ha5s0Eui9znxTztHaudWlSEUb6hJSGg4cA+wn2g=="
       },
       "McMaster.Extensions.CommandLineUtils": {
         "type": "Direct",
-        "requested": "[4.1.1, 5.0.0)",
-        "resolved": "4.1.1",
-        "contentHash": "zxgDY+G5yVq2q8sVB3Z275Qkxed1jC95nwAfnlSyoG4l5Nicvd4+ke1jXusEZEfyuErlAgXCKS937c13FmZWBg==",
-        "dependencies": {
-          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0",
-          "System.ValueTuple": "4.5.0"
-        }
+        "requested": "[5.1.0, )",
+        "resolved": "5.1.0",
+        "contentHash": "YceiKmxdsBrlkAJpmJ2N8XkLyAH01xLsm4VLfjNp5MvtAom2wflZtEBz3CLMQret6Z7jSh3oBO1ULF1Is0tNxA=="
       },
       "SharpCompress": {
         "type": "Direct",
@@ -45,24 +41,14 @@
           "System.Runtime.CompilerServices.Unsafe": "6.1.2"
         }
       },
-      "Unfucked": {
-        "type": "Direct",
-        "requested": "[0.0.1-beta.32, )",
-        "resolved": "0.0.1-beta.32",
-        "contentHash": "9y5QAqoQPbPsIa+8saPATJLzhKs4q4bxq+71nkNIHrCQxD1CkEP7tJ7e+Xpo2/zAlvo+4l+Un61KZv7PihBKPQ==",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
-          "System.Collections.Immutable": "8.0.0"
-        }
-      },
       "Unfucked.HTTP": {
         "type": "Direct",
-        "requested": "[0.0.1-beta.24, )",
-        "resolved": "0.0.1-beta.24",
-        "contentHash": "PsAhJyNUILNzqOXp+c526TzX9sl63LO375uhRgov/x1yE7ncwFEfA74MJCSijvj1i/v3hQ90N2V3+c47LPnT8g==",
+        "requested": "[0.0.1-beta.30, )",
+        "resolved": "0.0.1-beta.30",
+        "contentHash": "fxy4YbkQuKMopnRaPdwMT3y2jDzz0okL/Ia+4yXbNKChDn2rLxS0Fe8rIIjDGBNLlfOW/zWcc9v0t7bxf3jHTw==",
         "dependencies": {
           "System.Text.Json": "8.0.6",
-          "Unfucked": "0.0.1-beta.31"
+          "Unfucked": "0.0.1-beta.40"
         }
       },
       "VisualElementsManifest.xml": {
@@ -103,11 +89,6 @@
         "resolved": "6.1.2",
         "contentHash": "2hBr6zdbIBTDE3EhK7NSVNdX58uTK6iHW/P/Axmm9sl1xoGSLqDvMtpecn226TNwHByFokYwJmt/aQQNlO5CRw=="
       },
-      "System.Runtime.InteropServices.RuntimeInformation": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
-      },
       "System.Text.Encodings.Web": {
         "type": "Transitive",
         "resolved": "8.0.0",
@@ -145,6 +126,15 @@
         "resolved": "4.5.0",
         "contentHash": "okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ=="
       },
+      "Unfucked": {
+        "type": "Transitive",
+        "resolved": "0.0.1-beta.40",
+        "contentHash": "9V3WIbszgP5JPkbeoy3N5kA3WRqnXLXNV0Zi4X/LO0gW/uCrTar7714juleFVaE2KWPtrS5Me245PprN86Vy/A==",
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
+          "System.Collections.Immutable": "8.0.0"
+        }
+      },
       "ZstdSharp.Port": {
         "type": "Transitive",
         "resolved": "0.8.5",
@@ -156,33 +146,9 @@
         }
       }
     },
-    ".NETFramework,Version=v4.8/win": {
-      "System.Runtime.InteropServices.RuntimeInformation": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
-      }
-    },
-    ".NETFramework,Version=v4.8/win-arm64": {
-      "System.Runtime.InteropServices.RuntimeInformation": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
-      }
-    },
-    ".NETFramework,Version=v4.8/win-x64": {
-      "System.Runtime.InteropServices.RuntimeInformation": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
-      }
-    },
-    ".NETFramework,Version=v4.8/win-x86": {
-      "System.Runtime.InteropServices.RuntimeInformation": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
-      }
-    }
+    ".NETFramework,Version=v4.8/win": {},
+    ".NETFramework,Version=v4.8/win-arm64": {},
+    ".NETFramework,Version=v4.8/win-x64": {},
+    ".NETFramework,Version=v4.8/win-x86": {}
   }
 }

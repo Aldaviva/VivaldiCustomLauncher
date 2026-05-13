@@ -70,38 +70,38 @@ public static class VivaldiLauncher {
                 }
 
                 string usage = $"""
-                                Example:
+                    Example:
 
-                                {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] [--untweak] ["https://vivaldi.com"] [<extra>..]
+                    {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] [--untweak] ["https://vivaldi.com"] [<extra>..]
 
-                                Parameters:
+                    Parameters:
 
-                                --vivaldi-application-directory="dir"
-                                   The absolute path of the Application directory inside
-                                   Vivaldi's installation directory. If dir contains a space, make
-                                   sure to surround it with double quotation marks. If omitted,
-                                   it will be detected automatically from the registry.
+                    --vivaldi-application-directory="dir"
+                       The absolute path of the Application directory inside
+                       Vivaldi's installation directory. If dir contains a space, make
+                       sure to surround it with double quotation marks. If omitted,
+                       it will be detected automatically from the registry.
 
-                                --do-not-launch-vivaldi
-                                   Install tweaks as needed, but do not launch Vivaldi. If
-                                   omitted, Vivaldi will be launched after installing tweaks.
-                                   
-                                --untweak
-                                   Remove all installed tweaks. Easier than reinstalling Vivaldi 
-                                   if the tweaks are causing problems.
+                    --do-not-launch-vivaldi
+                       Install tweaks as needed, but do not launch Vivaldi. If
+                       omitted, Vivaldi will be launched after installing tweaks.
+                       
+                    --untweak
+                       Remove all installed tweaks. Easier than reinstalling Vivaldi 
+                       if the tweaks are causing problems.
 
-                                url
-                                   The web page that Vivaldi should load. If omitted, Vivaldi
-                                   will use its configured startup behavior, or open a new tab
-                                   if it was already running.
+                    url
+                       The web page that Vivaldi should load. If omitted, Vivaldi
+                       will use its configured startup behavior, or open a new tab
+                       if it was already running.
 
-                                <extra>
-                                   Any unrecognized parameters will be passed on to Vivaldi,
-                                   such as --debug-packed-apps --enable-logging --v=1.
+                    <extra>
+                       Any unrecognized parameters will be passed on to Vivaldi,
+                       such as --debug-packed-apps --enable-logging --v=1.
 
-                                -?, -h, --help
-                                   Show this usage information dialog box.
-                                """;
+                    -?, -h, --help
+                       Show this usage information dialog box.
+                    """;
 
                 MessageBox.Show(usage, $"{CURRENT_ASSEMBLY.Name} usage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
@@ -211,7 +211,7 @@ public static class VivaldiLauncher {
                 applyTweak(new CustomFeedScriptTweak(httpClient.Value), new BaseTweakParams(files.customFeedScript))
             );
         } catch (AggregateException e) {
-            if (e.InnerExceptions.Where(exception => exception is TweakException).Cast<TweakException>().FirstOrDefault() is { } tweakException) {
+            if (e.InnerExceptions.OfType<TweakException>().FirstOrDefault() is {} tweakException) {
                 throw tweakException;
             } else {
                 throw e.InnerException!;

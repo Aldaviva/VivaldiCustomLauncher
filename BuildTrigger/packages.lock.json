@@ -1,40 +1,26 @@
 {
   "version": 1,
   "dependencies": {
-    "net8.0": {
+    "net10.0": {
       "McMaster.Extensions.CommandLineUtils": {
         "type": "Direct",
-        "requested": "[4.1.1, 5.0.0)",
-        "resolved": "4.1.1",
-        "contentHash": "zxgDY+G5yVq2q8sVB3Z275Qkxed1jC95nwAfnlSyoG4l5Nicvd4+ke1jXusEZEfyuErlAgXCKS937c13FmZWBg==",
-        "dependencies": {
-          "System.ComponentModel.Annotations": "5.0.0"
-        }
+        "requested": "[5.1.0, )",
+        "resolved": "5.1.0",
+        "contentHash": "YceiKmxdsBrlkAJpmJ2N8XkLyAH01xLsm4VLfjNp5MvtAom2wflZtEBz3CLMQret6Z7jSh3oBO1ULF1Is0tNxA=="
       },
       "Unfucked.HTTP": {
         "type": "Direct",
-        "requested": "[0.0.1-beta.24, )",
-        "resolved": "0.0.1-beta.24",
-        "contentHash": "PsAhJyNUILNzqOXp+c526TzX9sl63LO375uhRgov/x1yE7ncwFEfA74MJCSijvj1i/v3hQ90N2V3+c47LPnT8g==",
+        "requested": "[0.0.1-beta.30, )",
+        "resolved": "0.0.1-beta.30",
+        "contentHash": "fxy4YbkQuKMopnRaPdwMT3y2jDzz0okL/Ia+4yXbNKChDn2rLxS0Fe8rIIjDGBNLlfOW/zWcc9v0t7bxf3jHTw==",
         "dependencies": {
-          "System.Text.Json": "8.0.6",
-          "Unfucked": "0.0.1-beta.31"
+          "Unfucked": "0.0.1-beta.40"
         }
-      },
-      "System.ComponentModel.Annotations": {
-        "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
-      },
-      "System.Text.Json": {
-        "type": "Transitive",
-        "resolved": "8.0.6",
-        "contentHash": "BvSpVBsVN9b+Y+wONbvJOHd1HjXQf33+XiC28ZMOwRsYb42mz3Q8YHnpTSwpwJLqYCMqM+0UUVC3V+pi25XfkQ=="
       },
       "Unfucked": {
         "type": "Transitive",
-        "resolved": "0.0.1-beta.31",
-        "contentHash": "9+AWHhH2Bv6ZE8DY2Mt09tvX8nJfqolrGV/J+5x5zDOHqqX7iudNjiLnC6wguUnv26w5WL6HM+JU2jR7oABazw=="
+        "resolved": "0.0.1-beta.40",
+        "contentHash": "9V3WIbszgP5JPkbeoy3N5kA3WRqnXLXNV0Zi4X/LO0gW/uCrTar7714juleFVaE2KWPtrS5Me245PprN86Vy/A=="
       }
     }
   }

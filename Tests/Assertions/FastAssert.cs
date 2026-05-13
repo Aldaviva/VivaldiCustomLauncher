@@ -42,9 +42,9 @@ internal static class FastAssert {
             }
 
             AssertActualExpectedException newException = (AssertActualExpectedException) (
-                    e.GetType().GetConstructor(new[] { typeof(object), typeof(object) }) ??
-                    e.GetType().GetConstructor(new[] { typeof(string), typeof(string) }))!
-                .Invoke(new object?[] { expected, actual });
+                    e.GetType().GetConstructor([typeof(object), typeof(object)]) ??
+                    e.GetType().GetConstructor([typeof(string), typeof(string)]))!
+                .Invoke([expected, actual]);
 
             throw newException;
         }
@@ -77,7 +77,7 @@ internal static class FastAssert {
         int oldHaystackTrailerIndex = oldHaystack.Length - 1;
 
         // Find the first index where the strings differ
-        for (char newHaystackChar = default, oldHaystackChar = default;
+        for (char newHaystackChar = '\0', oldHaystackChar = '\0';
              newHaystackChar == oldHaystackChar && newHaystackHeaderIndex < newHaystack.Length && oldHaystackHeaderIndex < oldHaystack.Length;
              newHaystackHeaderIndex++, oldHaystackHeaderIndex++) {
             newHaystackChar = newHaystack[newHaystackHeaderIndex];
@@ -85,7 +85,7 @@ internal static class FastAssert {
         }
 
         // Find the last index where the strings differ
-        for (char newHaystackChar = default, oldHaystackChar = default;
+        for (char newHaystackChar = '\0', oldHaystackChar = '\0';
              newHaystackChar == oldHaystackChar && newHaystackHeaderIndex < newHaystackTrailerIndex && oldHaystackHeaderIndex < oldHaystackTrailerIndex;
              newHaystackTrailerIndex--, oldHaystackTrailerIndex--) {
             newHaystackChar = newHaystack[newHaystackTrailerIndex];
