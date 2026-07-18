@@ -27,6 +27,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     1. Download [`Win7AppId1.1.exe`](https://code.google.com/archive/p/win7appid/downloads).
     1. Open an elevated Command Prompt, otherwise this program may crash without administrator privileges.
     1. Get Vivaldi's AppId: `Win7AppId1.1.exe "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Vivaldi.lnk"`
+        - For machine installations, it's just `Vivaldi`, but for user installations, it has an extra suffix and looks like `Vivaldi.KXEB4OOIUI7NCCDLWSJMLEFRUU`.
     1. Set the VivaldiCustomLauncher shortcut to have the same AppId: `Win7AppId1.1.exe "%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Vivaldi.lnk" <Vivaldi's AppId>`.
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
