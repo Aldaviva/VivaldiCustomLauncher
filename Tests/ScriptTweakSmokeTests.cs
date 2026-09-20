@@ -85,4 +85,10 @@ public class ScriptTweakSmokeTests {
         fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
     }
 
+    [Fact]
+    public void accelerateDownloadButtons() {
+        string actual = bundleTweak.accelerateDownloadButtons(ORIGINAL_BUNDLE_TEXT);
+        fastAssert(() => Assert.NotEqual(ORIGINAL_BUNDLE_TEXT, actual), false, false);
+    }
+
 }
