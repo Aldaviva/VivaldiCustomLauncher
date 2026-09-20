@@ -32,6 +32,7 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 1. Grant Modify permissions for the Vivaldi installation directory to your Windows user account.
 1. Try opening a web page.
 1. Tweaks and arguments will be applied.
+1. To also tweak Vivaldi automatically during the installation of upgrades, instead of after manualling exiting and relaunching once an upgrade is done, you may also optionally enable intercepting upgrades by running `VivaldiCustomLauncher.exe --install-upgrade-interceptor`.
 
 ## What does it do?
 - Includes a [custom style sheet](https://github.com/Aldaviva/VivaldiCustomResources/blob/master/style/custom.css) in the browser chrome to clean up the UI and make it more minimal.
@@ -40,12 +41,12 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - add more keyboard shortcuts to the browser
         |Keyboard shortcut|Action|
         |---|---|
-        |`Ctrl`+`Shift`+`C`|Copy current page URL to clipboard|
-        |`Ctrl`+`Alt`+`Shift`+`V`|Paste and Go in new tab|
-        |`Ctrl`+`E`|Toggle visibility of extension buttons in toolbar|
-        |`Alt`+`H`|Hibernate all unpinned background tabs in current window|
-        |`Alt`+`Z`|Open history menu (backwards)|
-        |`Alt`+`X`|Open history menu (forwards)|
+        |<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>|Copy current page URL to clipboard|
+        |<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>|Paste and Go in new tab|
+        |<kbd>Ctrl</kbd>+<kbd>E</kbd>|Toggle visibility of extension buttons in toolbar|
+        |<kbd>Alt</kbd>+<kbd>H</kbd>|Hibernate all unpinned background tabs in current window|
+        |<kbd>Alt</kbd>+<kbd>Z</kbd>|Open history menu (backwards)|
+        |<kbd>Alt</kbd>+<kbd>X</kbd>|Open history menu (forwards)|
     - send the current tab's URL to my [fork of the KeePass WebAutoType plugin](https://github.com/Aldaviva/WebAutoType) using a localhost AJAX request so KeePass can autotype the correct username and password entry. This is done because the accessibility technique normally used by WebAutoType (MSAA) requires Web Accessibility to be turned on, which frequently makes Vivaldi 3 completely freeze for 20 seconds at a time. Even though the freeze was fixed in Vivaldi 4, the MSAA technique still only works half the time, whereas my plugin works every time.
     - [add a button to the feed preview page](https://github.com/Aldaviva/VivaldiCustomResources/blob/master/scripts/custom-feed.js) so you can subscribe to the page in [Inoreader](https://www.inoreader.com/)
 - Tweaks browser scripts to 
@@ -71,6 +72,10 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
 
 ## Options
 <dl>
+    <dt><code>--install-upgrade-interceptor</code></dt>
+    <dd><p>By default, this program tweaks Vivaldi when you manually launch VivaldiCustomLauncher. This means that after you upgrade Vivaldi, it will start untweaked, because the installer launched Vivaldi instead of you running VivaldiCustomLauncher, so you must then manually exit Vivaldi and run VivaldiCustomLauncher. This works, but is annoying because you have to exit Vivaldi which ends up launching twice per upgrade.</p>
+    <p>To improve this, you can optionally register VivaldiCustomLauncher to run automatically during Vivaldi upgrades and seamlessly tweak the new installation before it restarts, without you having to manually exit and restart Vivaldi, or take any other actions. Regardless of whether this behavior is enabled, it will still tweak Vivaldi on launch like before.</p>
+    <p>To disable this behavior, delete <code>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\update_notifier.exe</code>.</p></dd>
     <dt><code>--vivaldi-application-directory="&lt;dir&gt;"</code></dt>
     <dd>By default, this program finds the Vivaldi installation directory using the registry, but you can customize this (for example, if you have portable or multiple installations) by passing the path to the <code>Applications</code> subdirectory of the Vivaldi installation directory you want to tweak.</dd>
     <dt><code>--do-not-launch-vivaldi</code></dt>
