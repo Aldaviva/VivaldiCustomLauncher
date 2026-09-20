@@ -1,10 +1,5 @@
 #nullable enable
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-
 namespace VivaldiCustomLauncher.Tweaks;
 
 public abstract class BaseDownloadableTweak(HttpClient httpClient): BaseStreamTweak<BaseTweakParams> {

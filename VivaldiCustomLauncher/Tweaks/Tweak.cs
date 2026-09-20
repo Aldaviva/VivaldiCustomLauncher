@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Threading.Tasks;
-
 namespace VivaldiCustomLauncher.Tweaks;
 
 public interface Tweak<OutputType, in Params> where Params: TweakParams where OutputType: class {

@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Threading.Tasks;
 using VisualElementsManifest;
 using VisualElementsManifest.Data;
 

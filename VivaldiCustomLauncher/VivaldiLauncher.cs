@@ -1,27 +1,27 @@
 #nullable enable
 
 using Bom.Squad;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Win32;
 using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Common;
 using SharpCompress.Readers;
-using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Unfucked.HTTP;
+using Unfucked.Windows;
 using VivaldiCustomLauncher.Tweaks;
+using Windows.Win32.System.Threading;
 
 namespace VivaldiCustomLauncher;
 
@@ -40,87 +40,187 @@ public static class VivaldiLauncher {
 
     [STAThread]
     public static async Task<int> Main() {
-        Application.EnableVisualStyles();
-
         Application.ThreadException                += (_, args) => onUncaughtException(args.Exception);
         AppDomain.CurrentDomain.UnhandledException += (_, args) => onUncaughtException((Exception) args.ExceptionObject);
 
+        Application.EnableVisualStyles();
+        Version.PrintProgramVersionAndExitIfRequested();
         BomSquad.DefuseUtf8Bom();
 
         try {
-            return await tweakAndLaunch() ? 0 : 1;
+            return await tweakAndLaunch() ? Environment.ExitCode : 1;
         } finally {
-            if (httpClient.IsValueCreated) {
-                httpClient.Value.Dispose();
-            }
+            // ReSharper disable once MethodHasAsyncOverload - no it doesn't, HttpClient isn't async disposable
+            httpClient.TryDisposeValue();
         }
     }
 
     private static async Task<bool> tweakAndLaunch() {
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        bool      success   = true;
+        Stopwatch              stopwatch      = Stopwatch.StartNew();
+        bool                   success        = true;
+        HashSet<CachedProcess> setupProcesses = [];
+        Semaphore?             instanceLock   = null; // use Semaphore because Mutex crashes if released on a different thread than it was acquired on, which usually happens with async
 
         try {
-            CommandLine.Parser.Arguments arguments = CommandLine.Parser.parse();
-            if (arguments.help) {
-                using Process currentProcess      = Process.GetCurrentProcess();
-                string        selfProcessFilename = currentProcess.ProcessName;
-                if (!Path.HasExtension(selfProcessFilename)) {
-                    selfProcessFilename = Path.ChangeExtension(selfProcessFilename, "exe");
+            (CommandLine.Arguments arguments, CommandLineApplication<CommandLine.Arguments> argsParser) = CommandLine.parse();
+            if (argsParser.IsShowingInformation) {
+                return true;
+            }
+
+            if (arguments.installUpgradeInterceptor) {
+                try {
+                    using RegistryKey imageFileExecutionOptions = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options", true)!;
+                    using RegistryKey updateNotifierKey         = imageFileExecutionOptions.CreateSubKey("update_notifier.exe", true);
+                    using Process     currentProcess            = Process.GetCurrentProcess();
+                    updateNotifierKey.SetValue("Debugger", $"\"{currentProcess.MainModule!.FileName}\" --intercept-update-notifier");
+                    MessageBox.Show("Installed upgrade interceptor.", CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return true;
+                } catch (Exception e) when (e is SecurityException or UnauthorizedAccessException) {
+                    MessageBox.Show("Failed to write to local machine registry. Make sure to run this program elevated (as administrator).", CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return false;
+                }
+            }
+
+            GitHubClient    gitHubClient            = new(httpClient.Value);
+            ProgramUpgrader programUpgrader         = new(gitHubClient);
+            bool            isBlockingVivaldiUpdate = arguments.interceptUpdateNotifier.active;
+
+            if (isBlockingVivaldiUpdate) {
+                Process updateNotifier;
+                if (arguments.interceptUpdateNotifier.pid is {} updateNotifierPid) {
+                    Console.WriteLine("This program restarted while upgrading itself");
+                    try {
+                        updateNotifier = Process.GetProcessById(updateNotifierPid);
+                    } catch (ArgumentException) {
+                        return false;
+                    }
+                } else {
+                    Console.WriteLine("Intercepted execution of update_notifier using Image File Execution Options");
+                    // IList<string> realUpdateNotifierCommands    = Environment.GetCommandLineArgs().Skip(2).ToList();
+                    Span<char> realUpdateNotifierCommandLine = (Process.CommandLineToString(arguments.extras) + '\0').ToCharArray().AsSpan();
+                    unsafe {
+                        Console.WriteLine($"Launching real {realUpdateNotifierCommandLine.ToString()}");
+                        if (CreateProcess(arguments.extras[0], ref realUpdateNotifierCommandLine, bInheritHandles: false,
+                                dwCreationFlags: PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, lpStartupInfo: new STARTUPINFOW(), lpProcessInformation: out PROCESS_INFORMATION processInfo)) {
+                            try {
+                                updateNotifier = Process.GetProcessById((int) processInfo.dwProcessId);
+                            } catch (ArgumentException e) {
+                                MessageBox.Show($"Real update_notifier:{processInfo.dwProcessId} exited immediately (error={e.Message}, cmdline={realUpdateNotifierCommandLine.ToString()})",
+                                    CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return false;
+                            }
+                            DebugActiveProcessStop(processInfo.dwProcessId);
+                        } else {
+                            MessageBox.Show($"0x{Marshal.GetLastWin32Error():x}: Failed to start {arguments.extras[0]} with command line {realUpdateNotifierCommandLine.ToString()}",
+                                CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return false;
+                        }
+                    }
                 }
 
-                string usage = $"""
-                    Example:
+                using (updateNotifier) {
+                    if (arguments.extras.Contains("--is-enabled") || arguments.extras.Contains("--enable") || arguments.extras.Contains("--disable") ||
+                        arguments.extras.Contains("--browser-startup")) {
+                        try {
+                            updateNotifier.EnableRaisingEvents = true; // undocumented: required to read ExitCode when process was not launched with Process.Start
+                            updateNotifier.WaitForExit();
+                        } catch (InvalidOperationException) {
+                            // updateNotifier already exited
+                        }
+                        Environment.ExitCode = updateNotifier.ExitCode;
+                        return true;
+                    } else if (!arguments.interceptUpdateNotifier.pid.HasValue && await programUpgrader.upgrade(updateNotifier.Id)) {
+                        return true;
+                    }
 
-                    {selfProcessFilename} [--vivaldi-application-directory="C:\Program Files\Vivaldi\Application"] [--do-not-launch-vivaldi] [--untweak] ["https://vivaldi.com"] [<extra>..]
+                    Stopwatch sinceUpdateNotifierExited = new();
+                    Console.WriteLine("Waiting for user to start upgrade");
+                    for (bool first = true; setupProcesses.Count == 0; first = false) {
+                        if (updateNotifier.HasExited) {
+                            sinceUpdateNotifierExited.Start();
+                            if (sinceUpdateNotifierExited.Elapsed > TimeSpan.FromSeconds(20)) {
+                                return true;
+                            }
+                        }
+                        if (!first) {
+                            await Task.Delay(2000);
+                        }
+                        populateSetups();
+                    }
 
-                    Parameters:
+                    Console.WriteLine("update_notifier launched setup");
+                    instanceLock = new Semaphore(1, 1, CURRENT_ASSEMBLY.Name);
+                    if (!instanceLock.WaitOne(0)) {
+                        Console.WriteLine("Another instance of VivaldiCustomLauncher is already intercepting setup, exiting");
+                        instanceLock.Dispose();
+                        instanceLock = null;
+                        return true;
+                    }
 
-                    --vivaldi-application-directory="dir"
-                       The absolute path of the Application directory inside
-                       Vivaldi's installation directory. If dir contains a space, make
-                       sure to surround it with double quotation marks. If omitted,
-                       it will be detected automatically from the registry.
+                    using RegistryKey vivaldiUninstallKey       = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Vivaldi", false)!;
+                    string            oldVersion                = getInstalledVersionFromRegistry();
+                    string            newVersion                = oldVersion;
+                    TimeSpan          versionCheckInterval      = TimeSpan.FromMilliseconds(25);
+                    TimeSpan          setupRepopulationInterval = TimeSpan.FromSeconds(0.5);
 
-                    --do-not-launch-vivaldi
-                       Install tweaks as needed, but do not launch Vivaldi. If
-                       omitted, Vivaldi will be launched after installing tweaks.
-                       
-                    --untweak
-                       Remove all installed tweaks. Easier than reinstalling Vivaldi 
-                       if the tweaks are causing problems.
+                    for (int versionChecks = 1; newVersion.Equals(oldVersion, StringComparison.Ordinal); versionChecks++) {
+                        await Task.Delay(versionCheckInterval);
+                        if (versionChecks % (int) (setupRepopulationInterval.TotalMilliseconds / versionCheckInterval.TotalMilliseconds) == 0) {
+                            populateSetups();
+                        }
+                        newVersion = getInstalledVersionFromRegistry();
+                    }
 
-                    url
-                       The web page that Vivaldi should load. If omitted, Vivaldi
-                       will use its configured startup behavior, or open a new tab
-                       if it was already running.
+                    Console.WriteLine("setup installed Vivaldi and is about to launch the new version");
+                    foreach (CachedProcess setup in setupProcesses) {
+                        try {
+                            setup.process.Suspended = true;
+                            Console.WriteLine("Suspended setup.exe:" + setup.pid);
+                        } catch (InvalidOperationException) {} // process already exited, continue
+                    }
+                    HashSet<CachedProcess> previousSetupProcesses = [.. setupProcesses];
+                    populateSetups();
+                    foreach (CachedProcess setup in setupProcesses.Except(previousSetupProcesses)) {
+                        try {
+                            setup.process.Suspended = true;
+                            Console.WriteLine("Suspended setup.exe:" + setup.pid);
+                        } catch (InvalidOperationException) {} // process already exited, continue
+                    }
 
-                    <extra>
-                       Any unrecognized parameters will be passed on to Vivaldi,
-                       such as --debug-packed-apps --enable-logging --v=1.
+                    void populateSetups() {
+                        foreach (Process process in Process.GetProcessesByName("setup")) {
+                            try {
+                                CachedProcess cachedProcess = new(process);
+                                if (!setupProcesses.Contains(cachedProcess) && process.MainModule?.FileVersionInfo.ProductName?.Trim() == "Vivaldi Installer") {
+                                    setupProcesses.Add(cachedProcess);
+                                } else {
+                                    process.Dispose();
+                                }
+                            } catch (Exception e) when (e is Win32Exception or InvalidOperationException) {
+                                process.Dispose(); // race condition, process probably exited already
+                            }
+                        }
+                    }
 
-                    -?, -h, --help
-                       Show this usage information dialog box.
-                    """;
-
-                MessageBox.Show(usage, $"{CURRENT_ASSEMBLY.Name} usage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return true;
+                    string getInstalledVersionFromRegistry() =>
+                        (string) vivaldiUninstallKey.GetValue("DisplayVersion", string.Empty);
+                }
             }
 
             string vivaldiApplicationDirectory = getVivaldiApplicationDirectory(arguments.vivaldiApplicationDirectory);
             string processToRun                = Path.Combine(vivaldiApplicationDirectory, "vivaldi.exe");
 
             using Process? existingVivaldiProcess = Process.GetProcessesByName("vivaldi").FirstOrDefault();
-            if (existingVivaldiProcess == null) {
-                GitHubClient  gitHub                      = new(httpClient.Value);
-                Task<bool>    isInstallationPendingTask   = new ProgramUpgrader(gitHub).upgrade();
-                Task<string?> resourcesRepoCommitHashTask = gitHub.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
+            if (existingVivaldiProcess == null || isBlockingVivaldiUpdate) {
+                Task<bool>    isInstallationPendingTask   = !isBlockingVivaldiUpdate ? programUpgrader.upgrade() : Task.FromResult(false);
+                Task<string?> resourcesRepoCommitHashTask = gitHubClient.fetchLatestCommitHash("Aldaviva", "VivaldiCustomResources");
                 (string resourceDirectory, Version browserVersion) = getResourceDirectory(Path.GetDirectoryName(processToRun)!);
                 string                 tweakManifestAbsolutePath = Path.GetFullPath(Path.Combine(resourceDirectory, @"..\..\..\..", CURRENT_ASSEMBLY.Name + "-manifest.json"));
                 Task<VersionManifest?> versionManifestTask       = readVersionManifest(tweakManifestAbsolutePath);
 
                 if (await isInstallationPendingTask) {
-                    Console.WriteLine("Upgrading VivaldiCustomLauncher to a new version");
+                    Console.WriteLine("Upgrading {0} to a new version", CURRENT_ASSEMBLY.Name);
                     return true;
                 }
 
@@ -129,13 +229,15 @@ public static class VivaldiLauncher {
                     Console.WriteLine($"Latest resources repo commit hash is {resourcesRepoCommitHash}");
                     TweakedFiles tweakedFiles = new(resourceDirectory);
 
-                    VersionManifest? versionManifest = await versionManifestTask;
-                    bool shouldApplyTweaks = versionManifest == null ||
-                        resourcesRepoCommitHash != versionManifest.resourcesCommitHash ||
-                        CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion ||
-                        browserVersion != versionManifest.browserVersion; // tweaks are from different launcher or resources, or the browser was updated
-                    bool wasAlreadyTweaked = shouldApplyTweaks && (versionManifest != null || File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)));
-                    bool shouldUntweak     = wasAlreadyTweaked || arguments.untweak;
+                    VersionManifest? versionManifest    = await versionManifestTask;
+                    bool             browserWasUpgraded = (versionManifest != null && browserVersion != versionManifest.browserVersion) || isBlockingVivaldiUpdate;
+                    bool shouldApplyTweaks = versionManifest == null
+                        || resourcesRepoCommitHash != versionManifest.resourcesCommitHash
+                        || CURRENT_ASSEMBLY.Version != versionManifest.launcherVersion
+                        || browserWasUpgraded; // tweaks are from different launcher or resources, or the browser was updated
+                    bool wasAlreadyTweaked = shouldApplyTweaks && !isBlockingVivaldiUpdate
+                        && (versionManifest != null || File.Exists(Path.Combine(resourceDirectory, tweakedFiles.relative.customScript)));
+                    bool shouldUntweak = (wasAlreadyTweaked && !browserWasUpgraded) || arguments.untweak;
 
                     if (shouldUntweak) {
                         // Revert existing tweaks because they are outdated, or just upgraded to first launcher version that uses manifest files
@@ -167,24 +269,39 @@ public static class VivaldiLauncher {
                 Console.WriteLine("Vivaldi is already running, not applying tweaks.");
             }
 
-            IEnumerable<string> originalArguments     = arguments.extras;
-            string              processArgumentsToRun = CommandLine.Serializer.argvToCommandLine(customizeArguments(originalArguments));
+            if (!arguments.noVivaldiLaunch && !isBlockingVivaldiUpdate) {
+                try {
+                    IEnumerable<string> originalArguments     = arguments.extras;
+                    string              processArgumentsToRun = Process.CommandLineToString(customizeArguments(originalArguments));
+                    createProcess(processToRun, processArgumentsToRun);
+                } catch (InvalidOperationException e) {
+                    MessageBox.Show(e.Message, "Failed to launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    success = false;
+                }
+            }
 
-            if (!arguments.noVivaldiLaunch) {
-                createProcess(processToRun, processArgumentsToRun);
+            foreach (CachedProcess setup in setupProcesses) {
+                try {
+                    setup.process.Suspended = false;
+                    Console.WriteLine("Resumed setup.exe:" + setup.pid);
+                } catch (Exception e) when (e is not OutOfMemoryException) {
+                    MessageBox.Show($"Failed to resume setup.exe:{setup.pid}, skipping it.\n{e.GetType().Name}: {e.Message}");
+                }
             }
 
             File.Delete(Path.Combine(vivaldiApplicationDirectory, "VivaldiCustomLauncher.manifest.json")); // old 1.3.0 file location, not used any more
 
             stopwatch.Stop();
-            // MessageBox.Show($"Started {processToRun} {processArgumentsToRun} in {stopwatch.ElapsedMilliseconds:N0} ms", "VivaldiCustomLauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-        } catch (InvalidOperationException e) {
-            MessageBox.Show(e.Message, "Failed to launch Vivaldi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            success = false;
         } catch (Exception e) when (e is not OutOfMemoryException) {
             onUncaughtException(e);
             success = false;
+        } finally {
+            foreach (CachedProcess setup in setupProcesses) {
+                setup.Dispose();
+            }
+            instanceLock?.Release();
+            instanceLock?.Dispose();
         }
 
         return success;
@@ -227,11 +344,11 @@ public static class VivaldiLauncher {
     }
 
     private static void unapplyTweaks(string vivaldiApplicationDirectory, string installerArchiveAbsolutePath, TweakedFiles files) {
-        using SevenZipArchive installerArchive = SevenZipArchive.Open(installerArchiveAbsolutePath, new ReaderOptions { DisableCheckIncomplete = true }); // takes about 1 second
+        using IArchive installerArchive = SevenZipArchive.OpenArchive(installerArchiveAbsolutePath, new ReaderOptions { DisableCheckIncomplete = true }); // takes about 1 second
 
         foreach (string fileToRestore in files.overwrittenFiles) {
-            string                filenameInArchive = "Vivaldi-bin/" + fileToRestore.Remove(0, vivaldiApplicationDirectory.Length).Replace('\\', '/').TrimStart('/');
-            SevenZipArchiveEntry? fileInArchive     = installerArchive.Entries.FirstOrDefault(entry => string.Equals(entry.Key, filenameInArchive, StringComparison.OrdinalIgnoreCase));
+            string         filenameInArchive = "Vivaldi-bin/" + fileToRestore.Remove(0, vivaldiApplicationDirectory.Length).Replace('\\', '/').TrimStart('/');
+            IArchiveEntry? fileInArchive     = installerArchive.Entries.FirstOrDefault(entry => string.Equals(entry.Key, filenameInArchive, StringComparison.OrdinalIgnoreCase));
 
             if (fileInArchive != null) {
                 Console.WriteLine($"Extracting {filenameInArchive} to {fileToRestore}");
@@ -309,6 +426,28 @@ public static class VivaldiLauncher {
         } catch (JsonException) {
             return null;
         }
+    }
+
+    /// <exception cref="InvalidOperationException"><paramref name="process"/> already exited</exception>
+    /// <exception cref="Win32Exception"><paramref name="process"/> already exited</exception>
+    private readonly record struct CachedProcess(Process process): IDisposable {
+
+        public readonly  Process  process   = process;
+        public readonly  int      pid       = process.Id;
+        private readonly DateTime startTime = process.StartTime;
+
+        public bool Equals(CachedProcess other) => pid == other.pid && startTime.Equals(other.startTime);
+
+        public override int GetHashCode() {
+            unchecked {
+                return (pid * 397) ^ startTime.GetHashCode();
+            }
+        }
+
+        public void Dispose() {
+            process.Dispose();
+        }
+
     }
 
 }

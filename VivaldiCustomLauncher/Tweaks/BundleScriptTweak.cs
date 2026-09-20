@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace VivaldiCustomLauncher.Tweaks;
 

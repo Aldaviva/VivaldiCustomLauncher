@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-
 namespace VivaldiCustomLauncher;
 
 public class VersionManifest {

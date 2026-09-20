@@ -14,28 +14,29 @@
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
@@ -56,7 +57,10 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions.cs" />
     <Compile Include="GitHubClient.cs" />
+    <Compile Include="GlobalUsings.cs" />
+    <Compile Include="PolyfillAnnotations.cs" />
     <Compile Include="ProgramUpgrader.cs" />
     <Compile Include="TweakedFiles.cs" />
     <Compile Include="Tweaks\BaseScriptTweak.cs" />
@@ -87,27 +91,42 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <AdditionalFiles Include="NativeMethods.txt" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bom.Squad">
       <Version>0.3.0</Version>
     </PackageReference>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task">
-      <Version>2.0.44.2</Version>
+      <Version>2.0.46</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils">
       <Version>5.1.0</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Windows.CsWin32">
+      <Version>0.3.333</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="SharpCompress">
-      <Version>0.40.0</Version>
+      <Version>0.50.4</Version>
     </PackageReference>
     <PackageReference Include="System.Memory">
       <Version>4.6.3</Version>
     </PackageReference>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
+      <Version>6.1.2</Version>
+    </PackageReference>
+    <PackageReference Include="Unfucked">
+      <Version>0.0.1-beta.52</Version>
+    </PackageReference>
     <PackageReference Include="Unfucked.HTTP">
-      <Version>0.0.1-beta.30</Version>
+      <Version>0.0.1-beta.33</Version>
+    </PackageReference>
+    <PackageReference Include="Unfucked.Windows">
+      <Version>0.0.1-beta.12</Version>
     </PackageReference>
     <PackageReference Include="VisualElementsManifest.xml">
       <Version>0.0.0</Version>

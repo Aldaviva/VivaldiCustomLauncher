@@ -1,8 +1,5 @@
 #nullable enable
 
-using System.IO;
-using System.Threading.Tasks;
-
 namespace VivaldiCustomLauncher.Tweaks;
 
 public abstract class BaseStreamTweak<T>: Tweak<Stream, T> where T: BaseTweakParams {

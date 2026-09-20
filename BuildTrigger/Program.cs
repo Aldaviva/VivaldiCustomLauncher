@@ -35,7 +35,7 @@ public class Program(string? gitHubAccessToken, bool isDryRun) {
         CommandOption<bool> dryRunOption = argumentParser.Option<bool>("-n|--dry-run", "Don't actually start any builds", CommandOptionType.NoValue);
         argumentParser.Parse(args);
 
-        if (gitHubAccessTokenOption.Value() is { } gitHubAccessToken) {
+        if (gitHubAccessTokenOption.Value() is {} gitHubAccessToken) {
             await new Program(gitHubAccessToken, dryRunOption.ParsedValue).buildIfOutdated();
             return 0;
         } else {
