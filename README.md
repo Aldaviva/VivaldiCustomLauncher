@@ -60,8 +60,8 @@ Intercept executions of [Vivaldi](https://vivaldi.com/desktop/) for Windows to a
     - hide incessant, useless status bar messages about checking mail and calendars, which are more annoying than beneficial
     - format data sizes using the widespread conventional base of 1024 instead of 1000 (1 kB = 1024 bytes, 1 MB = 1024 kB, 1 GB = 1024 MB, etc)
     - automatically show images in email messages, even if the sender is not in your address book, except for spam messages where the subject starts with "Spam: ", so you don't have to click the Load External Content button all the time
-    - add accelerator keys to buttons in the file download dialog box, so you can quickly and easily select a choice like Open with a keyboard shortcut like <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd>, instead of <kbd>Tab</kbd>, <kbd>Tab</kbd>, <kbd>Enter</kbd>, or moving the mouse pointer to the button and left clicking.
-    - reduce delay before enabling Open button in the file download dialog box from 1 second to 0.1 seconds, because it just slows you down, and I never click things I don't want to so it's not a security risk
+    - add accelerator keys to buttons in the file download dialog box, so you can quickly and easily select a choice like Open with a keyboard shortcut like <kbd>O</kbd>, instead of <kbd>Tab</kbd>, <kbd>Tab</kbd>, <kbd>Enter</kbd>, or moving the mouse pointer to the button and left clicking.
+    - remove 1 second delay before enabling Open button in the file download dialog box, because it just slows you down, the Mark of the Web will prompt you anyway if it's a dangerous file extension like `.exe`, and I never click things I don't want to so it's not a security risk
 - Copies Vivaldi's visual elements manifest XML file so that start menu tiles for this program look like Vivaldi's.
 - Automatically reapplies all of the above tweaks if needed when the browser is restarted after installing Vivaldi or an update.
 

@@ -208,8 +208,8 @@ public class BundleScriptTweak: BaseScriptTweak {
         new TweakException("Failed to find email rendering method that determines the style, bodyParts, fromAddress, shouldWarnUserReplyTo, and other properties", TWEAK_TYPE));
 
     /// <summary>
-    /// Add button accelerators to the buttons in the download dialog box that prompts the user whether they want to open or save the file, so that they can select a choice like Open easily with the keyboard (Alt+Shift+O) instead of Tab, Tab, Enter or moving the mouse pointer to the Open button and clicking. Also adds underlines to the accelerated letters in the button labels.
-    /// Reduce delay before enabling Open button from 1 second to 0.1 seconds, because it just slows me down and I never click things I don't want to, so it's not a security risk.
+    /// Add button accelerators to the buttons in the download dialog box that prompts the user whether they want to open or save the file, so that they can select a choice like Open easily with the keyboard (O) instead of Tab, Tab, Enter or moving the mouse pointer to the Open button and clicking. Also adds underlines to the accelerated letters in the button labels. The actual hotkey behavior is implemented in custom.js in VivaldiCustomResources, this tweak just gives the letters underlines and helps identify the buttons to that script.
+    /// Remove 1 second delay before enabling Open button, because it just slows me down and I never click things I don't want to, so it's not a security risk.
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string accelerateDownloadButtons(string bundleContents) {
@@ -219,14 +219,14 @@ public class BundleScriptTweak: BaseScriptTweak {
             match => {
                 matchIndex = match.Index;
                 return match.Value
-                    .Replace("(\"Save\")", "(\"S̲ave\"),accesskey:\"s\"")
-                    .Replace("(\"Save As...\")", "(\"Save A̲s...\"),accesskey:\"a\"")
-                    .Replace("(\"Open\")", "(\"O̲pen\"),accesskey:\"o\"") + CUSTOMIZED_COMMENT;
+                    .Replace("(\"Save\")", "(\"S̲ave\"),\"data-action\":\"save\"")
+                    .Replace("(\"Save As...\")", "(\"Save A̲s...\"),\"data-action\":\"saveAs\"")
+                    .Replace("(\"Open\")", "(\"O̲pen\"),\"data-action\":\"open\"") + CUSTOMIZED_COMMENT;
             },
             new TweakException("Failed to find footer element in download dialog box", TWEAK_TYPE));
 
         return replaceOrThrow(bundleWithButtonAccelerators, new Regex(@"\(""input""\)", RegexOptions.RightToLeft), _ =>
-                "(\"input\",250)" + CUSTOMIZED_COMMENT,
+                "(\"input\",0)" + CUSTOMIZED_COMMENT,
             1, matchIndex,
             new TweakException("Failed to find delay-enabled button constructor call in download dialog box", TWEAK_TYPE));
     }
