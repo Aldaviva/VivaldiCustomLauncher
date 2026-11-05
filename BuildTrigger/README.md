@@ -4,7 +4,7 @@ VivaldiCustomLauncherBuildTrigger
 Checks the latest [Vivaldi](https://vivaldi.com/desktop/) release and snapshot versions, and if either one is newer than the tested versions in [VivaldiCustomLauncher](https://github.com/Aldaviva/VivaldiCustomLauncher), then trigger the [build](https://github.com/Aldaviva/VivaldiCustomLauncher/actions/workflows/build.yml) that automatically downloads and tests against the latest version.
 
 ## Prerequisites
-- [.NET 8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) or later
+- [.NET 8 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) or later
 
 ## Usage
 ```ps1

@@ -9,8 +9,6 @@ using SharpCompress.Common;
 using SharpCompress.Readers;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -19,8 +17,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Unfucked.HTTP;
+using Unfucked.HTTP.Config;
 using Unfucked.Windows;
 using VivaldiCustomLauncher.Tweaks;
+using Windows.Win32.Foundation;
 using Windows.Win32.System.Threading;
 
 namespace VivaldiCustomLauncher;
@@ -29,14 +29,7 @@ public static class VivaldiLauncher {
 
     public static readonly AssemblyName CURRENT_ASSEMBLY = Assembly.GetExecutingAssembly().GetName();
 
-    private static Lazy<HttpClient> httpClient => new(() => new UnfuckedHttpClient(new HttpClientHandler {
-        MaxConnectionsPerServer = 24,
-        AllowAutoRedirect       = true,
-        AutomaticDecompression  = DecompressionMethods.GZip
-    }) {
-        Timeout               = TimeSpan.FromSeconds(10),
-        DefaultRequestHeaders = { UserAgent = { new ProductInfoHeaderValue(CURRENT_ASSEMBLY.Name, CURRENT_ASSEMBLY.Version.ToString()) } }
-    }, LazyThreadSafetyMode.PublicationOnly);
+    private static Lazy<HttpClient> httpClient => new(() => new UnfuckedHttpClient().Property(PropertyKey.Timeout, TimeSpan.FromSeconds(10)), LazyThreadSafetyMode.PublicationOnly);
 
     [STAThread]
     public static async Task<int> Main() {
@@ -97,25 +90,28 @@ public static class VivaldiLauncher {
                     }
                 } else {
                     Console.WriteLine("Intercepted execution of update_notifier using Image File Execution Options");
-                    // IList<string> realUpdateNotifierCommands    = Environment.GetCommandLineArgs().Skip(2).ToList();
                     Span<char> realUpdateNotifierCommandLine = (Process.CommandLineToString(arguments.extras) + '\0').ToCharArray().AsSpan();
+                    Console.WriteLine($"Launching real {realUpdateNotifierCommandLine.ToString()}");
+                    BOOL                spawnedUpdateNofifier;
+                    PROCESS_INFORMATION updateNotifierProcess;
                     unsafe {
-                        Console.WriteLine($"Launching real {realUpdateNotifierCommandLine.ToString()}");
-                        if (CreateProcess(arguments.extras[0], ref realUpdateNotifierCommandLine, bInheritHandles: false,
-                                dwCreationFlags: PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, lpStartupInfo: new STARTUPINFOW(), lpProcessInformation: out PROCESS_INFORMATION processInfo)) {
-                            try {
-                                updateNotifier = Process.GetProcessById((int) processInfo.dwProcessId);
-                            } catch (ArgumentException e) {
-                                MessageBox.Show($"Real update_notifier:{processInfo.dwProcessId} exited immediately (error={e.Message}, cmdline={realUpdateNotifierCommandLine.ToString()})",
-                                    CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return false;
-                            }
-                            DebugActiveProcessStop(processInfo.dwProcessId);
-                        } else {
-                            MessageBox.Show($"0x{Marshal.GetLastWin32Error():x}: Failed to start {arguments.extras[0]} with command line {realUpdateNotifierCommandLine.ToString()}",
+                        spawnedUpdateNofifier = CreateProcess(arguments.extras[0], ref realUpdateNotifierCommandLine, bInheritHandles: false,
+                            dwCreationFlags: PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, lpStartupInfo: new STARTUPINFOW(), lpProcessInformation: out updateNotifierProcess);
+                    }
+
+                    if (spawnedUpdateNofifier) {
+                        try {
+                            updateNotifier = Process.GetProcessById((int) updateNotifierProcess.dwProcessId);
+                        } catch (ArgumentException e) {
+                            MessageBox.Show($"Real update_notifier:{updateNotifierProcess.dwProcessId} exited immediately (error={e.Message}, cmdline={realUpdateNotifierCommandLine.ToString()})",
                                 CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
+                        DebugActiveProcessStop(updateNotifierProcess.dwProcessId);
+                    } else {
+                        MessageBox.Show($"0x{Marshal.GetLastWin32Error():x}: Failed to start {arguments.extras[0]} with command line {realUpdateNotifierCommandLine.ToString()}",
+                            CURRENT_ASSEMBLY.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
                     }
                 }
 
@@ -284,6 +280,8 @@ public static class VivaldiLauncher {
                 try {
                     setup.process.Suspended = false;
                     Console.WriteLine("Resumed setup.exe:" + setup.pid);
+                } catch (InvalidOperationException) {
+                    // process already exited, continue
                 } catch (Exception e) when (e is not OutOfMemoryException) {
                     MessageBox.Show($"Failed to resume setup.exe:{setup.pid}, skipping it.\n{e.GetType().Name}: {e.Message}");
                 }
@@ -444,9 +442,7 @@ public static class VivaldiLauncher {
             }
         }
 
-        public void Dispose() {
-            process.Dispose();
-        }
+        public void Dispose() => process.Dispose();
 
     }
 

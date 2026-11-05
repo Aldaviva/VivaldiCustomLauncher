@@ -142,7 +142,7 @@ public class BundleScriptTweakTest {
         string actual = tweak.calculateDataSizesInBase1024(ORIGINAL_BUNDLE_TEXT);
 
         const string EXPECTED =
-            @";const mh=[(0,nt.Z)(""B""),(0,nt.Z)(""kB""),(0,nt.Z)(""MB""),(0,nt.Z)(""GB""),(0,nt.Z)(""TB""),(0,nt.Z)(""PB""),(0,nt.Z)(""EB""),(0,nt.Z)(""ZB""),(0,nt.Z)(""YB"")],vh=(0,nt.Z)(""bytes"");function fh(e,t,n=!0,i=true/* Customized by Ben */){if(isNaN(e))return e?e.toString():"""";if(e<=0)return""0 ""+(n?vh:mh[0]);const s=i?1024:1e3,";
+            @";const s=1e3,o=1024,a=[(0,i.Z)(""B""),(0,i.Z)(""kB""),(0,i.Z)(""MB""),(0,i.Z)(""GB""),(0,i.Z)(""TB""),(0,i.Z)(""PB""),(0,i.Z)(""EB""),(0,i.Z)(""ZB""),(0,i.Z)(""YB"")],r=(0,i.Z)(""bytes""),l="" "";function c(e,t,n=!0,i=true/* Customized by Ben */){if(isNaN(e))return e?e.toString():"""";if(e<=0)return""0""+l+(n?r:a[0]);const c=i?o:s,";
 
         FastAssert.fastAssertSingleReplacementDiff(ORIGINAL_BUNDLE_TEXT, actual, EXPECTED);
     }

@@ -14,7 +14,7 @@ public abstract class BaseScriptTweak: Tweak<string, BaseTweakParams> {
         using FileStream file = File.Open(tweakParams.filename, FileMode.Open, FileAccess.Read);
 
         /*
-         * Buffer size: use same size as FileStream for ideal performance, per https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor?view=netframework-4.8#system-io-streamreader-ctor(system-io-stream-system-text-encoding-system-boolean-system-int32-system-boolean)
+         * Buffer size: use same size as FileStream for ideal performance, per https://learn.microsoft.com/dotnet/api/system.io.streamreader.-ctor?view=netframework-4.8#system-io-streamreader-ctor(system-io-stream-system-text-encoding-system-boolean-system-int32-system-boolean)
          */
         using StreamReader reader = new(file, Encoding.UTF8, false, 4096, false);
 

@@ -193,7 +193,7 @@ public class BundleScriptTweak: BaseScriptTweak {
     /// </summary>
     /// <exception cref="TweakException">if the tweak can't be applied</exception>
     internal virtual string calculateDataSizesInBase1024(string bundleContents) => replaceOrThrow(bundleContents, new Regex(
-            """(?<prefix>["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\).{1,156}\2\?1024:1e3\b)"""),
+            """(?<prefix>const [\w$]{1,2}=1e3,[\w$]{1,2}=1024,[\w$]{1,2}=.{1,22}?["']B["'].{1,22}?["']kB["'].{1,22}?["']MB["'].{1,22}?["']GB["'].{1,22}?["']TB["'].{1,22}?["']PB["'].{1,22}?["']EB["'].{1,22}?["']ZB["'].{1,22}?["']YB["'].{1,48}?\bfunction [\w$]{1,2}\([\w$]{1,2},[\w$]{1,2},[\w$]{1,2}=[^,]+,)(?<useBase1024Variable>[\w$]{1,2})=!1(?=\))"""),
         match => $"{match.Groups["prefix"].Value}{match.Groups["useBase1024Variable"].Value}=true{CUSTOMIZED_COMMENT}",
         new TweakException("Failed to find data size formatting function after B, kB, MB, GB, etc", TWEAK_TYPE));
 
